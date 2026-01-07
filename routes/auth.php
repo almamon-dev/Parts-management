@@ -50,7 +50,7 @@ use Illuminate\Support\Facades\Route;
 // });
 
 Route::middleware('guest')->group(function () {
-    // Login & Register
+    // Auth
     Route::get('login', [AuthController::class, 'showLogin'])->name('login');
     Route::post('login', [AuthController::class, 'login']);
     Route::get('register', [AuthController::class, 'showRegister'])->name('register');
@@ -59,14 +59,16 @@ Route::middleware('guest')->group(function () {
     // OTP
     Route::get('verify-otp', [AuthController::class, 'showVerifyOtp'])->name('otp.verify.show');
     Route::post('verify-otp', [AuthController::class, 'verifyOtp'])->name('otp.verify');
+    Route::post('otp/resend', [AuthController::class, 'resendOtp'])->name('otp.resend')->middleware('throttle:6,1');
 
-    // Forgot Password - Step 1: Send OTP
+    // Forgot Password
     Route::get('forgot-password', [AuthController::class, 'showForgotPassword'])->name('password.request');
     Route::post('forgot-password', [AuthController::class, 'sendResetOtp'])->name('password.email');
-    Route::post('/otp/resend', [AuthController::class, 'resendOtp'])->name('otp.resend')->middleware('throttle:6,1');
-    // Password Reset - Step 2: Show Reset Form (Only after OTP verify)
+
+    // Reset Password
     Route::get('reset-password/{token}', [AuthController::class, 'showResetPassword'])->name('password.reset');
     Route::post('reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
+    Route::get('password/success', [AuthController::class, 'showConfirmPassword'])->name('password.confirm');
 });
 
 Route::post('logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');

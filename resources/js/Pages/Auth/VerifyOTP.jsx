@@ -6,7 +6,6 @@ import {
     LucideMoveRight,
     LucideRefreshCcw,
 } from "lucide-react";
-import PrimaryButton from "@/Components/PrimaryButton";
 
 export default function VerifyOTP({
     email = "",
@@ -162,7 +161,7 @@ export default function VerifyOTP({
                         )}
 
                         <div className="flex flex-col items-center space-y-6">
-                            <PrimaryButton
+                            <button
                                 className="w-56 h-14 bg-[#AD0100] rounded-full flex items-center justify-center transition-transform active:scale-95 disabled:opacity-50"
                                 disabled={processing}
                             >
@@ -170,7 +169,7 @@ export default function VerifyOTP({
                                     {processing ? "Checking..." : "Verify Now"}
                                 </span>
                                 {!processing && <LucideMoveRight size={20} />}
-                            </PrimaryButton>
+                            </button>
 
                             <div className="h-10">
                                 {timer > 0 ? (

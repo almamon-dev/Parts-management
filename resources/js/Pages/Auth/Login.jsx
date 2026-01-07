@@ -1,6 +1,10 @@
-import * as React from "react";
+// React hook for managing component state
 import { useState } from "react";
+
+// Inertia helpers for page head, links, and form handling
 import { Head, Link, useForm } from "@inertiajs/react";
+
+// Icons used in the login UI
 import {
     LucideUser,
     LucideLock,
@@ -9,191 +13,164 @@ import {
     LucideMoveRight,
 } from "lucide-react";
 
-import PrimaryButton from "@/Components/PrimaryButton";
+// Reusable Input component
+import { Input } from "@/Components/ui/Input";
 
-// --- Reusable Input Component within the file (অথবা আলাদা ফাইল থেকে ইমপোর্ট করতে পারেন) ---
-const InputField = ({
-    label,
-    type,
-    icon: Icon,
-    value,
-    onChange,
-    error,
-    placeholder,
-    id,
-    children,
-}) => (
-    <div className="w-full">
-        {label && (
-            <label
-                htmlFor={id}
-                className="text-lg font-semibold mb-2 block ml-1 text-gray-100"
-            >
-                {label}
-            </label>
-        )}
-        <div className="relative">
-            {Icon && (
-                <span className="absolute inset-y-0 left-0 flex items-center pl-5 text-gray-400">
-                    <Icon size={20} />
-                </span>
-            )}
-            <input
-                id={id}
-                type={type}
-                value={value}
-                onChange={onChange}
-                placeholder={placeholder}
-                className={`block w-full bg-black/40 border ${
-                    error ? "border-red-500" : "border-white/20"
-                } text-white rounded-[12px] focus:ring-2 focus:ring-red-600 focus:border-transparent h-[64px] ${
-                    Icon ? "pl-14" : "pl-5"
-                } pr-14 text-lg transition-all outline-none`}
-            />
-            {children}
-        </div>
-        {error && <p className="text-red-500 text-sm mt-2 ml-1">{error}</p>}
-    </div>
-);
-
-export default function Login({ status, canResetPassword }) {
+export default function Login() {
+    // Toggle password visibility state
     const [showPassword, setShowPassword] = useState(false);
 
-    const { data, setData, post, processing, errors, reset } = useForm({
-        email: "",
-        password: "",
-        remember: false,
-    });
+    // Inertia form state & helpers
+    const { data, setData, post, processing, errors, reset, clearErrors } =
+        useForm({
+            email: "",
+            password: "",
+            remember: false,
+        });
 
+    // LIVE VALIDATION HANDLER
+    // Updates field value and clears error when user types
+    const handleChange = (field, value) => {
+        setData(field, value);
+
+        if (errors[field]) {
+            clearErrors(field);
+        }
+    };
+
+    // Form submit handler
     const submit = (e) => {
         e.preventDefault();
+
+        // Send login request
         post(route("login"), {
+            // Clear password field after submit
             onFinish: () => reset("password"),
         });
     };
 
     return (
+        // Full screen background container
         <div
-            className="min-h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat relative font-sans"
+            className="min-h-screen flex items-center justify-center bg-cover bg-center relative font-sans"
             style={{ backgroundImage: "url('/img/login-bg.jpg')" }}
         >
-            {/* Dark Overlay */}
-            <div className="absolute inset-0 bg-black/60"></div>
+            {/* Dark overlay */}
+            <div className="absolute inset-0 bg-black/60" />
 
+            {/* Page title */}
             <Head title="Log in" />
 
-            {/* Login Card */}
-            <div className="relative z-10 w-full max-w-[712px] min-h-[733px] mx-4 text-center text-white bg-white/10 backdrop-blur-2xl border border-white/20 shadow-2xl rounded-[48px] p-8 md:p-[64px] flex flex-col justify-center overflow-hidden">
-                {/* Background Patterns */}
+            {/* Glassmorphism login card */}
+            <div className="relative z-10 w-full max-w-[712px] min-h-[733px] mx-4 bg-white/10 backdrop-blur-2xl border border-white/20 shadow-2xl rounded-[48px] p-8 md:p-[64px] flex flex-col justify-center text-white overflow-hidden">
+                {/* Decorative background images */}
                 <img
                     src="/img/10.png"
-                    className="absolute top-[16px] left-[22px] w-[200px] opacity-40 pointer-events-none"
+                    className="absolute top-4 left-6 w-[200px] opacity-40"
                     alt=""
                 />
                 <img
                     src="/img/11.png"
-                    className="absolute top-[16px] right-[22px] w-[200px] opacity-40 pointer-events-none"
+                    className="absolute top-4 right-6 w-[200px] opacity-40"
                     alt=""
                 />
 
-                <div className="relative w-full">
-                    {/* Header Section */}
-                    <div className="flex flex-col items-center mb-10">
-                        <img
-                            src="img/logo.png"
-                            alt="Parts Panel"
-                            className="h-16 mb-6 object-contain"
-                        />
-                        <h2 className="text-4xl font-bold tracking-tight mb-4">
-                            Welcome Back to Parts Panel
-                        </h2>
-                        <p className="text-[18px] text-gray-200 opacity-90 leading-relaxed max-w-[500px] mx-auto">
-                            Log in to access your personalized B2B car parts
-                            marketplace.
-                        </p>
-                    </div>
+                {/* Header section */}
+                <div className="text-center mb-10">
+                    <img
+                        src="/img/logo.png"
+                        className="h-16 mx-auto mb-6"
+                        alt="Logo"
+                    />
+                    <h2 className="text-4xl font-bold mb-4">
+                        Welcome Back to Parts Panel
+                    </h2>
+                    <p className="text-lg text-gray-200 max-w-[500px] mx-auto">
+                        Log in to access your personalized B2B car parts
+                        marketplace.
+                    </p>
+                </div>
 
-                    <form
-                        onSubmit={submit}
-                        className="text-left space-y-6 w-full"
-                    >
-                        {/* Email Field */}
-                        <InputField
-                            label="Username/ Email"
-                            id="email"
-                            type="email"
-                            icon={LucideUser}
-                            placeholder="johndoe_123"
-                            value={data.email}
-                            error={errors.email}
-                            onChange={(e) => setData("email", e.target.value)}
-                        />
+                {/* Login form */}
+                <form onSubmit={submit} className="space-y-6">
+                    {/* Email / Username input */}
+                    <Input
+                        label="Username / Email"
+                        icon={LucideUser}
+                        value={data.email}
+                        error={errors.email}
+                        placeholder="johndoe_123"
+                        onChange={(e) => handleChange("email", e.target.value)}
+                    />
 
-                        {/* Password Field */}
-                        <InputField
+                    {/* Password input with visibility toggle */}
+                    <div className="relative">
+                        <Input
                             label="Password*"
-                            id="password"
                             type={showPassword ? "text" : "password"}
                             icon={LucideLock}
-                            placeholder="********"
                             value={data.password}
                             error={errors.password}
+                            placeholder="********"
                             onChange={(e) =>
-                                setData("password", e.target.value)
+                                handleChange("password", e.target.value)
                             }
+                            className="pr-14"
+                        />
+
+                        {/* Show / Hide password button */}
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-5 top-[52px] text-gray-400 hover:text-white"
                         >
-                            {/* Toggle Password Button */}
-                            <button
-                                type="button"
-                                onClick={() => setShowPassword(!showPassword)}
-                                className="absolute inset-y-0 right-0 flex items-center pr-5 text-gray-400 hover:text-white"
-                            >
-                                {showPassword ? (
-                                    <LucideEye size={20} />
-                                ) : (
-                                    <LucideEyeOff size={20} />
-                                )}
-                            </button>
-                        </InputField>
+                            {showPassword ? (
+                                <LucideEye size={20} />
+                            ) : (
+                                <LucideEyeOff size={20} />
+                            )}
+                        </button>
+                    </div>
 
-                        {/* Forgot Password Link */}
-                        <div className="flex justify-end mt-2">
+                    {/* Forgot password link */}
+                    <div className="flex justify-end">
+                        <Link
+                            href={route("password.request")}
+                            className="text-gray-300 hover:text-white"
+                        >
+                            Forgot Password?
+                        </Link>
+                    </div>
+
+                    {/* Submit button & register link */}
+                    <div className="flex flex-col items-center pt-6">
+                        <button
+                            type="submit"
+                            disabled={processing}
+                            className="group w-[240px] h-[64px] bg-[#AD0100] hover:bg-red-700 rounded-full flex items-center justify-center shadow-xl transition"
+                        >
+                            <span className="text-[22px] font-bold mr-3">
+                                Login
+                            </span>
+                            <span className="bg-white/20 p-3 rounded-full group-hover:bg-white/30">
+                                <LucideMoveRight size={24} />
+                            </span>
+                        </button>
+
+                        {/* Sign up link */}
+                        <p className="mt-10">
+                            <span className="text-gray-200">
+                                Didn't have an account?{" "}
+                            </span>
                             <Link
-                                href={route("password.request")}
-                                className="text-[16px] text-gray-300 hover:text-white transition-colors"
+                                href={route("register")}
+                                className="text-black font-bold hover:underline"
                             >
-                                Forgot Password?
+                                Sign up
                             </Link>
-                        </div>
-
-                        {/* Login Button */}
-                        <div className="flex flex-col items-center pt-6">
-                            <PrimaryButton
-                                className="group w-[240px] h-[64px] bg-[#AD0100] hover:bg-red-700 text-white rounded-[100px] flex items-center justify-center transition-all shadow-xl border-none"
-                                disabled={processing}
-                            >
-                                <span className="text-[22px] font-bold mr-3">
-                                    Login
-                                </span>
-                                <div className="bg-white/20 rounded-full p-2 group-hover:bg-white/30 transition-colors">
-                                    <LucideMoveRight size={24} />
-                                </div>
-                            </PrimaryButton>
-
-                            <p className="mt-10">
-                                <span className="text-gray-200">
-                                    Didn't have an account?{" "}
-                                </span>
-                                <Link
-                                    href={route("register")}
-                                    className="text-white font-bold hover:underline underline-offset-4"
-                                >
-                                    Sign up
-                                </Link>
-                            </p>
-                        </div>
-                    </form>
-                </div>
+                        </p>
+                    </div>
+                </form>
             </div>
         </div>
     );

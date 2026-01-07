@@ -12,10 +12,10 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     protected $fillable = [
-        'first_name', 'last_name', 'email', 'password', 'position', 'phone_number',
+        'username', 'user_type', 'first_name', 'last_name', 'email', 'password', 'position', 'phone_number',
         'profile_photo', 'company_name', 'address', 'company_phone', 'account_type',
         'store_hours', 'marketing_emails', 'order_confirmation',
-        'order_cancellation', 'monthly_statement', 'is_verified', 'email_verified_at',
+        'order_cancellation', 'monthly_statement', 'is_verified', 'email_verified_at', 'reset_password_token', 'reset_password_token_expire_at',
     ];
 
     protected $casts = [
@@ -32,6 +32,19 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
+
+    // generate username from first name and last name an  id
+    protected static function booted()
+    {
+        static::created(function ($user) {
+            $firstName = strtolower(str_replace(' ', '', $user->first_name));
+            $lastName = strtolower(str_replace(' ', '', $user->last_name));
+            $id = str_pad($user->id, 3, '0', STR_PAD_LEFT);
+
+            $user->username = "{$firstName}.{$lastName}.{$id}";
+            $user->save();
+        });
+    }
 
     /**
      * Get the OTPs for the user.

@@ -12,46 +12,53 @@ import {
     LucideMoveRight,
     LucideEye,
     LucideEyeOff,
-    User, // Default icon er jonno
+    User,
 } from "lucide-react";
-
 import { Input } from "@/Components/ui/Input";
-import PrimaryButton from "@/Components/PrimaryButton";
 
 export default function Register() {
     const [showPassword, setShowPassword] = useState(false);
     const [photoPreview, setPhotoPreview] = useState(null);
 
-    const { data, setData, post, processing, errors, reset } = useForm({
-        first_name: "",
-        last_name: "",
-        email: "",
-        password: "",
-        password_confirmation: "",
-        position: "",
-        phone_number: "",
-        company_name: "",
-        address: "",
-        company_phone: "",
-        account_type: "",
-        profile_photo: null,
-        // Store Hours
-        store_start_day: "Monday",
-        store_end_day: "Friday",
-        store_open_time: "09.00 AM",
-        store_close_time: "05.00 PM",
-        // Preferences
-        marketing_emails: false,
-        order_confirmation: true,
-        order_cancellation: true,
-        monthly_statement: true,
-    });
+    // Added clearErrors to the destructuring
+    const { data, setData, post, processing, errors, reset, clearErrors } =
+        useForm({
+            first_name: "",
+            last_name: "",
+            email: "",
+            password: "",
+            password_confirmation: "",
+            position: "",
+            phone_number: "",
+            company_name: "",
+            address: "",
+            company_phone: "",
+            account_type: "",
+            profile_photo: null,
+            store_start_day: "Monday",
+            store_end_day: "Friday",
+            store_open_time: "09.00 AM",
+            store_close_time: "05.00 PM",
+            marketing_emails: 0,
+            order_confirmation: 1,
+            order_cancellation: 1,
+            monthly_statement: 1,
+        });
+
+    // Handle standard text input changes and clear errors live
+    const handleChange = (field, value) => {
+        setData(field, value);
+        if (errors[field]) {
+            clearErrors(field);
+        }
+    };
 
     const handlePhotoChange = (e) => {
         const file = e.target.files[0];
         if (file) {
             setData("profile_photo", file);
             setPhotoPreview(URL.createObjectURL(file));
+            if (errors.profile_photo) clearErrors("profile_photo");
         }
     };
 
@@ -95,7 +102,6 @@ export default function Register() {
             <Head title="Sign up" />
 
             <div className="relative z-10 w-full max-w-[712px] mx-4 text-white bg-white/10 backdrop-blur-2xl border border-white/20 shadow-2xl rounded-[48px] p-8 md:p-[64px] overflow-hidden">
-                {/* Background Images */}
                 <img
                     src="/img/10.png"
                     className="absolute top-[16px] left-[22px] w-[200px] opacity-40 pointer-events-none"
@@ -108,19 +114,21 @@ export default function Register() {
                 />
 
                 <div className="relative w-full">
-                    <div className="flex flex-col items-center mb-10 text-center">
+                    <div className="text-center mb-10">
                         <img
-                            src="img/logo.png"
+                            src="/img/logo.png"
+                            className="h-16 mx-auto mb-6"
                             alt="Logo"
-                            className="h-16 mb-6 object-contain"
                         />
-                        <h2 className="text-4xl font-bold tracking-tight mb-4 text-white">
-                            Sign up
-                        </h2>
+                        <h2 className="text-4xl font-bold mb-4">Sign up</h2>
+                        <p className="text-lg text-gray-200 max-w-[500px] mx-auto">
+                            Sign up to access your personalized B2B car parts
+                            marketplace.
+                        </p>
                     </div>
 
                     <form onSubmit={submit} className="space-y-10">
-                        {/* --- Personal Information --- */}
+                        {/* Personal Information */}
                         <div className="space-y-6">
                             <h3 className="text-xl font-bold border-b border-white/10 pb-2 text-left">
                                 Personal Information
@@ -132,7 +140,10 @@ export default function Register() {
                                     value={data.first_name}
                                     error={errors.first_name}
                                     onChange={(e) =>
-                                        setData("first_name", e.target.value)
+                                        handleChange(
+                                            "first_name",
+                                            e.target.value
+                                        )
                                     }
                                 />
                                 <Input
@@ -141,7 +152,10 @@ export default function Register() {
                                     value={data.last_name}
                                     error={errors.last_name}
                                     onChange={(e) =>
-                                        setData("last_name", e.target.value)
+                                        handleChange(
+                                            "last_name",
+                                            e.target.value
+                                        )
                                     }
                                 />
                             </div>
@@ -153,7 +167,7 @@ export default function Register() {
                                 value={data.email}
                                 error={errors.email}
                                 onChange={(e) =>
-                                    setData("email", e.target.value)
+                                    handleChange("email", e.target.value)
                                 }
                             />
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 relative">
@@ -165,7 +179,7 @@ export default function Register() {
                                     value={data.password}
                                     error={errors.password}
                                     onChange={(e) =>
-                                        setData("password", e.target.value)
+                                        handleChange("password", e.target.value)
                                     }
                                 />
                                 <div className="relative">
@@ -179,7 +193,7 @@ export default function Register() {
                                         value={data.password_confirmation}
                                         error={errors.password_confirmation}
                                         onChange={(e) =>
-                                            setData(
+                                            handleChange(
                                                 "password_confirmation",
                                                 e.target.value
                                             )
@@ -202,20 +216,18 @@ export default function Register() {
                             </div>
                         </div>
 
-                        {/* --- User Profile Setup --- */}
+                        {/* User Profile Setup */}
                         <div className="space-y-6 flex flex-col items-center">
                             <h3 className="text-xl font-bold w-full border-b border-white/10 pb-2 text-left">
                                 User Profile Setup
                             </h3>
-
-                            {/* Profile Image Preview logic starts here */}
                             <div className="relative">
                                 <div className="w-32 h-32 rounded-full border-2 border-white/30 overflow-hidden bg-black/40 flex items-center justify-center">
                                     {photoPreview ? (
                                         <img
                                             src={photoPreview}
                                             className="w-full h-full object-cover"
-                                            alt="Profile Preview"
+                                            alt="Profile"
                                         />
                                     ) : (
                                         <User
@@ -239,16 +251,15 @@ export default function Register() {
                                     {errors.profile_photo}
                                 </p>
                             )}
-
                             <div className="w-full space-y-4">
                                 <Input
                                     icon={LucideBriefcase}
                                     label="Position"
-                                    placeholder="Position (eg. Manager)"
+                                    placeholder="Manager"
                                     value={data.position}
                                     error={errors.position}
                                     onChange={(e) =>
-                                        setData("position", e.target.value)
+                                        handleChange("position", e.target.value)
                                     }
                                 />
                                 <Input
@@ -258,13 +269,16 @@ export default function Register() {
                                     value={data.phone_number}
                                     error={errors.phone_number}
                                     onChange={(e) =>
-                                        setData("phone_number", e.target.value)
+                                        handleChange(
+                                            "phone_number",
+                                            e.target.value
+                                        )
                                     }
                                 />
                             </div>
                         </div>
 
-                        {/* --- Company Information --- */}
+                        {/* Company Information */}
                         <div className="space-y-4 text-left">
                             <h3 className="text-xl font-bold border-b border-white/10 pb-2">
                                 Company Information
@@ -272,34 +286,36 @@ export default function Register() {
                             <Input
                                 icon={LucideBuilding}
                                 label="Company Name"
-                                placeholder="Enter company name"
+                                placeholder="Company Name"
                                 value={data.company_name}
                                 error={errors.company_name}
                                 onChange={(e) =>
-                                    setData("company_name", e.target.value)
+                                    handleChange("company_name", e.target.value)
                                 }
                             />
                             <Input
                                 icon={LucideMapPin}
                                 label="Address"
-                                placeholder="Enter company location"
+                                placeholder="Location"
                                 value={data.address}
                                 error={errors.address}
                                 onChange={(e) =>
-                                    setData("address", e.target.value)
+                                    handleChange("address", e.target.value)
                                 }
                             />
                             <Input
                                 icon={LucidePhone}
                                 label="Company Phone"
-                                placeholder="eg. 888-5555-6666"
+                                placeholder="888-5555-6666"
                                 value={data.company_phone}
                                 error={errors.company_phone}
                                 onChange={(e) =>
-                                    setData("company_phone", e.target.value)
+                                    handleChange(
+                                        "company_phone",
+                                        e.target.value
+                                    )
                                 }
                             />
-
                             <div className="space-y-2">
                                 <label className="text-sm font-semibold text-gray-100 ml-1">
                                     Account type
@@ -308,7 +324,10 @@ export default function Register() {
                                     className="w-full bg-black/40 border border-white/20 text-gray-300 rounded-[12px] h-[64px] px-5 outline-none focus:ring-2 focus:ring-red-600 appearance-none"
                                     value={data.account_type}
                                     onChange={(e) =>
-                                        setData("account_type", e.target.value)
+                                        handleChange(
+                                            "account_type",
+                                            e.target.value
+                                        )
                                     }
                                 >
                                     <option value="" className="bg-zinc-900">
@@ -332,7 +351,7 @@ export default function Register() {
                             </div>
                         </div>
 
-                        {/* --- Store Hours --- */}
+                        {/* Store Hours */}
                         <div className="space-y-4 text-left">
                             <h3 className="text-xl font-bold border-b border-white/10 pb-2">
                                 Store hours
@@ -342,34 +361,34 @@ export default function Register() {
                                     value={data.store_start_day}
                                     options={days}
                                     onChange={(val) =>
-                                        setData("store_start_day", val)
+                                        handleChange("store_start_day", val)
                                     }
                                 />
                                 <CustomSelect
                                     value={data.store_end_day}
                                     options={days}
                                     onChange={(val) =>
-                                        setData("store_end_day", val)
+                                        handleChange("store_end_day", val)
                                     }
                                 />
                                 <CustomSelect
                                     value={data.store_open_time}
                                     options={times}
                                     onChange={(val) =>
-                                        setData("store_open_time", val)
+                                        handleChange("store_open_time", val)
                                     }
                                 />
                                 <CustomSelect
                                     value={data.store_close_time}
                                     options={times}
                                     onChange={(val) =>
-                                        setData("store_close_time", val)
+                                        handleChange("store_close_time", val)
                                     }
                                 />
                             </div>
                         </div>
 
-                        {/* --- Preferences --- */}
+                        {/* Preferences */}
                         <div className="space-y-6 text-left">
                             <h3 className="text-xl font-bold border-b border-white/10 pb-2">
                                 Preferences
@@ -399,33 +418,67 @@ export default function Register() {
                                     <ToggleSwitch
                                         key={item.id}
                                         label={item.label}
-                                        active={data[item.id]}
+                                        active={!!data[item.id]}
                                         onClick={() =>
-                                            setData(item.id, !data[item.id])
+                                            handleChange(
+                                                item.id,
+                                                data[item.id] ? 0 : 1
+                                            )
                                         }
                                     />
                                 ))}
                             </div>
                         </div>
 
-                        {/* Submit Button */}
+                        {/* Submit */}
                         <div className="flex flex-col items-center pt-8">
-                            <PrimaryButton
-                                className="group w-[240px] h-[64px] bg-[#AD0100] hover:bg-red-700 text-white rounded-[100px] flex items-center justify-center transition-all shadow-xl"
+                            <button
+                                type="submit"
                                 disabled={processing}
+                                className="group w-[240px] h-[64px] bg-[#AD0100] hover:bg-red-700 text-white rounded-[100px] flex items-center justify-center transition-all shadow-xl border-none disabled:opacity-70 disabled:cursor-not-allowed"
                             >
-                                <span className="text-[22px] font-bold mr-3">
-                                    Sign up
-                                </span>
-                                <div className="bg-white/20 rounded-full p-2 group-hover:bg-white/30 transition-colors">
-                                    <LucideMoveRight size={24} />
-                                </div>
-                            </PrimaryButton>
+                                {processing ? (
+                                    <div className="flex items-center">
+                                        <svg
+                                            className="animate-spin h-6 w-6 text-white mr-3"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <circle
+                                                className="opacity-25"
+                                                cx="12"
+                                                cy="12"
+                                                r="10"
+                                                stroke="currentColor"
+                                                strokeWidth="4"
+                                            ></circle>
+                                            <path
+                                                className="opacity-75"
+                                                fill="currentColor"
+                                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                            ></path>
+                                        </svg>
+                                        <span className="text-[20px] font-bold">
+                                            Registering...
+                                        </span>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <span className="text-[22px] font-bold mr-3">
+                                            Sign up
+                                        </span>
+                                        <div className="bg-white/20 rounded-full p-3 group-hover:bg-white/30 transition-colors">
+                                            <LucideMoveRight size={24} />
+                                        </div>
+                                    </>
+                                )}
+                            </button>
                             <p className="mt-10 text-gray-200">
                                 Already have an account?{" "}
                                 <Link
                                     href={route("login")}
-                                    className="text-white font-bold hover:underline"
+                                    className="text-black font-bold hover:underline"
                                 >
                                     Login
                                 </Link>
@@ -438,7 +491,6 @@ export default function Register() {
     );
 }
 
-// Sub-components remains the same...
 const CustomSelect = ({ value, options, onChange }) => (
     <div className="relative">
         <select

@@ -1,9 +1,7 @@
 import * as React from "react";
 import { Head, useForm, Link } from "@inertiajs/react";
 import { LucideMail, LucideMoveRight, LucideArrowLeft } from "lucide-react";
-import PrimaryButton from "@/Components/PrimaryButton";
 
-// রিইউজেবল ইনপুট কম্পোনেন্ট (লগইন পেজের মতো)
 const InputField = ({
     label,
     type,
@@ -134,7 +132,7 @@ export default function ForgotPassword({ status }) {
 
                         {/* Submit Button */}
                         <div className="flex flex-col items-center pt-4">
-                            <PrimaryButton
+                            <button
                                 className="group w-[300px] h-[64px] bg-[#AD0100] hover:bg-red-700 text-white rounded-[100px] flex items-center justify-center transition-all shadow-xl border-none"
                                 disabled={processing}
                             >
@@ -144,7 +142,7 @@ export default function ForgotPassword({ status }) {
                                 <div className="bg-white/20 rounded-full p-2 group-hover:bg-white/30 transition-colors">
                                     <LucideMoveRight size={24} />
                                 </div>
-                            </PrimaryButton>
+                            </button>
 
                             <p className="mt-10 text-[16px]">
                                 <span className="text-gray-200">

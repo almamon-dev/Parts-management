@@ -22,6 +22,7 @@ class RegisterRequest extends FormRequest
 
         return [
             // Personal Information
+            'username' => ['nullable', 'string', 'max:255'],
             'first_name' => ['required', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
 

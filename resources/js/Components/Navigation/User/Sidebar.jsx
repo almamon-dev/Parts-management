@@ -108,7 +108,7 @@ export default function Sidebar({ isCollapsed }) {
                                             : "gap-3 pl-8 pr-5"
                                     }
                                     py-3.5
-                                    rounded-[20px]
+                                    rounded-[18px]
                                     ${
                                         active
                                             ? "bg-[#fceceb] text-[#a80000] font-semibold border-l-[6px] border-[#a80000] shadow-sm"

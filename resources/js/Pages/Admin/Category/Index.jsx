@@ -2,10 +2,10 @@ import React from "react";
 import AdminLayout from "@/Layouts/AdminLayout";
 import { Head, Link } from "@inertiajs/react";
 import Pagination from "@/Components/Pagination";
-import { Skeleton } from "@/Components/ui/admin/skeleton";
+import { Skeleton } from "@/Components/ui/skeleton";
 import { TableManager } from "@/Hooks/TableManager";
 import { Search, Plus, Trash2, Pencil, X } from "lucide-react";
-import ConfirmDelete from "@/Components/ui/admin/ConfirmDelete";
+import ConfirmDelete from "@/Components/ui/ConfirmDelete";
 import ConfirmBulkDelete from "@/Components/ui/admin/ConfirmBulkDelete";
 
 export default function Index({ category }) {

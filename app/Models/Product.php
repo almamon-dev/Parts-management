@@ -42,4 +42,9 @@ class Product extends Model
     {
         return $this->hasMany(PartsNumber::class, 'product_id');
     }
+
+    public function favourites()
+    {
+        return $this->hasMany(Favourite::class);
+    }
 }

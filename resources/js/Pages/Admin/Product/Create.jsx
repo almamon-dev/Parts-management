@@ -96,7 +96,7 @@ export default function Create({ categories, subCategories }) {
                     <div className="lg:col-span-8 space-y-6">
                         {/* Description Section */}
                         <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm">
-                            <h3 className="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2 pb-3 border-b">
+                            <h3 className="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
                                 <Info size={18} className="text-orange-500" />
                                 Product Description
                             </h3>

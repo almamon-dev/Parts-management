@@ -6,6 +6,7 @@ use App\Exports\ProductsExport;
 use App\Helpers\Helper;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ProductStoreRequest;
+use App\Http\Requests\Admin\ProductUpdateRequest;
 use App\Models\Category;
 use App\Models\PartsNumber;
 use App\Models\Product;
@@ -21,46 +22,53 @@ class IndexController extends Controller
 {
     public function index(Request $request)
     {
-        $products = Product::query()
-            ->with([
-                'category:id,name',
-                'subCategory:id,name',
-                'partsNumbers',
-                'files',
-                'fitments',
-            ])
-            // Advanced Search Filter
+        $query = Product::query();
+        // Calculate Counts for Tabs
+        $counts = [
+            'all' => Product::count(),
+            'published' => Product::where('visibility', 'public')->count(),
+            'draft' => Product::where('visibility', 'draft')->count(),
+            'private' => Product::where('visibility', 'private')->count(),
+            'no_image' => Product::whereDoesntHave('files')->count(),
+        ];
+
+        $products = $query->with(['category:id,name', 'subCategory:id,name', 'partsNumbers', 'files', 'fitments'])
+            // Status Tabs Filter
+            ->when($request->status, function ($q, $status) {
+                if ($status === 'published') {
+                    $q->where('visibility', 'public');
+                }
+                if ($status === 'draft') {
+                    $q->where('visibility', 'draft');
+                }
+                if ($status === 'private') {
+                    $q->where('visibility', 'private');
+                }
+                if ($status === 'no_image') {
+                    $q->whereDoesntHave('files');
+                }
+            })
+            // Advanced Search
             ->when($request->search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
-                    // Search in SKU or Description (Keyword)
                     $q->where('description', 'like', "%{$search}%")
                         ->orWhere('sku', 'like', "%{$search}%")
-                      // Search in related Part Numbers or Partslink
-                        ->orWhereHas('partsNumbers', function ($partQuery) use ($search) {
-                            $partQuery->where('number', 'like', "%{$search}%");
-                        });
+                        ->orWhereHas('partsNumbers', fn ($pq) => $pq->where('part_number', 'like', "%{$search}%"));
                 });
             })
-            // Category and Sub-category filters (Name based)
-            ->when($request->category, function ($query, $categoryName) {
-                $query->whereHas('category', function ($q) use ($categoryName) {
-                    $q->where('name', $categoryName);
-                });
-            })
-            ->when($request->sub_category, function ($query, $subCategoryName) {
-                $query->whereHas('subCategory', function ($q) use ($subCategoryName) {
-                    $q->where('name', $subCategoryName);
-                });
-            })
+            // Category/Sub-category filters
+            ->when($request->category, fn ($q, $cat) => $q->whereHas('category', fn ($c) => $c->where('name', $cat)))
+            ->when($request->sub_category, fn ($q, $sub) => $q->whereHas('subCategory', fn ($s) => $s->where('name', $sub)))
             ->latest()
             ->paginate($request->per_page ?? 10)
             ->withQueryString();
 
         return Inertia::render('Admin/Product/Index', [
             'products' => $products,
+            'counts' => $counts,
             'categories' => Category::all(['id', 'name']),
             'subCategories' => SubCategory::all(['id', 'name', 'category_id']),
-            'filters' => $request->only(['search', 'category', 'sub_category', 'per_page']),
+            'filters' => $request->all(),
         ]);
     }
 
@@ -155,6 +163,108 @@ class IndexController extends Controller
 
             return back()->withErrors(['error' => 'Failed to create product. Please try again.'])
                 ->withInput();
+        }
+    }
+
+    // end
+    public function edit(Product $product)
+    {
+        $product->load(['partsNumbers', 'fitments', 'files']);
+
+        return Inertia::render('Admin/Product/Edit', [
+            'product' => [
+                'id' => $product->id,
+                'description' => $product->description,
+                'buy_price' => $product->buy_price,
+                'list_price' => $product->list_price,
+                'sku' => $product->sku,
+                'location_id' => $product->location_id,
+                'visibility' => $product->visibility,
+                'category_id' => $product->category_id,
+                'sub_category_id' => $product->sub_category_id,
+                'stock_oakville' => $product->stock_oakville,
+                'stock_mississauga' => $product->stock_mississauga,
+                'stock_saskatoon' => $product->stock_saskatoon,
+                'part_numbers' => $product->partsNumbers->pluck('part_number')->toArray(),
+                'fitments' => $product->fitments,
+                'files' => $product->files,
+            ],
+            'categories' => Category::all(['id', 'name']),
+            'subCategories' => SubCategory::all(['id', 'name', 'category_id']),
+        ]);
+    }
+
+    public function update(ProductUpdateRequest $request, Product $product)
+    {
+        DB::beginTransaction();
+        try {
+            // -- product update
+            $product->update($request->validated());
+
+            // -- delete old fitments
+            $product->fitments()->delete();
+            if ($request->fitments) {
+                foreach ($request->fitments as $fit) {
+                    if (! empty($fit['year_from'])) {
+                        $product->fitments()->create($fit);
+                    }
+                }
+            }
+
+            $product->partsNumbers()->delete();
+            if ($request->part_numbers) {
+                foreach ($request->part_numbers as $num) {
+                    if (! empty($num)) {
+                        $product->partsNumbers()->create(['part_number' => $num]);
+                    }
+                }
+            }
+
+            // -- delete old files
+            if ($request->hasFile('images')) {
+                foreach ($request->file('images') as $image) {
+                    if ($image->isValid()) {
+                        // after validation
+                        $fileName = $image->getClientOriginalName();
+                        $fileSize = $image->getSize();
+                        $fileType = $image->getClientMimeType();
+
+                        // -- file upload
+                        $path = Helper::uploadFile('products', $image);
+
+                        // -- database save
+                        $product->files()->create([
+                            'file_name' => $fileName,
+                            'file_path' => $path,
+                            'file_size' => $fileSize,
+                            'file_type' => $fileType,
+                        ]);
+                    }
+                }
+            }
+
+            DB::commit();
+
+            return redirect()->route('products.index')->with('success', 'Product updated successfully.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Update Error: '.$e->getMessage());
+
+            return back()->withErrors(['error' => 'Update failed: '.$e->getMessage()]);
+        }
+    }
+
+    // delete image
+    public function destroyFile(ProductFile $file)
+    {
+        try {
+            Helper::deleteFile($file->file_path);
+            $file->delete();
+
+            return back()->with('success', 'Image deleted successfully.');
+        } catch (\Exception $e) {
+            return back()->withErrors(['error' => 'File deletion failed: '.$e->getMessage()]);
         }
     }
 }

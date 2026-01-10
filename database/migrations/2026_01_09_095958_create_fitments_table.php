@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('fitments', function (Blueprint $table) {
             $table->id();
             $table->foreignId('product_id')->constrained()->cascadeOnDelete();
-            $table->year('year_from');
+            $table->year(column: 'year_from');
             $table->year('year_to');
             $table->string('make');
             $table->string('model');

@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import UserLayout from "@/Layouts/UserLayout";
 import { Head, usePage, router, Link } from "@inertiajs/react";
-import Pagination from "@/Components/Pagination";
 import {
     Search,
     Star,
@@ -21,7 +20,6 @@ import {
 } from "@/Components/ui/dropdown-menu";
 import { Skeleton } from "@/Components/ui/skeleton";
 
-// --- Utility for tailwind class merging ---
 const cn = (...classes) => classes.filter(Boolean).join(" ");
 
 export default function Index() {
@@ -29,65 +27,66 @@ export default function Index() {
         usePage().props;
     const [search, setSearch] = useState(filters.search || "");
     const [isLoading, setIsLoading] = useState(false);
+    const [quantities, setQuantities] = useState(
+        Object.fromEntries(products.map((p) => [p.id, 1]))
+    );
+
+    // Refs para controlar os timers e evitar vazamento de memória
+    const loadingTimer = useRef(null);
 
     const hasActiveFilters = Object.entries(filters).some(([key, value]) => {
-        if (key === "page") return false;
         return value !== null && value !== "" && value !== undefined;
     });
 
+    /**
+     * Função auxiliar para navegar garantindo 500ms de Skeleton
+     */
+    const performNavigation = (params, options = {}) => {
+        setIsLoading(true);
+        const startTime = Date.now();
+        const minDelay = 500; // Meio segundo hobe
+
+        router.get(route("parts.index"), params, {
+            ...options,
+            onFinish: () => {
+                const elapsedTime = Date.now() - startTime;
+                const remainingTime = Math.max(0, minDelay - elapsedTime);
+
+                loadingTimer.current = setTimeout(() => {
+                    setIsLoading(false);
+                    if (options.onFinish) options.onFinish();
+                }, remainingTime);
+            },
+        });
+    };
+
     const handleAddToCart = (productId) => {
         const qty = quantities[productId] || 1;
-
         router.post(
             route("parts.to-cart"),
-            {
-                product_id: productId,
-                quantity: qty,
-            },
-            {
-                preserveScroll: true,
-                onSuccess: () => {},
-                onError: (errors) => {},
-            }
+            { product_id: productId, quantity: qty },
+            { preserveScroll: true }
         );
     };
 
-    // Initial quantities load hobar somoy protiti product-er default 1 set kora
-    const [quantities, setQuantities] = useState(
-        Object.fromEntries(products.data.map((p) => [p.id, 1]))
-    );
-
-    // Quantity change korar function
     const handleQuantityChange = (id, delta) => {
         setQuantities((prev) => ({
             ...prev,
-            [id]: Math.max(1, (prev[id] || 1) + delta), // Minimum 1 thakbe
+            [id]: Math.max(1, (prev[id] || 1) + delta),
         }));
     };
 
     const applyFilter = (key, value) => {
         if (filters[key] === value) return;
-
-        setIsLoading(true);
-        const startTime = Date.now();
-
-        router.get(
-            route("parts.index"),
-            { ...filters, [key]: value, page: 1 },
-            {
-                preserveState: true,
-                preserveScroll: true,
-                replace: true,
-                onFinish: () => {
-                    const duration = Date.now() - startTime;
-                    const minWait = 800;
-                    setTimeout(
-                        () => setIsLoading(false),
-                        Math.max(0, minWait - duration)
-                    );
-                },
-            }
+        performNavigation(
+            { ...filters, [key]: value },
+            { preserveState: true, preserveScroll: true }
         );
+    };
+
+    const clearAllFilters = () => {
+        setSearch("");
+        performNavigation({}, { preserveState: false });
     };
 
     useEffect(() => {
@@ -96,21 +95,12 @@ export default function Index() {
                 applyFilter("search", search);
             }
         }, 600);
-        return () => clearTimeout(timer);
-    }, [search]);
 
-    const clearAllFilters = () => {
-        setIsLoading(true);
-        setSearch("");
-        router.get(
-            route("parts.index"),
-            {},
-            {
-                preserveState: true,
-                onFinish: () => setIsLoading(false),
-            }
-        );
-    };
+        return () => {
+            clearTimeout(timer);
+            if (loadingTimer.current) clearTimeout(loadingTimer.current);
+        };
+    }, [search]);
 
     const getSubCategoryStyles = (subCatName) => {
         const name = subCatName?.toUpperCase() || "";
@@ -131,7 +121,7 @@ export default function Index() {
             };
         return {
             badge: "bg-slate-100 text-slate-700 border-slate-200",
-            rowHover: "hover:bg-slate-50/50",
+            rowHover: "hover:bg-slate-100",
         };
     };
 
@@ -139,7 +129,7 @@ export default function Index() {
         <UserLayout user={auth.user}>
             <Head title="Parts Dashboard" />
             <div className="p-4 md:p-8 bg-[#F8F9FB] min-h-screen font-sans text-[#4B5563]">
-                {/* --- Header Filter Bar --- */}
+                {/* Filter Bar */}
                 <div className="flex flex-wrap gap-3 mb-8 items-center">
                     <div className="relative flex-1 min-w-[300px]">
                         <Search className="absolute left-4 top-3 text-red-500 w-5 h-5" />
@@ -147,8 +137,8 @@ export default function Index() {
                             type="text"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            placeholder="Search by category, description or SKU"
-                            className="w-full pl-12 pr-12 py-3 rounded-full border-none shadow-sm focus:ring-1 focus:ring-orange-400 outline-none bg-white transition-all"
+                            placeholder="Search description or SKU"
+                            className="w-full pl-12 pr-12 py-3 rounded-full border-none shadow-sm focus:ring-1 focus:ring-orange-400 bg-white transition-all"
                         />
                         {search && (
                             <button
@@ -191,7 +181,7 @@ export default function Index() {
                         },
                     ].map((f) => (
                         <DropdownMenu key={f.key}>
-                            <DropdownMenuTrigger className="bg-white px-5 py-3 rounded-full shadow-sm flex items-center gap-3 min-w-[120px] justify-between border-none outline-none hover:bg-gray-50 transition-all">
+                            <DropdownMenuTrigger className="bg-white px-5 py-3 rounded-full shadow-sm flex items-center gap-3 min-w-[120px] justify-between border-none hover:bg-gray-50 outline-none">
                                 <span className="text-sm font-semibold truncate">
                                     {filters[f.key] || f.label}
                                 </span>
@@ -219,16 +209,16 @@ export default function Index() {
                     {hasActiveFilters && (
                         <button
                             onClick={clearAllFilters}
-                            className="flex items-center gap-2 px-5 py-3 rounded-full bg-red-50 text-red-600 hover:bg-red-100 font-bold text-sm transition-all border border-red-100 shadow-sm active:scale-95"
+                            className="flex items-center gap-2 px-5 py-3 rounded-full bg-red-50 text-red-600 hover:bg-red-100 font-bold text-sm border border-red-100 shadow-sm active:scale-95"
                         >
                             <XCircle className="w-4 h-4" /> Clear
                         </button>
                     )}
                 </div>
 
-                {/* --- Parts Table Section --- */}
+                {/* Table Section */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div className="overflow-x-auto transition-all duration-300">
+                    <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className="bg-[#FFF8F8] text-[11px] uppercase tracking-wider text-gray-500 border-b">
@@ -255,50 +245,45 @@ export default function Index() {
                             </thead>
                             <tbody className="divide-y divide-gray-100">
                                 {isLoading ? (
-                                    /* DYNAMIC SKELETON ROWS */
-                                    (products.data.length > 0
-                                        ? products.data
-                                        : Array(6).fill(0)
-                                    ).map((_, index) => (
-                                        <tr
-                                            key={index}
-                                            className="animate-pulse border-b border-gray-50"
-                                        >
-                                            <td className="py-4 px-6">
-                                                <div className="flex items-center gap-4 ms-3">
-                                                    <Skeleton className="w-4 h-14 rounded" />
-                                                    <Skeleton className="w-10 h-10 rounded-lg" />
-                                                    <Skeleton className="w-8 h-8 rounded-full" />
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className="space-y-2">
-                                                    <Skeleton className="h-4 w-56 rounded" />
+                                    Array(10)
+                                        .fill(0)
+                                        .map((_, index) => (
+                                            <tr
+                                                key={index}
+                                                className="animate-pulse border-b border-gray-50 odd:bg-white even:bg-slate-100/50"
+                                            >
+                                                <td className="py-4 px-6">
+                                                    <div className="flex items-center gap-4 ms-3">
+                                                        <Skeleton className="w-4 h-14 rounded" />
+                                                        <Skeleton className="w-10 h-10 rounded-lg" />
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <Skeleton className="h-4 w-56 rounded mb-2" />
                                                     <Skeleton className="h-3 w-32 rounded" />
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 text-center">
-                                                <Skeleton className="h-4 w-10 mx-auto rounded" />
-                                            </td>
-                                            <td className="px-6 py-4 text-center">
-                                                <Skeleton className="h-4 w-20 mx-auto rounded" />
-                                            </td>
-                                            <td className="px-6 py-4 text-center">
-                                                <Skeleton className="h-4 w-16 mx-auto rounded" />
-                                            </td>
-                                            <td className="px-6 py-4 text-center">
-                                                <Skeleton className="h-4 w-16 mx-auto rounded" />
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className="flex justify-end gap-2">
-                                                    <Skeleton className="w-20 h-8 rounded" />
-                                                    <Skeleton className="w-9 h-9 rounded" />
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))
-                                ) : products.data.length > 0 ? (
-                                    products.data.map((product) => {
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <Skeleton className="h-4 w-10 mx-auto rounded" />
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <Skeleton className="h-4 w-20 mx-auto rounded" />
+                                                </td>
+                                                <td className="px-6 py-4 text-center">
+                                                    <Skeleton className="h-4 w-16 mx-auto rounded" />
+                                                </td>
+                                                <td className="px-6 py-4 text-center">
+                                                    <Skeleton className="h-4 w-16 mx-auto rounded" />
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <div className="flex justify-end gap-2">
+                                                        <Skeleton className="w-20 h-8 rounded" />
+                                                        <Skeleton className="w-9 h-9 rounded" />
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                ) : products.length > 0 ? (
+                                    products.map((product) => {
                                         const styles = getSubCategoryStyles(
                                             product.sub_category?.name
                                         );
@@ -310,7 +295,7 @@ export default function Index() {
                                                 key={product.id}
                                                 className={cn(
                                                     styles.rowHover,
-                                                    "transition-all group"
+                                                    "transition-all group odd:bg-white even:bg-slate-50"
                                                 )}
                                             >
                                                 <td className="py-2">
@@ -401,7 +386,6 @@ export default function Index() {
                                                 </td>
                                                 <td className="px-6 py-2">
                                                     <div className="flex items-center gap-2 justify-end">
-                                                        {/* Quantity Selector */}
                                                         <div className="flex items-center bg-gray-50/50 border border-gray-200 rounded-lg p-0.5 shadow-sm group-hover:border-orange-200 transition-all duration-300">
                                                             <button
                                                                 onClick={() =>
@@ -410,18 +394,15 @@ export default function Index() {
                                                                         -1
                                                                     )
                                                                 }
-                                                                className="flex items-center justify-center w-7 h-7 rounded-md bg-white border border-transparent shadow-sm text-gray-400 hover:text-red-500 hover:border-red-100 hover:bg-red-50 transition-all active:scale-90"
-                                                                title="Decrease quantity"
+                                                                className="flex items-center justify-center w-7 h-7 rounded-md bg-white border border-transparent shadow-sm text-gray-400 hover:text-red-500 active:scale-90 transition-all"
                                                             >
                                                                 <Minus className="w-3 h-3 stroke-[3px]" />
                                                             </button>
-
                                                             <span className="w-8 text-center text-[12px] font-black text-slate-700 tabular-nums">
                                                                 {quantities[
                                                                     product.id
                                                                 ] || 1}
                                                             </span>
-
                                                             <button
                                                                 onClick={() =>
                                                                     handleQuantityChange(
@@ -429,26 +410,20 @@ export default function Index() {
                                                                         1
                                                                     )
                                                                 }
-                                                                className="flex items-center justify-center w-7 h-7 rounded-md bg-white border border-transparent shadow-sm text-gray-400 hover:text-emerald-600 hover:border-emerald-100 hover:bg-emerald-50 transition-all active:scale-90"
-                                                                title="Increase quantity"
+                                                                className="flex items-center justify-center w-7 h-7 rounded-md bg-white border border-transparent shadow-sm text-gray-400 hover:text-emerald-600 active:scale-90 transition-all"
                                                             >
                                                                 <Plus className="w-3 h-3 stroke-[3px]" />
                                                             </button>
                                                         </div>
-
-                                                        {/* Updated Add to Cart Button */}
                                                         <button
                                                             onClick={() =>
                                                                 handleAddToCart(
                                                                     product.id
                                                                 )
                                                             }
-                                                            className="bg-amber-400 p-2.5 rounded-xl text-white hover:bg-amber-500 shadow-sm active:scale-90 transition-all group/cart"
+                                                            className="bg-amber-400 p-2.5 rounded-xl text-white hover:bg-amber-500 active:scale-90 transition-all shadow-sm"
                                                         >
-                                                            <ShoppingCart
-                                                                className="w-4 h-4 group-hover/cart:rotate-[-12deg] transition-transform"
-                                                                fill="currentColor"
-                                                            />
+                                                            <ShoppingCart className="w-4 h-4 fill-currentColor" />
                                                         </button>
                                                     </div>
                                                 </td>
@@ -480,12 +455,6 @@ export default function Index() {
                             </tbody>
                         </table>
                     </div>
-                    {/* Only show pagination when not loading and data exists */}
-                    {!isLoading && products.data.length > 0 && (
-                        <div>
-                            <Pagination meta={products} />
-                        </div>
-                    )}
                 </div>
             </div>
         </UserLayout>

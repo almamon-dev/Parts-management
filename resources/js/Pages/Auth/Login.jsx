@@ -7,6 +7,7 @@ import {
     LucideEye,
     LucideEyeOff,
     LucideMoveRight,
+    Phone,
 } from "lucide-react";
 
 // Reusable Input component
@@ -165,6 +166,17 @@ export default function Login() {
                                 Sign up
                             </Link>
                         </p>
+                        <div className="flex items-center mt-4 gap-3 text-[#00338d] font-semibold">
+                            {/* Icon with a slight rotation to match the image */}
+                            <Phone
+                                size={24}
+                                className="-rotate-12 stroke-[2.5px]"
+                            />
+
+                            <span className="text-xl">
+                                Contact us +000 222 3334
+                            </span>
+                        </div>
                     </div>
                 </form>
             </div>

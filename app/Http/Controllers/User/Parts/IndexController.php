@@ -45,13 +45,11 @@ class IndexController extends Controller
                 $q->where('user_id', auth()->id());
             }])
             ->latest()
-            ->paginate($request->per_page ?? 10)
-            ->withQueryString();
+            ->get();
 
         // Optimized Filter Options
         $filterOptions = [
             'makes' => DB::table('fitments')->distinct()->orderBy('make')->pluck('make'),
-            // Optionally filter models by the selected make
             'models' => DB::table('fitments')
                 ->when($request->make, fn ($q, $make) => $q->where('make', $make))
                 ->distinct()

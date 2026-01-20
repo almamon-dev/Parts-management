@@ -10,7 +10,9 @@ class ProductFile extends Model
         'product_id',
         'file_name',
         'file_path',
+        'thumbnail_path',
         'file_size',
+        'file_type',
     ];
 
     public function product()

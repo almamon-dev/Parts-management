@@ -14,9 +14,10 @@ return new class extends Migration
         Schema::create('parts_numbers', function (Blueprint $table) {
             $table->id();
             $table->foreignId('product_id')->constrained()->cascadeOnDelete();
-            $table->string('part_number');
+            $table->string('part_number')->index();
             $table->timestamps();
         });
+
     }
 
     /**

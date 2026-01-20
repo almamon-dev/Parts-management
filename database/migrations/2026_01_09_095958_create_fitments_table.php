@@ -14,12 +14,20 @@ return new class extends Migration
         Schema::create('fitments', function (Blueprint $table) {
             $table->id();
             $table->foreignId('product_id')->constrained()->cascadeOnDelete();
-            $table->year('year_from');
-            $table->year('year_to');
-            $table->string('make');
-            $table->string('model');
+
+            $table->year('year_from')->index();
+            $table->year('year_to')->index();
+            $table->string('make')->index();
+            $table->string('model')->index();
+
             $table->timestamps();
+
+            $table->index(
+                ['make', 'model', 'year_from', 'year_to'],
+                'idx_fitments_vehicle'
+            );
         });
+
     }
 
     /**

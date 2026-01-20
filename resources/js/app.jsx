@@ -44,7 +44,7 @@ createInertiaApp({
     resolve: async (name) => {
         const page = await resolvePageComponent(
             `./Pages/${name}.jsx`,
-            import.meta.glob("./Pages/**/*.jsx")
+            import.meta.glob("./Pages/**/*.jsx"),
         );
 
         page.default.layout =
@@ -61,7 +61,5 @@ createInertiaApp({
 
         createRoot(el).render(<App {...props} />);
     },
-    progress: {
-        color: "#AD0100",
-    },
+    progress: false,
 });

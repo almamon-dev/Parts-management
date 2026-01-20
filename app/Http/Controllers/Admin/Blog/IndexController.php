@@ -53,7 +53,7 @@ class IndexController extends Controller
 
         if ($request->hasFile('image')) {
             // Use your Helper to upload
-            $validated['image'] = Helper::uploadFile('blogs', $request->file('image'));
+            $validated['image'] = Helper::uploadFile('blogs', $request->file('image'), false);
         }
 
         Blog::create($validated);
@@ -83,7 +83,7 @@ class IndexController extends Controller
         if ($request->hasFile('image')) {
             Helper::deleteFile($blog->image);
 
-            $validated['image'] = Helper::uploadFile('blogs', $request->file('image'));
+            $validated['image'] = Helper::uploadFile('blogs', $request->file('image'), false);
         } else {
             unset($validated['image']);
         }

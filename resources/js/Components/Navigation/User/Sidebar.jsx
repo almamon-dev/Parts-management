@@ -39,13 +39,13 @@ const MENU = [
                 path: "/orders/active",
             },
             { label: "Order History", icon: History, path: "/orders/history" },
-            { label: "Returns", icon: RotateCcw, path: "/returns" },
+            { label: "Returns", icon: RotateCcw, path: "/orders/return" },
         ],
     },
     {
         title: "SUPPORT",
         items: [
-            { label: "Blog", icon: BookOpen, path: "/blog" },
+            { label: "Blog", icon: BookOpen, path: "/blogs" },
             { label: "Contact Us", icon: Headset, path: "/contact" },
         ],
     },

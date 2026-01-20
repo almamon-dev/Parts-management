@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\Category;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -14,11 +13,17 @@ return new class extends Migration
     {
         Schema::create('sub_categories', function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(Category::class)->constrained()->cascadeOnDelete();
-            $table->string('name');
-            $table->enum('status', ['active', 'inactive'])->default('active');
+            $table->foreignId('category_id')->constrained()->cascadeOnDelete()->index();
+            $table->string('name')->index();
+            $table->enum('status', ['active', 'inactive'])->default('active')->index();
             $table->timestamps();
+
+            $table->index(
+                ['category_id', 'status'],
+                'idx_sub_categories_category_status'
+            );
         });
+
     }
 
     /**

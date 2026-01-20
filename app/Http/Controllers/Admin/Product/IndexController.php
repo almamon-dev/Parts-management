@@ -12,6 +12,7 @@ use App\Models\PartsNumber;
 use App\Models\Product;
 use App\Models\ProductFile;
 use App\Models\SubCategory;
+use App\Services\AdminProductSnapshot;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -22,53 +23,31 @@ class IndexController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Product::query();
-        // Calculate Counts for Tabs
-        $counts = [
-            'all' => Product::count(),
-            'published' => Product::where('visibility', 'public')->count(),
-            'draft' => Product::where('visibility', 'draft')->count(),
-            'private' => Product::where('visibility', 'private')->count(),
-            'no_image' => Product::whereDoesntHave('files')->count(),
-        ];
+        $counts = cache()->remember('product_counts', 300, function () {
+            $data = Product::selectRaw("
+            COUNT(*) as all_count,
+            SUM(visibility = 'public') as published,
+            SUM(visibility = 'draft') as draft,
+            SUM(visibility = 'private') as private
+        ")->first();
 
-        $products = $query->with(['category:id,name', 'subCategory:id,name', 'partsNumbers', 'files', 'fitments'])
-            // Status Tabs Filter
-            ->when($request->status, function ($q, $status) {
-                if ($status === 'published') {
-                    $q->where('visibility', 'public');
-                }
-                if ($status === 'draft') {
-                    $q->where('visibility', 'draft');
-                }
-                if ($status === 'private') {
-                    $q->where('visibility', 'private');
-                }
-                if ($status === 'no_image') {
-                    $q->whereDoesntHave('files');
-                }
-            })
-            // Advanced Search
-            ->when($request->search, function ($query, $search) {
-                $query->where(function ($q) use ($search) {
-                    $q->where('description', 'like', "%{$search}%")
-                        ->orWhere('sku', 'like', "%{$search}%")
-                        ->orWhereHas('partsNumbers', fn ($pq) => $pq->where('part_number', 'like', "%{$search}%"));
-                });
-            })
-            // Category/Sub-category filters
-            ->when($request->category, fn ($q, $cat) => $q->whereHas('category', fn ($c) => $c->where('name', $cat)))
-            ->when($request->sub_category, fn ($q, $sub) => $q->whereHas('subCategory', fn ($s) => $s->where('name', $sub)))
-            ->latest()
-            ->paginate($request->per_page ?? 10)
-            ->withQueryString();
+            return [
+                'all' => $data->all_count,
+                'published' => (int) $data->published,
+                'draft' => (int) $data->draft,
+                'private' => (int) $data->private,
+                'no_image' => Product::whereDoesntHave('files')->count(),
+            ];
+        });
+
+        $products = AdminProductSnapshot::get($request);
 
         return Inertia::render('Admin/Product/Index', [
             'products' => $products,
             'counts' => $counts,
-            'categories' => Category::all(['id', 'name']),
-            'subCategories' => SubCategory::all(['id', 'name', 'category_id']),
-            'filters' => $request->all(),
+            'categories' => cache()->rememberForever('admin_categories', fn () => Category::select('id', 'name')->get()),
+            'subCategories' => cache()->rememberForever('admin_sub_categories', fn () => SubCategory::select('id', 'name', 'category_id')->get()),
+            'filters' => $request->only(['search', 'status', 'category', 'sub_category', 'per_page']),
         ]);
     }
 
@@ -139,11 +118,12 @@ class IndexController extends Controller
                     $fileName = $image->getClientOriginalName();
                     $fileSize = $image->getSize();
                     $fileType = $image->getClientMimeType();
-                    $path = Helper::uploadFile('products', $image);
+                    $path = Helper::uploadFile('products', $image, true);
                     ProductFile::create([
                         'product_id' => $product->id,
                         'file_name' => $fileName,
-                        'file_path' => $path,
+                        'file_path' => $path['original'],
+                        'thumbnail_path' => $path['thumbnail'],
                         'file_size' => $fileSize,
                         'file_type' => $fileType,
                     ]);
@@ -151,15 +131,14 @@ class IndexController extends Controller
             }
 
             DB::commit();
+            AdminProductSnapshot::flush();
+            cache()->forget('product_counts');
 
             return redirect()->route('products.index')
                 ->with('success', 'Product created successfully.');
 
         } catch (\Exception $e) {
             DB::rollBack();
-
-            // Log the error for debugging
-            Log::error('Product Store Error: '.$e->getMessage());
 
             return back()->withErrors(['error' => 'Failed to create product. Please try again.'])
                 ->withInput();
@@ -230,13 +209,14 @@ class IndexController extends Controller
                         $fileType = $image->getClientMimeType();
 
                         // -- file upload
-                        $path = Helper::uploadFile('products', $image);
+                        $path = Helper::uploadFile('products', $image, true);
 
                         // -- database save
                         $product->files()->create([
                             'file_name' => $fileName,
-                            'file_path' => $path,
                             'file_size' => $fileSize,
+                            'file_path' => $path['original'],
+                            'thumbnail_path' => $path['thumbnail'],
                             'file_type' => $fileType,
                         ]);
                     }
@@ -244,6 +224,8 @@ class IndexController extends Controller
             }
 
             DB::commit();
+            AdminProductSnapshot::flush();
+            cache()->forget('product_counts');
 
             return redirect()->route('products.index')->with('success', 'Product updated successfully.');
 

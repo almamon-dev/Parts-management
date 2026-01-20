@@ -1,9 +1,10 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react"; // useState add kora hoyeche
 import AdminLayout from "@/Layouts/AdminLayout";
 import { Head, Link, router } from "@inertiajs/react";
 import Pagination from "@/Components/Pagination";
 import { Skeleton } from "@/Components/ui/skeleton";
 import { TableManager } from "@/Hooks/TableManager";
+import { debounce } from "lodash";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -34,6 +35,8 @@ export default function Index({
     counts = {},
 }) {
     const fileInputRef = useRef(null);
+    const [isProcessing, setIsProcessing] = useState(false); // New State for Loading
+
     const {
         search,
         handleSearch,
@@ -52,7 +55,7 @@ export default function Index({
     const currentSubCategoryName = filters.sub_category || "";
 
     const selectedCategory = categories.find(
-        (c) => c.name === currentCategoryName
+        (c) => c.name === currentCategoryName,
     );
     const filteredSubCategories = selectedCategory
         ? subCategories.filter((sub) => sub.category_id === selectedCategory.id)
@@ -62,7 +65,11 @@ export default function Index({
         router.get(
             route("products.index"),
             { ...filters, status: status === "all" ? null : status, page: 1 },
-            { preserveState: true }
+            {
+                preserveState: true,
+                onStart: () => setIsProcessing(true), // Loading start
+                onFinish: () => setIsProcessing(false), // Loading finish
+            },
         );
     };
 
@@ -73,6 +80,8 @@ export default function Index({
             formData.append("file", file);
             router.post(route("products.import"), formData, {
                 forceFormData: true,
+                onStart: () => setIsProcessing(true),
+                onFinish: () => setIsProcessing(false),
             });
         }
     };
@@ -136,6 +145,9 @@ export default function Index({
         (selectAllGlobal ||
             products.data.every((p) => selectedIds.includes(p.id)));
     const skeletonRows = Array.from({ length: 5 });
+
+    // Combine both loading states
+    const showSkeleton = isLoading || isProcessing;
 
     return (
         <AdminLayout>
@@ -296,6 +308,8 @@ export default function Index({
                                             sub_category: null,
                                         })}
                                         preserveState
+                                        onStart={() => setIsProcessing(true)}
+                                        onFinish={() => setIsProcessing(false)}
                                     >
                                         <DropdownMenuItem className="cursor-pointer">
                                             All Categories
@@ -310,6 +324,12 @@ export default function Index({
                                                 sub_category: null,
                                             })}
                                             preserveState
+                                            onStart={() =>
+                                                setIsProcessing(true)
+                                            }
+                                            onFinish={() =>
+                                                setIsProcessing(false)
+                                            }
                                         >
                                             <DropdownMenuItem className="flex justify-between cursor-pointer">
                                                 {cat.name}{" "}
@@ -345,6 +365,8 @@ export default function Index({
                                             sub_category: null,
                                         })}
                                         preserveState
+                                        onStart={() => setIsProcessing(true)}
+                                        onFinish={() => setIsProcessing(false)}
                                     >
                                         <DropdownMenuItem className="cursor-pointer">
                                             All Sub-categories
@@ -358,6 +380,12 @@ export default function Index({
                                                 sub_category: sub.name,
                                             })}
                                             preserveState
+                                            onStart={() =>
+                                                setIsProcessing(true)
+                                            }
+                                            onFinish={() =>
+                                                setIsProcessing(false)
+                                            }
                                         >
                                             <DropdownMenuItem className="flex justify-between cursor-pointer">
                                                 {sub.name}{" "}
@@ -380,6 +408,8 @@ export default function Index({
                                 <Link
                                     href={route("products.index")}
                                     className="text-rose-600 text-sm font-semibold flex items-center px-2"
+                                    onStart={() => setIsProcessing(true)}
+                                    onFinish={() => setIsProcessing(false)}
                                 >
                                     <X size={16} className="mr-1" /> Clear
                                     Filter
@@ -431,7 +461,7 @@ export default function Index({
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-50">
-                                {isLoading ? (
+                                {showSkeleton ? (
                                     skeletonRows.map((_, i) => (
                                         <tr
                                             key={`skeleton-${i}`}
@@ -491,7 +521,7 @@ export default function Index({
                                             (Number(item.stock_saskatoon) || 0);
                                         const firstImage =
                                             item.files?.find(
-                                                (f) => f.file_type === "image"
+                                                (f) => f.file_type === "image",
                                             ) || item.files?.[0];
 
                                         return (
@@ -509,7 +539,7 @@ export default function Index({
                                                         checked={isSelected}
                                                         onChange={() =>
                                                             toggleSelect(
-                                                                item.id
+                                                                item.id,
                                                             )
                                                         }
                                                         className="rounded border-slate-300 text-indigo-600"
@@ -520,7 +550,7 @@ export default function Index({
                                                         <div className="w-12 h-12 rounded-lg border overflow-hidden bg-slate-100 flex items-center justify-center">
                                                             {firstImage ? (
                                                                 <img
-                                                                    src={`/${firstImage.file_path}`}
+                                                                    src={`/${firstImage.thumbnail_path}`}
                                                                     className="w-full h-full object-cover"
                                                                     alt=""
                                                                 />
@@ -555,7 +585,7 @@ export default function Index({
                                                                     size={12}
                                                                 />{" "}
                                                                 {formatDate(
-                                                                    item.created_at
+                                                                    item.created_at,
                                                                 )}
                                                             </div>
                                                         </div>
@@ -620,7 +650,7 @@ export default function Index({
                                                 </td>
                                                 <td className="py-4 px-4">
                                                     {getStatusBadge(
-                                                        item.visibility
+                                                        item.visibility,
                                                     )}
                                                 </td>
                                                 <td className="py-4 px-3 text-right pr-6">
@@ -628,7 +658,7 @@ export default function Index({
                                                         <Link
                                                             href={route(
                                                                 "products.edit",
-                                                                item.id
+                                                                item.id,
                                                             )}
                                                             className="p-1.5 text-gray-400 hover:text-blue-500 bg-white border border-slate-200 rounded shadow-sm hover:shadow-md transition-all"
                                                         >
@@ -671,9 +701,19 @@ export default function Index({
                                                     filters.status) && (
                                                     <Link
                                                         href={route(
-                                                            "products.index"
+                                                            "products.index",
                                                         )}
                                                         className="text-indigo-600 font-bold text-sm hover:underline pt-2 inline-block"
+                                                        onStart={() =>
+                                                            setIsProcessing(
+                                                                true,
+                                                            )
+                                                        }
+                                                        onFinish={() =>
+                                                            setIsProcessing(
+                                                                false,
+                                                            )
+                                                        }
                                                     >
                                                         Clear all filters
                                                     </Link>
@@ -685,7 +725,7 @@ export default function Index({
                             </tbody>
                         </table>
                     </div>
-                    <div className="p-5 border-t border-slate-100 bg-slate-50/20">
+                    <div className="p-5">
                         <Pagination meta={products} />
                     </div>
                 </div>

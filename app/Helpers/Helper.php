@@ -3,23 +3,61 @@
 namespace App\Helpers;
 
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\ImageManager;
 
 class Helper
 {
     /**
      * Delete a file from public/uploads
      */
-    public static function uploadFile($folder, $file): string
+    public static function uploadFile($folder, $file, $withThumb = true): ?array
     {
-        $path = public_path("uploads/$folder");
-        File::ensureDirectoryExists($path);
+        try {
+            if (! $file || ! $file->isValid()) {
+                throw new \Exception('Invalid file');
+            }
 
-        $name = time().'_'.Str::random(8).'.'.$file->getClientOriginalExtension();
+            $basePath = "uploads/$folder";
+            $fullPath = public_path($basePath);
+            File::ensureDirectoryExists($fullPath);
 
-        File::move($file->getRealPath(), "$path/$name");
+            // file save
+            $filename = time().'_'.Str::random(8).'.webp';
 
-        return "uploads/$folder/$name";
+            $manager = new ImageManager(new Driver);
+            $image = $manager->read($file);
+
+            $image->scale(width: 1200)
+                ->toWebp(80)
+                ->save($fullPath.'/'.$filename);
+
+            $result = [
+                'original' => "$basePath/$filename",
+                'thumbnail' => null,
+            ];
+
+            // thumbnail save
+            if ($withThumb) {
+                $thumbPath = public_path("$basePath/thumbs");
+                File::ensureDirectoryExists($thumbPath);
+
+                $image->cover(80, 80)
+                    ->toWebp(50)
+                    ->save($thumbPath.'/'.$filename);
+
+                $result['thumbnail'] = "$basePath/thumbs/$filename";
+            }
+
+            return $result;
+
+        } catch (\Exception $e) {
+            Log::error('File upload error: '.$e->getMessage());
+
+            return null;
+        }
     }
 
     public static function deleteFile(?string $filePath): bool

@@ -84,18 +84,18 @@ const Sidebar = ({ isCollapsed, isMobileOpen, setIsMobileOpen }) => {
         },
         {
             label: "Blogs",
-            path: "/blogs",
+            path: "/admin/blogs",
             icon: <Tag size={18} />,
             key: "blogs",
             children: [
                 {
                     label: "All Blogs",
-                    path: "/blogs",
+                    path: "/admin/blogs",
                     icon: <List size={14} />,
                 },
                 {
                     label: "Add Blog",
-                    path: "/blogs/create",
+                    path: "/admin/blogs/create",
                     icon: <PlusCircle size={14} />,
                 },
             ],

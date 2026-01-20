@@ -3,13 +3,14 @@
 use App\Http\Controllers\Admin\Blog\IndexController as BlogController;
 use App\Http\Controllers\Admin\Category\IndexController as CategoryController;
 use App\Http\Controllers\Admin\Product\IndexController as ProductController;
+use App\Http\Controllers\API\User\Blog\IndexController as UserBlogController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\User\Booking\PaymentController;
 use App\Http\Controllers\User\Cart\IndexController as CartController;
 use App\Http\Controllers\User\Favourite\IndexController as FavouriteController;
 use App\Http\Controllers\User\Order\ActiveOrderController;
 use App\Http\Controllers\User\Order\HistoryController;
+use App\Http\Controllers\User\Order\ReturnOrderController;
 use App\Http\Controllers\User\Parts\IndexController as PartController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -67,16 +68,24 @@ Route::middleware('auth')->group(function () {
     Route::delete('products/file/{file}', [ProductController::class, 'destroyFile'])->name('products.file-destroy');
     Route::resource('products', ProductController::class);
 
-    Route::resource('blogs', BlogController::class);
-
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::resource('admin/blogs', BlogController::class);
 
     // history
     Route::get('/orders/active', [ActiveOrderController::class, 'index'])->name('orders.active');
     // Order History
     Route::get('/orders/history', [HistoryController::class, 'index'])->name('orders.history');
+    // reorder details
+    Route::post('/orders/{order}/reorder', [HistoryController::class, 'reOrder'])
+        ->name('orders.reorder');
+
+    // --return order
+    Route::get('/orders/return', [ReturnOrderController::class, 'returnOrder'])->name('orders.return');
+    // -- add return request
+    Route::post('/orders/return/request', [ReturnOrderController::class, 'returnRequest'])->name('orders.return.request');
+    // blog
+    Route::get('/blogs', [UserBlogController::class, 'index'])->name('blogs.index');
+    Route::get('/blogs/{id}', [UserBlogController::class, 'show'])->name('blogs.show');
+
 });
 
 Route::fallback(function () {

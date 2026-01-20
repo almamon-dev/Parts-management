@@ -16,10 +16,12 @@ return new class extends Migration
             $table->foreignId('product_id')->constrained()->cascadeOnDelete();
             $table->string('file_name');
             $table->string('file_path');
+            $table->string('thumbnail_path')->nullable();
             $table->unsignedBigInteger('file_size');
             $table->string('file_type')->nullable();
             $table->timestamps();
         });
+
     }
 
     /**

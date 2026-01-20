@@ -9,7 +9,7 @@ import {
     Truck,
     ArrowUpRight,
     Calendar,
-    Box
+    Box,
 } from "lucide-react";
 
 // --- Skeleton Component ---
@@ -27,7 +27,7 @@ const OrderCardSkeleton = () => (
 export default function Active() {
     const { auth, orders } = usePage().props;
     const [isLoading, setIsLoading] = useState(true);
-    const [searchQuery, setSearchQuery] = useState('');
+    const [searchQuery, setSearchQuery] = useState("");
 
     useEffect(() => {
         const timer = setTimeout(() => setIsLoading(false), 800);
@@ -37,12 +37,12 @@ export default function Active() {
     const orderList = Array.isArray(orders) ? orders : [];
 
     // Active orders logic (excluding delivered and cancelled)
-    const activeOrders = orderList.filter(order =>
-        !['delivered', 'cancelled'].includes(order.status)
+    const activeOrders = orderList.filter(
+        (order) => !["delivered", "cancelled"].includes(order.status),
     );
 
-    const filteredOrders = activeOrders.filter(order =>
-        order.order_number.toLowerCase().includes(searchQuery.toLowerCase())
+    const filteredOrders = activeOrders.filter((order) =>
+        order.order_number.toLowerCase().includes(searchQuery.toLowerCase()),
     );
 
     return (
@@ -50,10 +50,8 @@ export default function Active() {
             <Head title="Active Orders" />
             <div className="p-6 bg-[#F8F9FB] min-h-screen">
                 <div className="max-w-8xl mx-auto">
-
                     {/* Header & Search */}
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-                       
                         <div className="relative min-w-[300px]">
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
                             <input
@@ -68,24 +66,33 @@ export default function Active() {
 
                     {isLoading ? (
                         <div className="space-y-6">
-                            {/* ডাটা থাকলে সেই অনুযায়ী স্কেলিটন, না থাকলে ৩টি */}
-                            {(activeOrders.length > 0 ? activeOrders.slice(0, 2) : [1, 2, 3]).map((_, i) => (
+                            {(activeOrders.length > 0
+                                ? activeOrders.slice(0, 2)
+                                : [1, 2, 3]
+                            ).map((_, i) => (
                                 <OrderCardSkeleton key={i} />
                             ))}
                         </div>
                     ) : filteredOrders.length === 0 ? (
                         <div className="bg-white p-16 rounded-2xl border border-gray-200 text-center">
                             <Box className="w-16 h-16 text-slate-200 mx-auto mb-4" />
-                            <h2 className="text-xl font-bold text-slate-900">No active orders found</h2>
-                            <Link href={route('parts.index')} className="text-red-600 font-bold mt-4 inline-block hover:underline">
+                            <h2 className="text-xl font-bold text-slate-900">
+                                No active orders found
+                            </h2>
+                            <Link
+                                href={route("parts.index")}
+                                className="text-red-600 font-bold mt-4 inline-block hover:underline"
+                            >
                                 Start Shopping
                             </Link>
                         </div>
                     ) : (
                         <div className="space-y-8">
                             {filteredOrders.map((order) => (
-                                <div key={order.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-
+                                <div
+                                    key={order.id}
+                                    className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
+                                >
                                     {/* Order Header (Design from Image) */}
                                     <div className="p-6 flex flex-wrap justify-between items-start gap-4">
                                         <div className="flex gap-4">
@@ -93,12 +100,14 @@ export default function Active() {
                                                 <FileText className="w-5 h-5" />
                                             </div>
                                             <div>
-                                                <h3 className="text-lg font-bold text-slate-900 uppercase">Order {order.order_number}</h3>
-                                                <p className="text-xs text-slate-400 font-bold tracking-tight">QUO-{order.id + 1000}</p>
+                                                <h3 className="text-lg font-bold text-slate-900 ">
+                                                    Order {order.order_number}
+                                                </h3>
                                             </div>
                                         </div>
-                                        <div className="bg-[#EBF5FF] text-[#007AFF] px-4 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider flex items-center gap-2">
-                                            <Truck className="w-3.5 h-3.5" /> To be Picked up
+                                        <div className="bg-[#EBF5FF] text-[#007AFF] px-4 py-1.5 rounded-full text-[11px] font-black  tracking-wider flex items-center gap-2">
+                                            <Truck className="w-3.5 h-3.5" /> To
+                                            be Picked up
                                         </div>
                                     </div>
 
@@ -107,15 +116,30 @@ export default function Active() {
                                         <div className="flex items-center gap-2">
                                             <Calendar className="w-4 h-4 text-slate-400" />
                                             <div className="flex flex-col">
-                                                <span className="text-[10px] font-bold text-slate-400 uppercase leading-none mb-1">Placed on</span>
+                                                <span className="text-[10px] font-bold text-slate-400  leading-none mb-1">
+                                                    Placed on
+                                                </span>
                                                 <span className="text-sm font-black text-slate-900 leading-none">
-                                                    {new Date(order.created_at).toISOString().split('T')[0]}
+                                                    {
+                                                        new Date(
+                                                            order.created_at,
+                                                        )
+                                                            .toISOString()
+                                                            .split("T")[0]
+                                                    }
                                                 </span>
                                             </div>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Total</p>
-                                            <p className="text-2xl font-black text-slate-900">${parseFloat(order.total_amount).toFixed(2)}</p>
+                                            <p className="text-[10px] font-bold text-slate-400  mb-1">
+                                                Total
+                                            </p>
+                                            <p className="text-2xl font-black text-slate-900">
+                                                $
+                                                {parseFloat(
+                                                    order.total_amount,
+                                                ).toFixed(2)}
+                                            </p>
                                         </div>
                                     </div>
 
@@ -126,8 +150,12 @@ export default function Active() {
                                                 <Truck className="w-6 h-6" />
                                             </div>
                                             <div>
-                                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Estimated Delivery</p>
-                                                <p className="text-lg font-black text-slate-900">2025-12-08</p>
+                                                <p className="text-[10px] text-slate-400 font-bold  tracking-widest">
+                                                    Estimated Delivery
+                                                </p>
+                                                <p className="text-lg font-black text-slate-900">
+                                                    2025-12-08
+                                                </p>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-4">
@@ -135,25 +163,40 @@ export default function Active() {
                                                 <Package className="w-6 h-6" />
                                             </div>
                                             <div>
-                                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Items</p>
-                                                <p className="text-lg font-black text-slate-900">{order.items?.length || 0} parts</p>
+                                                <p className="text-[10px] text-slate-400 font-bold  tracking-widest">
+                                                    Items
+                                                </p>
+                                                <p className="text-lg font-black text-slate-900">
+                                                    {order.items?.length || 0}{" "}
+                                                    parts
+                                                </p>
                                             </div>
                                         </div>
                                     </div>
 
                                     {/* Order Items Section */}
                                     <div className="px-6 pb-4">
-                                        <h4 className="text-xs font-black text-slate-900 uppercase tracking-widest mb-4">Order Items</h4>
+                                        <h4 className="text-xs font-black text-slate-900  tracking-widest mb-4">
+                                            Order Items
+                                        </h4>
                                         <div className="space-y-3">
                                             {order.items?.map((item) => (
-                                                <div key={item.id} className="flex items-center justify-between p-4 bg-gray-50/50 rounded-xl border border-gray-100">
+                                                <div
+                                                    key={item.id}
+                                                    className="flex items-center justify-between p-4 bg-gray-50/50 rounded-xl border border-gray-100"
+                                                >
                                                     <div className="flex items-center gap-4">
                                                         <div className="w-16 h-16 bg-white rounded-lg border border-gray-200 overflow-hidden flex-shrink-0">
-                                                            {item.product?.files?.[0] ? (
+                                                            {item.product
+                                                                ?.files?.[0] ? (
                                                                 <img
                                                                     src={`/${item.product.files[0].file_path}`}
                                                                     className="w-full h-full object-cover"
-                                                                    alt={item.product?.sku}
+                                                                    alt={
+                                                                        item
+                                                                            .product
+                                                                            ?.sku
+                                                                    }
                                                                 />
                                                             ) : (
                                                                 <div className="w-full h-full flex items-center justify-center bg-gray-50 text-gray-300">
@@ -162,14 +205,37 @@ export default function Active() {
                                                             )}
                                                         </div>
                                                         <div>
-                                                            <h5 className="font-black text-slate-900 text-sm uppercase">{item.product?.sku}</h5>
-                                                            <p className="text-xs text-slate-500 font-medium">{item.product?.description}</p>
-                                                            <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-tight">QTY: {item.quantity < 10 ? `0${item.quantity}` : item.quantity}</p>
+                                                            <h5 className="font-black text-slate-900 text-sm ">
+                                                                {
+                                                                    item.product
+                                                                        ?.sku
+                                                                }
+                                                            </h5>
+                                                            <p className="text-xs text-slate-500 font-medium">
+                                                                {
+                                                                    item.product
+                                                                        ?.description
+                                                                }
+                                                            </p>
+                                                            <p className="text-[10px] font-bold text-slate-400 mt-1  tracking-tight">
+                                                                QTY:{" "}
+                                                                {item.quantity <
+                                                                10
+                                                                    ? `0${item.quantity}`
+                                                                    : item.quantity}
+                                                            </p>
                                                         </div>
                                                     </div>
                                                     <div className="text-right">
-                                                        <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Total</p>
-                                                        <p className="font-black text-slate-900">${parseFloat(item.price).toFixed(2)}</p>
+                                                        <p className="text-[10px] font-bold text-slate-400  mb-1">
+                                                            Total
+                                                        </p>
+                                                        <p className="font-black text-slate-900">
+                                                            $
+                                                            {parseFloat(
+                                                                item.price,
+                                                            ).toFixed(2)}
+                                                        </p>
                                                     </div>
                                                 </div>
                                             ))}

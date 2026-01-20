@@ -5,12 +5,13 @@ const FileUpload = ({
     data,
     setData,
     errors,
-    clearErrors, // Inertia clearErrors ফাংশন
+    clearErrors,
     field = "image",
     label = "Product Image",
     multiple = false,
 }) => {
     const [previews, setPreviews] = useState([]);
+    const [isDragging, setIsDragging] = useState(false);
 
     useEffect(() => {
         return () => previews.forEach((p) => URL.revokeObjectURL(p.url));
@@ -18,39 +19,36 @@ const FileUpload = ({
 
     const handleFileChange = (e) => {
         const files = Array.from(e.target.files);
+        processFiles(files);
+    };
+
+    const processFiles = (files) => {
         if (files.length === 0) return;
 
-        // নতুন ফাইল সিলেক্ট করলে আগের এরর রিমুভ হবে
         if (errors[field]) {
             clearErrors(field);
         }
 
+        const newPreviews = files.map((file) => ({
+            url: URL.createObjectURL(file),
+            name: file.name,
+            size: (file.size / (1024 * 1024)).toFixed(2) + " MB",
+        }));
+
         if (multiple) {
             const currentFiles = data[field] || [];
             setData(field, [...currentFiles, ...files]);
-
-            const newPreviews = files.map((file) => ({
-                url: URL.createObjectURL(file),
-                name: file.name,
-                size: (file.size / 1024).toFixed(1) + " KB",
-            }));
             setPreviews((prev) => [...prev, ...newPreviews]);
         } else {
             setData(field, files[0]);
-            setPreviews([
-                {
-                    url: URL.createObjectURL(files[0]),
-                    name: files[0].name,
-                    size: (files[0].size / 1024).toFixed(1) + " KB",
-                },
-            ]);
+            setPreviews([newPreviews[0]]);
         }
     };
 
     const removeImage = (index) => {
         if (multiple) {
             const updatedFiles = Array.from(data[field]).filter(
-                (_, i) => i !== index
+                (_, i) => i !== index,
             );
             const updatedPreviews = previews.filter((_, i) => i !== index);
             setData(field, updatedFiles);
@@ -64,91 +62,116 @@ const FileUpload = ({
     return (
         <div className="w-full font-sans">
             {label && (
-                <label className="text-sm font-semibold text-slate-700 mb-2 block">
-                    {label}
-                </label>
+                <div className="flex items-center justify-between mb-2">
+                    <label className="text-[13px] font-bold text-slate-700 uppercase tracking-wider">
+                        {label}
+                    </label>
+                    <span className="text-[11px] font-medium text-slate-400">
+                        {multiple
+                            ? "Multiple files allowed"
+                            : "Single file only"}
+                    </span>
+                </div>
             )}
 
             <div
-                className={`relative group border-2 border-dashed rounded-2xl p-8 transition-all duration-300 ease-in-out
+                onDragOver={(e) => {
+                    e.preventDefault();
+                    setIsDragging(true);
+                }}
+                onDragLeave={() => setIsDragging(false)}
+                onDrop={(e) => {
+                    e.preventDefault();
+                    setIsDragging(false);
+                    processFiles(Array.from(e.dataTransfer.files));
+                }}
+                className={`relative group border-2 border-dashed rounded-3xl p-6 transition-all duration-300
                 ${
-                    errors[field]
-                        ? "border-red-400 bg-red-50/50"
-                        : "border-slate-200 bg-slate-50/30 hover:bg-white hover:border-orange-400"
-                }`}
+                    isDragging
+                        ? "border-orange-500 bg-orange-50/50 scale-[1.01]"
+                        : errors[field]
+                          ? "border-red-300 bg-red-50/30"
+                          : "border-slate-200 bg-slate-50/30 hover:bg-white hover:border-orange-400 hover:shadow-xl hover:shadow-orange-500/5"
+                }
+                `}
             >
                 <input
                     type="file"
                     multiple={multiple}
-                    accept="image/jpeg,image/png,image/jpg,image/webp"
+                    accept="image/*"
                     className="absolute inset-0 opacity-0 cursor-pointer z-10"
                     onChange={handleFileChange}
                 />
 
-                <div className="flex flex-col items-center justify-center text-center">
-                    <div className="mb-4 p-4 bg-white border border-slate-100 shadow-sm rounded-2xl text-orange-600 group-hover:bg-orange-600 group-hover:text-white transition-all duration-300">
-                        <Upload size={24} strokeWidth={2.5} />
+                <div className="flex flex-col items-center justify-center py-4">
+                    <div
+                        className={`mb-4 p-4 rounded-2xl transition-all duration-500
+                        ${isDragging ? "bg-orange-500 text-white rotate-12" : "bg-white text-orange-600 shadow-sm group-hover:shadow-orange-200 group-hover:-translate-y-1"}
+                    `}
+                    >
+                        <Upload size={28} strokeWidth={2.5} />
                     </div>
 
-                    <p className="text-[15px] font-semibold text-slate-800">
-                        Drop your image here, or{" "}
-                        <span className="text-orange-600 font-bold">
-                            browse
-                        </span>
+                    <p className="text-[15px] font-bold text-slate-800">
+                        Drag & Drop or{" "}
+                        <span className="text-orange-600">Browse</span>
                     </p>
-                    <p className="text-xs font-medium text-slate-400 mt-1.5 flex items-center gap-2">
-                        <span>JPEG, PNG, JPG, WEBP</span>
-                        <span className="w-1 h-1 rounded-full bg-slate-300"></span>
-                        <span>Max 20MB</span>
+                    <p className="text-xs font-medium text-slate-400 mt-2 flex items-center gap-2">
+                        <span>PNG, JPG, WEBP up to 20MB</span>
                     </p>
                 </div>
             </div>
 
             {errors[field] && (
-                <div className="flex items-center gap-1.5 mt-2 text-red-500 font-medium text-xs bg-red-50 p-2 rounded-lg border border-red-100 animate-in fade-in duration-300">
+                <div className="flex items-center gap-2 mt-3 text-red-600 font-bold text-[11px] bg-red-50 px-3 py-2 rounded-xl border border-red-100 uppercase tracking-wide">
                     <AlertCircle size={14} />
                     <span>{errors[field]}</span>
                 </div>
             )}
 
             {/* Previews */}
-            <div className="mt-4 space-y-2">
-                {previews.map((file, index) => (
-                    <div
-                        key={index}
-                        className="flex items-center justify-between p-3 bg-white border border-slate-200 rounded-xl"
-                    >
-                        <div className="flex items-center gap-3">
-                            <img
-                                src={file.url}
-                                className="w-12 h-12 rounded-lg object-cover border"
-                                alt="preview"
-                            />
-                            <div className="overflow-hidden">
-                                <p className="text-sm font-semibold text-slate-700 truncate max-w-[200px]">
+            {previews.length > 0 && (
+                <div className="mt-5 grid grid-cols-2 lg:grid-cols-3 gap-4">
+                    {previews.map((file, index) => (
+                        <div
+                            key={index}
+                            className="relative group/card bg-white border border-slate-100 rounded-2xl p-2 shadow-sm hover:shadow-md transition-all animate-in zoom-in-95 duration-200"
+                        >
+                            <div className="relative aspect-square rounded-xl overflow-hidden border border-slate-50">
+                                <img
+                                    src={file.url}
+                                    className="w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-110"
+                                    alt="preview"
+                                />
+                                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover/card:opacity-100 transition-opacity flex items-center justify-center">
+                                    <button
+                                        type="button"
+                                        onClick={() => removeImage(index)}
+                                        className="bg-white/90 p-2 rounded-full text-red-500 hover:bg-red-500 hover:text-white transition-all transform hover:scale-110"
+                                    >
+                                        <X size={16} />
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="mt-2 px-1">
+                                <p className="text-[11px] font-bold text-slate-700 truncate">
                                     {file.name}
                                 </p>
-                                <p className="text-xs text-slate-400 font-mono">
-                                    {file.size}
-                                </p>
+                                <div className="flex items-center justify-between mt-0.5">
+                                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">
+                                        {file.size}
+                                    </span>
+                                    <CheckCircle2
+                                        size={12}
+                                        className="text-green-500"
+                                    />
+                                </div>
                             </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <CheckCircle2
-                                size={18}
-                                className="text-green-500"
-                            />
-                            <button
-                                type="button"
-                                onClick={() => removeImage(index)}
-                                className="p-1.5 hover:bg-red-50 rounded-lg text-slate-400 hover:text-red-500 transition-all"
-                            >
-                                <X size={18} />
-                            </button>
-                        </div>
-                    </div>
-                ))}
-            </div>
+                    ))}
+                </div>
+            )}
         </div>
     );
 };

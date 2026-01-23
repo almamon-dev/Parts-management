@@ -72,6 +72,14 @@ class LeadController extends Controller
         ]);
     }
 
+    public function invoice(Lead $lead)
+    {
+        $lead->load('parts');
+        return Inertia::render('Admin/Lead/Invoice', [
+            'lead' => $lead
+        ]);
+    }
+
     public function update(StoreLeadRequest $request, Lead $lead)
     {
         $validated = $request->validated();

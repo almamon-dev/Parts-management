@@ -13,27 +13,29 @@ return new class extends Migration
     {
         Schema::create('leads', function (Blueprint $table) {
             $table->id();
-            $table->string('shop_name');
-            $table->string('name');
-            $table->string('contact_number');
-            $table->string('email');
+            $table->string('lead_number')->nullable()->unique();
+            $table->string('shop_name')->nullable();
+            $table->string('name'); // Required as per request
+            $table->string('contact_number'); // Required as per request
+            $table->string('email')->nullable();
 
             // Address
-            $table->string('street_address');
+            $table->string('street_address')->nullable();
             $table->string('unit_number')->nullable();
-            $table->string('city');
-            $table->string('province');
-            $table->string('postcode');
-            $table->string('country');
+            $table->string('city')->nullable();
+            $table->string('province')->nullable();
+            $table->string('postcode')->nullable();
+            $table->string('country')->nullable();
 
             $table->text('notes')->nullable();
 
             // Vehicle Info
-            $table->string('vehicle_info'); // Year, Make, Model, Trim Level
+            $table->string('vehicle_info'); // Required as per request
             $table->string('vin')->nullable();
             $table->string('color_code')->nullable();
             $table->string('engine_size')->nullable();
 
+            $table->string('status')->default('Quote');
             $table->timestamps();
         });
     }

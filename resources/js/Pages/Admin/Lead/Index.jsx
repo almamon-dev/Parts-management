@@ -8,10 +8,11 @@ import {
     Users, 
     Plus, 
     Search,
-    ChevronRight,
+    Eye,
     MapPin,
     Package,
     Pencil,
+    FileText,
 } from "lucide-react";
 
 export default function Index({ leads, filters = {} }) {
@@ -25,6 +26,19 @@ export default function Index({ leads, filters = {} }) {
     });
 
     const isAllPageSelected = leads.data.length > 0 && (selectAllGlobal || leads.data.every((p) => selectedIds.includes(p.id)));
+
+    const getStatusStyles = (status) => {
+        switch (status) {
+            case "Quote":
+                return "bg-yellow-100 text-yellow-700 border-yellow-200";
+            case "Processing":
+                return "bg-red-100 text-red-700 border-red-200";
+            case "Fulfilled":
+                return "bg-green-100 text-green-700 border-green-200";
+            default:
+                return "bg-slate-100 text-slate-700 border-slate-200";
+        }
+    };
 
     return (
         <AdminLayout>
@@ -109,9 +123,11 @@ export default function Index({ leads, filters = {} }) {
                                             className="w-4 h-4 rounded border-slate-300 text-[#FF9F43] focus:ring-[#FF9F43] transition-all" 
                                         />
                                     </th>
+                                    <th className="py-3 px-6">Lead ID</th>
                                     <th className="py-3 px-6">Lead Information</th>
                                     <th className="py-3 px-6">Vehicle Details</th>
-                                    <th className="py-3 px-6 text-center">Parts</th>
+                                    <th className="py-3 px-6">Parts</th>
+                                    <th className="py-3 px-6 text-center">Status</th>
                                     <th className="py-3 px-6">Location</th>
                                     <th className="py-3 px-6 text-right pr-10">Actions</th>
                                 </tr>
@@ -127,6 +143,11 @@ export default function Index({ leads, filters = {} }) {
                                                     onChange={() => toggleSelect(lead.id)} 
                                                     className="w-4 h-4 rounded border-slate-300 text-[#FF9F43] focus:ring-[#FF9F43] transition-all" 
                                                 />
+                                            </td>
+                                            <td className="py-4 px-6">
+                                                <span className="inline-flex items-center px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-[11px] font-bold border border-slate-200 uppercase whitespace-nowrap tracking-tighter">
+                                                    {lead.lead_number || `LD-${String(lead.id).padStart(5, '0')}`}
+                                                </span>
                                             </td>
                                             <td className="py-4 px-6">
                                                 <div className="flex flex-col">
@@ -150,6 +171,11 @@ export default function Index({ leads, filters = {} }) {
                                                     {lead.parts_count} ITEM{lead.parts_count !== 1 ? 'S' : ''}
                                                 </div>
                                             </td>
+                                            <td className="py-4 px-6 text-center">
+                                                <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${getStatusStyles(lead.status)}`}>
+                                                    {lead.status?.toUpperCase() || 'QUOTE'}
+                                                </div>
+                                            </td>
                                             <td className="py-4 px-6">
                                                 <div className="flex items-center gap-2 text-slate-600">
                                                     <MapPin size={14} className="text-slate-400 opacity-60" />
@@ -157,6 +183,13 @@ export default function Index({ leads, filters = {} }) {
                                                 </div>
                                             </td>
                                             <td className="py-4 px-6 text-right pr-6 flex items-center justify-end gap-2">
+                                                <Link
+                                                    href={route("admin.leads.invoice", lead.id)}
+                                                    className="inline-flex items-center justify-center w-8 h-8 bg-white border border-slate-200 rounded-lg text-slate-400 hover:text-[#FF9F43] hover:border-[#FF9F43]/30 transition-all group/quote"
+                                                    title="Create Quote/Invoice"
+                                                >
+                                                    <FileText size={14} className="group-hover/quote:scale-110 transition-transform" />
+                                                </Link>
                                                 <Link
                                                     href={route("admin.leads.edit", lead.id)}
                                                     className="inline-flex items-center justify-center w-8 h-8 bg-white border border-slate-200 rounded-lg text-slate-400 hover:text-[#FF9F43] hover:border-[#FF9F43]/30 transition-all"
@@ -167,14 +200,14 @@ export default function Index({ leads, filters = {} }) {
                                                     href={route("admin.leads.show", lead.id)}
                                                     className="inline-flex items-center justify-center w-8 h-8 bg-white border border-slate-200 rounded-lg text-slate-400 hover:text-[#FF9F43] hover:border-[#FF9F43]/30 transition-all group/btn"
                                                 >
-                                                    <ChevronRight size={16} className="group-hover/btn:translate-x-0.5 transition-transform" />
+                                                    <Eye size={16} className="group-hover/btn:scale-110 transition-transform" />
                                                 </Link>
                                             </td>
                                         </tr>
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan="6" className="py-20 text-center">
+                                        <td colSpan="7" className="py-20 text-center">
                                             <div className="flex flex-col items-center gap-3">
                                                 <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-slate-300">
                                                     <Search size={32} />

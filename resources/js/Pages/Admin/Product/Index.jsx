@@ -262,7 +262,7 @@ export default function Index({ products, categories = [], subCategories = [], f
                                                         {firstImage ? (
                                                             <img 
                                                                 src={`/${firstImage.thumbnail_path}`} 
-                                                                className="w-full h-full object-cover" 
+                                                                className="w-full h-full object-contain p-0.5" 
                                                                 loading="lazy"
                                                                 decoding="async"
                                                                 alt={item.description}

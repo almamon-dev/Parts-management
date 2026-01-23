@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Lead extends Model
 {
     protected $fillable = [
+        'lead_number',
         'shop_name',
         'name',
         'contact_number',
@@ -22,7 +23,19 @@ class Lead extends Model
         'vin',
         'color_code',
         'engine_size',
+        'status',
     ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($lead) {
+            $latest = static::latest('id')->first();
+            $number = $latest ? $latest->id + 1 : 1;
+            $lead->lead_number = 'LD-' . str_pad($number, 5, '0', STR_PAD_LEFT);
+        });
+    }
 
     public function parts()
     {

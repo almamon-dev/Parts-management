@@ -2,6 +2,7 @@ import React from "react";
 import AdminLayout from "@/Layouts/AdminLayout";
 import { Head, Link, useForm, router } from "@inertiajs/react";
 import { Input } from "@/Components/ui/admin/input";
+import { Select } from "@/Components/ui/admin/Select";
 import FileUpload from "@/Components/ui/admin/FileUpload";
 import ConfirmDelete from "@/Components/ui/admin/ConfirmDelete";
 import {
@@ -13,6 +14,35 @@ import {
     Settings,
     Tag,
 } from "lucide-react";
+
+const MAKES = [
+    "ACURA", "AUDI", "BMW", "BUICK", "CADILLAC", "CHEVROLET", "CHRYSLER",
+    "DODGE", "EAGLE", "FORD", "FREIGHTLINER", "GMC", "HONDA", "HUMMER",
+    "HYUNDAI", "INFINITI", "ISUZU", "JEEP", "KIA", "LEXUS", "LINCOLN",
+    "MACK", "MAZDA", "MERCEDES", "MERCURY", "MITSUBISHI", "NISSAN",
+    "OLDSMOBILE", "PONTIAC", "RAM", "SAAB", "SATURN", "SCION", "SMART",
+    "STERLING", "SUBARU", "SUZUKI", "TESLA", "TOYOTA", "VOLKSWAGEN",
+    "VOLVO", "VOLVO TRUCK"
+].map(make => ({ value: make, label: make }));
+
+const YEARS = Array.from({ length: 2026 - 1995 + 1 }, (_, i) => 1995 + i)
+    .reverse()
+    .map((year) => ({ value: year.toString(), label: year.toString() }));
+
+const CAR_MODELS = [
+    // ACURA
+    "ILX", "MDX", "NSX", "RDX", "RLX", "TLX",
+    // AUDI
+    "A3", "A4", "A5", "A6", "A7", "A8", "Q3", "Q5", "Q7", "Q8", "TT",
+    // BMW
+    "1 Series", "2 Series", "3 Series", "4 Series", "5 Series", "7 Series", "8 Series", "X1", "X2", "X3", "X4", "X5", "X6", "X7", "Z4",
+    // FORD
+    "F-150", "Mustang", "Explorer", "Escape", "Focus", "Fusion", "Edge", "Ranger",
+    // HONDA
+    "Civic", "Accord", "CR-V", "Pilot", "Odyssey", "HR-V", "Ridgeline", "Fit",
+    // TOYOTA
+    "Corolla", "Camry", "RAV4", "Tacoma", "Highlander", "4Runner", "Sienna", "Tundra", "Prius"
+].map(model => ({ value: model, label: model }));
 
 export default function Edit({ product, categories, subCategories }) {
     const { data, setData, post, processing, errors, clearErrors } = useForm({
@@ -53,9 +83,9 @@ export default function Edit({ product, categories, subCategories }) {
     return (
         <AdminLayout>
             <Head title="Edit Product" />
-            <div className="p-6 bg-slate-50/50 min-h-screen font-sans">
+            <div className="p-4 bg-slate-50/50 min-h-screen font-sans">
                 {/* Header */}
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-5">
                     <div>
                         <h1 className="text-xl font-bold text-slate-800 flex items-center gap-2">
                             <Settings className="text-[#FF9F43]" size={24} /> 
@@ -73,19 +103,19 @@ export default function Edit({ product, categories, subCategories }) {
 
                 <form
                     onSubmit={handleSubmit}
-                    className="grid grid-cols-1 lg:grid-cols-12 gap-8"
+                    className="grid grid-cols-1 lg:grid-cols-12 gap-5"
                 >
                     {/* LEFT COLUMN */}
-                    <div className="lg:col-span-8 space-y-8">
+                    <div className="lg:col-span-8 space-y-5">
                         {/* Description Section */}
-                        <div className="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm">
-                            <h3 className="text-[14px] font-bold text-slate-800 mb-5 flex items-center gap-2">
+                        <div className="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm">
+                            <h3 className="text-[14px] font-bold text-slate-800 mb-4 flex items-center gap-2">
                                 <Info size={18} className="text-[#FF9F43]" />
                                 Product Description
                             </h3>
                             <Input
                                 isTextArea
-                                className="min-h-[140px] text-[13px] focus:ring-[#FF9F43]/10"
+                                className="min-h-[100px] text-[13px] focus:ring-[#FF9F43]/10"
                                 value={data.description}
                                 error={errors.description}
                                 onChange={(e) =>
@@ -98,8 +128,8 @@ export default function Edit({ product, categories, subCategories }) {
                         </div>
 
                         {/* Fitments Section */}
-                        <div className="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm">
-                            <div className="flex justify-between items-center mb-6 border-b border-slate-50 pb-4">
+                        <div className="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm">
+                            <div className="flex justify-between items-center mb-4 border-b border-slate-50 pb-3">
                                 <h3 className="text-[14px] font-bold text-slate-800 flex items-center gap-2">
                                     <Settings
                                         size={18}
@@ -120,21 +150,23 @@ export default function Edit({ product, categories, subCategories }) {
                                             },
                                         ])
                                     }
-                                    className="text-[12px] font-bold text-slate-600 bg-slate-50 border border-slate-100 px-4 py-2 rounded-xl hover:bg-slate-100 transition-colors flex items-center gap-1.5"
+                                    className="text-[11px] font-bold text-slate-600 bg-slate-50 border border-slate-100 px-3 py-1.5 rounded-lg hover:bg-slate-100 transition-colors flex items-center gap-1.5"
                                 >
-                                    <Plus size={14} /> Add New Row
+                                    <Plus size={14} /> Add Row
                                 </button>
                             </div>
 
-                            <div className="space-y-4">
+                            <div className="space-y-3">
                                 {data.fitments.map((fit, idx) => (
                                     <div
                                         key={idx}
-                                        className="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end bg-slate-50/40 p-5 rounded-2xl border border-slate-100 relative group"
+                                        className="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end bg-slate-50/40 p-3 rounded-xl border border-slate-100 relative group"
                                     >
-                                        <Input
+                                        <Select
                                             label="Year From"
+                                            placeholder="Select Year"
                                             className="bg-white text-[13px]"
+                                            options={YEARS}
                                             value={fit.year_from}
                                             onChange={(e) =>
                                                 updateFitment(
@@ -144,9 +176,11 @@ export default function Edit({ product, categories, subCategories }) {
                                                 )
                                             }
                                         />
-                                        <Input
+                                        <Select
                                             label="Year To"
+                                            placeholder="Select Year"
                                             className="bg-white text-[13px]"
+                                            options={YEARS}
                                             value={fit.year_to}
                                             onChange={(e) =>
                                                 updateFitment(
@@ -156,9 +190,11 @@ export default function Edit({ product, categories, subCategories }) {
                                                 )
                                             }
                                         />
-                                        <Input
+                                        <Select
                                             label="Make"
+                                            placeholder="Select Make"
                                             className="bg-white text-[13px]"
+                                            options={MAKES}
                                             value={fit.make}
                                             onChange={(e) =>
                                                 updateFitment(
@@ -169,9 +205,11 @@ export default function Edit({ product, categories, subCategories }) {
                                             }
                                         />
                                         <div className="flex gap-3 items-end">
-                                            <Input
+                                            <Select
                                                 label="Model"
+                                                placeholder="Select Model"
                                                 className="grow bg-white text-[13px]"
+                                                options={CAR_MODELS}
                                                 value={fit.model}
                                                 onChange={(e) =>
                                                     updateFitment(
@@ -205,12 +243,12 @@ export default function Edit({ product, categories, subCategories }) {
                         </div>
 
                         {/* Part Numbers Section */}
-                        <div className="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm">
-                            <h3 className="text-[14px] font-bold text-slate-800 mb-6 flex items-center gap-2 border-b border-slate-50 pb-4">
+                        <div className="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm">
+                            <h3 className="text-[14px] font-bold text-slate-800 mb-4 flex items-center gap-2 border-b border-slate-50 pb-3">
                                 <Tag size={18} className="text-[#FF9F43]" /> 
                                 Alternate Part Numbers
                             </h3>
-                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                                 {data.part_numbers.map((part, idx) => (
                                     <div
                                         key={idx}
@@ -261,11 +299,11 @@ export default function Edit({ product, categories, subCategories }) {
                     </div>
 
                     {/* RIGHT COLUMN */}
-                    <div className="lg:col-span-4 space-y-8">
+                    <div className="lg:col-span-4 space-y-5">
                         {/* Category Grid */}
-                        <div className="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm">
-                            <h3 className="text-[14px] font-bold text-slate-800 mb-5">Category</h3>
-                            <div className="grid grid-cols-2 gap-2">
+                        <div className="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm">
+                            <h3 className="text-[14px] font-bold text-slate-800 mb-4">Category</h3>
+                            <div className="flex flex-wrap gap-2">
                                 {categories?.map((cat) => (
                                     <button
                                         key={cat.id}
@@ -277,9 +315,9 @@ export default function Edit({ product, categories, subCategories }) {
                                                 sub_category_id: "",
                                             }))
                                         }
-                                        className={`py-2 px-2 text-[11px] font-bold rounded-xl border transition-all truncate ${
+                                        className={`py-2 px-3 text-[11px] font-bold rounded-full border transition-all ${
                                             Number(data.category_id) === Number(cat.id)
-                                                ? "bg-[#FF9F43] text-white border-[#FF9F43]"
+                                                ? "bg-[#FF9F43] text-white border-[#FF9F43] shadow-md shadow-orange-100"
                                                 : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
                                         }`}
                                     >
@@ -291,9 +329,9 @@ export default function Edit({ product, categories, subCategories }) {
 
                         {/* Sub Category */}
                         {data.category_id && (
-                            <div className="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm animate-in fade-in slide-in-from-top-2 duration-300">
-                                <h3 className="text-[14px] font-bold text-slate-800 mb-5">Sub Category</h3>
-                                <div className="grid grid-cols-2 gap-2">
+                            <div className="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm animate-in fade-in slide-in-from-top-2 duration-300">
+                                <h3 className="text-[14px] font-bold text-slate-800 mb-4">Sub Category</h3>
+                                <div className="flex flex-wrap gap-2">
                                     {filteredSubCategories?.map((sub) => (
                                         <button
                                             key={sub.id}
@@ -304,9 +342,9 @@ export default function Edit({ product, categories, subCategories }) {
                                                     sub.id
                                                 )
                                             }
-                                            className={`py-2 px-2 text-[11px] font-bold rounded-xl border transition-all truncate ${
+                                            className={`py-2 px-3 text-[11px] font-bold rounded-full border transition-all ${
                                                 Number(data.sub_category_id) === Number(sub.id)
-                                                    ? "bg-[#FF9F43] text-white border-[#FF9F43]"
+                                                    ? "bg-[#FF9F43] text-white border-[#FF9F43] shadow-md shadow-orange-100"
                                                     : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
                                             }`}
                                         >
@@ -321,8 +359,8 @@ export default function Edit({ product, categories, subCategories }) {
                         )}
 
                         {/* Visibility */}
-                        <div className="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm">
-                            <h3 className="text-[14px] font-bold text-slate-800 mb-5">Product Visibility</h3>
+                        <div className="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm">
+                            <h3 className="text-[14px] font-bold text-slate-800 mb-4">Product Visibility</h3>
                             <div className="grid grid-cols-3 gap-2">
                                 {["public", "private", "draft"].map(
                                     (status) => (
@@ -343,7 +381,7 @@ export default function Edit({ product, categories, subCategories }) {
                                     )
                                 )}
                             </div>
-                            <p className="text-[10px] text-slate-400 mt-4 text-center italic">
+                            <p className="text-[10px] text-slate-400 mt-3 text-center italic">
                                 {data.visibility === "public" && "Visible to all customers on the storefront."}
                                 {data.visibility === "private" && "Only authorized staff can access this item."}
                                 {data.visibility === "draft" && "Work in progress. Not visible on storefront."}
@@ -351,10 +389,10 @@ export default function Edit({ product, categories, subCategories }) {
                         </div>
 
                         {/* Pricing & Stock */}
-                        <div className="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm space-y-6">
-                            <div className="space-y-4 pb-4 border-b border-slate-50">
-                                <h4 className="text-[12px] font-bold text-slate-400 uppercase tracking-widest">Pricing (USD)</h4>
-                                <div className="grid grid-cols-2 gap-4">
+                        <div className="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm space-y-4">
+                            <div className="space-y-3 pb-3 border-b border-slate-50">
+                                <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Pricing (USD)</h4>
+                                <div className="grid grid-cols-2 gap-3">
                                     <Input
                                         label="Buy Price"
                                         type="number"
@@ -382,9 +420,9 @@ export default function Edit({ product, categories, subCategories }) {
                                 </div>
                             </div>
                             
-                            <div className="space-y-4 pb-4 border-b border-slate-50">
-                                <h4 className="text-[12px] font-bold text-slate-400 uppercase tracking-widest">Inventory Status</h4>
-                                <div className="grid grid-cols-3 gap-3">
+                            <div className="space-y-3 pb-3 border-b border-slate-50">
+                                <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Inventory Status</h4>
+                                <div className="grid grid-cols-3 gap-2">
                                     <Input
                                         label="Oakville"
                                         type="number"
@@ -424,7 +462,7 @@ export default function Edit({ product, categories, subCategories }) {
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4 pt-1">
+                            <div className="grid grid-cols-2 gap-3 pt-1">
                                 <Input
                                     label="SKU ID"
                                     className="text-[13px]"
@@ -449,8 +487,8 @@ export default function Edit({ product, categories, subCategories }) {
 
                         {/* Existing Media Preview */}
                         {product.files && product.files.length > 0 && (
-                            <div className="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm">
-                                <h3 className="text-[14px] font-bold text-slate-800 mb-5">Current Media</h3>
+                            <div className="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm">
+                                <h3 className="text-[14px] font-bold text-slate-800 mb-4">Current Media</h3>
                                 <div className="grid grid-cols-3 gap-3">
                                     {product.files.map((file) => (
                                         <div
@@ -477,7 +515,7 @@ export default function Edit({ product, categories, subCategories }) {
                             </div>
                         )}
 
-                        <div className="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm">
+                        <div className="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm">
                             <FileUpload
                                 data={data}
                                 setData={setData}
@@ -492,7 +530,7 @@ export default function Edit({ product, categories, subCategories }) {
                         <button
                             type="submit"
                             disabled={processing}
-                            className="w-full bg-[#FF9F43] text-white h-12 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-[#e68a30] active:scale-95 transition-all disabled:opacity-50 mt-4"
+                            className="w-full bg-[#FF9F43] text-white h-11 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-[#e68a30] active:scale-95 transition-all disabled:opacity-50 mt-2"
                         >
                             <Save size={18} />{" "}
                             {processing ? "Updating..." : "Save Changes"}

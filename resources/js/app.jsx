@@ -31,13 +31,6 @@ function FlashMessages({ children }) {
                 duration: 4000,
             });
         }
-
-        // -- Validation Errors --
-        const errorKeys = Object.keys(errors);
-        if (errorKeys.length > 0) {
-            // -- Client Side --
-            toast.error(errors[errorKeys[0]], { position: "top-center" });
-        }
     }, [flash, errors]);
 
     return (

@@ -85,7 +85,7 @@ const FileUpload = ({
                     setIsDragging(false);
                     processFiles(Array.from(e.dataTransfer.files));
                 }}
-                className={`relative group border-2 border-dashed rounded-3xl p-6 transition-all duration-300
+                className={`relative group border-2 border-dashed rounded-2xl p-3 transition-all duration-300
                 ${
                     isDragging
                         ? "border-orange-500 bg-orange-50/50 scale-[1.01]"
@@ -103,20 +103,20 @@ const FileUpload = ({
                     onChange={handleFileChange}
                 />
 
-                <div className="flex flex-col items-center justify-center py-4">
+                <div className="flex flex-col items-center justify-center py-1">
                     <div
-                        className={`mb-4 p-4 rounded-2xl transition-all duration-500
+                        className={`mb-2 p-2 rounded-xl transition-all duration-500
                         ${isDragging ? "bg-orange-500 text-white rotate-12" : "bg-white text-orange-600 shadow-sm group-hover:shadow-orange-200 group-hover:-translate-y-1"}
                     `}
                     >
-                        <Upload size={28} strokeWidth={2.5} />
+                        <Upload size={20} strokeWidth={2.5} />
                     </div>
 
-                    <p className="text-[15px] font-bold text-slate-800">
+                    <p className="text-[13px] font-bold text-slate-800">
                         Drag & Drop or{" "}
                         <span className="text-orange-600">Browse</span>
                     </p>
-                    <p className="text-xs font-medium text-slate-400 mt-2 flex items-center gap-2">
+                    <p className="text-[10px] font-medium text-slate-400 mt-1 flex items-center gap-2">
                         <span>PNG, JPG, WEBP up to 20MB</span>
                     </p>
                 </div>
@@ -131,13 +131,13 @@ const FileUpload = ({
 
             {/* Previews */}
             {previews.length > 0 && (
-                <div className="mt-5 grid grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="mt-3 grid grid-cols-2 lg:grid-cols-4 gap-2">
                     {previews.map((file, index) => (
                         <div
                             key={index}
-                            className="relative group/card bg-white border border-slate-100 rounded-2xl p-2 shadow-sm hover:shadow-md transition-all animate-in zoom-in-95 duration-200"
+                            className="relative group/card bg-white border border-slate-100 rounded-xl p-1.5 shadow-sm hover:shadow-md transition-all animate-in zoom-in-95 duration-200"
                         >
-                            <div className="relative aspect-square rounded-xl overflow-hidden border border-slate-50">
+                            <div className="relative aspect-square rounded-lg overflow-hidden border border-slate-50">
                                 <img
                                     src={file.url}
                                     className="w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-110"

@@ -2,16 +2,14 @@
 
 use App\Http\Controllers\Admin\Blog\IndexController as BlogController;
 use App\Http\Controllers\Admin\Category\IndexController as CategoryController;
+use App\Http\Controllers\Admin\Lead\LeadController;
 use App\Http\Controllers\Admin\Order\OrderController as AdminOrderController;
-use App\Http\Controllers\Admin\ReturnRequest\ReturnRequestController as AdminReturnRequestController;
 use App\Http\Controllers\Admin\Product\IndexController as ProductController;
+use App\Http\Controllers\Admin\ReturnRequest\ReturnRequestController as AdminReturnRequestController;
 use App\Http\Controllers\Admin\Settings\EmailSettingController;
 use App\Http\Controllers\Admin\Settings\PaymentSettingController;
 use App\Http\Controllers\Admin\Settings\ProfileSettingController;
-use App\Http\Controllers\Admin\Lead\LeadController;
 use App\Http\Controllers\Admin\Support\SupportController as AdminSupportController;
-use App\Http\Controllers\User\Support\SupportController as UserSupportController;
-use App\Http\Controllers\User\Quote\QuoteController;
 use App\Http\Controllers\API\User\Blog\IndexController as UserBlogController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\User\Booking\PaymentController;
@@ -21,6 +19,8 @@ use App\Http\Controllers\User\Order\ActiveOrderController;
 use App\Http\Controllers\User\Order\HistoryController;
 use App\Http\Controllers\User\Order\ReturnOrderController;
 use App\Http\Controllers\User\Parts\IndexController as PartController;
+use App\Http\Controllers\User\Quote\QuoteController;
+use App\Http\Controllers\User\Support\SupportController as UserSupportController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -101,6 +101,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/admin/leads', [LeadController::class, 'store'])->name('admin.leads.store');
     Route::get('/admin/leads/{lead}', [LeadController::class, 'show'])->name('admin.leads.show');
     Route::get('/admin/leads/{lead}/edit', [LeadController::class, 'edit'])->name('admin.leads.edit');
+    Route::get('/admin/leads/{lead}/invoice', [LeadController::class, 'invoice'])->name('admin.leads.invoice');
     Route::put('/admin/leads/{lead}', [LeadController::class, 'update'])->name('admin.leads.update');
 
     // Settings

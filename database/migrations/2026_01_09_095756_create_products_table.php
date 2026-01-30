@@ -20,7 +20,7 @@ return new class extends Migration
 
             $table->text('description');
 
-            $table->decimal('buy_price', 10, 2);
+            $table->decimal('buy_price', 10, 2)->nullable();
             $table->decimal('list_price', 10, 2);
 
             $table->integer('stock_oakville')->default(0);

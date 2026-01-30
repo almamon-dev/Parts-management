@@ -20,7 +20,6 @@ class ProductStoreRequest extends FormRequest
             'sub_category_id' => ['required', 'exists:sub_categories,id'],
 
             // Pricing
-            'buy_price' => ['required', 'numeric', 'min:0'],
             'list_price' => ['required', 'numeric', 'min:0'],
 
             // Identifiers

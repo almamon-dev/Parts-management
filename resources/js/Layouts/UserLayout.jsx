@@ -14,10 +14,10 @@ export default function UserLayout({ children }) {
     // Close mobile menu on page change
     useEffect(() => {
         setIsMobileOpen(false);
-    }, [url]);
+    }, [url.split('?')[0]]);
 
     return (
-        <div className="flex min-h-screen bg-[#F9F9F9] font-sans">
+        <div className="flex h-screen bg-[#F9F9F9] font-sans overflow-hidden">
             {/* Mobile Overlay */}
             {isMobileOpen && (
                 <div
@@ -28,7 +28,7 @@ export default function UserLayout({ children }) {
 
             {/* Sidebar Section - Synchronized with Sidebar.jsx width (280px) */}
             <aside
-                className={`fixed inset-y-0 left-0 z-[60] transition-all duration-300 ease-in-out flex flex-col w-[280px] bg-white
+                className={`fixed inset-y-0 left-0 z-[60] transition-all duration-300 ease-in-out flex flex-col w-[280px] bg-white border-r border-slate-100
                     ${
                         isMobileOpen
                             ? "translate-x-0 shadow-2xl"
@@ -50,8 +50,8 @@ export default function UserLayout({ children }) {
             </aside>
 
             {/* Main Content Area - Matching sidebar width padding */}
-            <div className="flex-1 flex flex-col min-w-0 lg:pl-[280px]">
-                <div className="sticky top-0 z-[50] flex items-center bg-white w-full shrink-0">
+            <div className="flex-1 flex flex-col min-w-0 lg:pl-[280px] overflow-hidden">
+                <div className="sticky top-0 z-[50] flex items-center bg-white w-full shrink-0 border-b border-slate-100">
                     <div className="flex-1">
                         {/* Unified onMenuClick handler */}
                         <Header 
@@ -61,14 +61,14 @@ export default function UserLayout({ children }) {
                     </div>
                 </div>
 
-                <main className="flex-1 p-0 overflow-x-hidden">
+                <main className="flex-1 p-0 overflow-y-auto custom-scrollbar">
                     <motion.div
-                        key={url}
+                        key={url.split('?')[0]}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ 
                             duration: 0.3, 
-                            ease: [0.22, 1, 0.36, 1] // Custom quint ease for premium feel
+                            ease: [0.22, 1, 0.36, 1] 
                         }}
                         className="w-full min-w-0"
                     >

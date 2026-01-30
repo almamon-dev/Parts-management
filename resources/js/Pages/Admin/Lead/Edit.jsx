@@ -18,6 +18,7 @@ import { Input } from "@/Components/ui/admin/input";
 export default function Edit({ lead }) {
     const { data, setData, put, processing, errors, reset } = useForm({
         shop_name: lead.shop_name || "",
+        po_number: lead.po_number || "",
         name: lead.name || "",
         contact_number: lead.contact_number || "",
         email: lead.email || "",
@@ -33,7 +34,10 @@ export default function Edit({ lead }) {
         color_code: lead.color_code || "",
         engine_size: lead.engine_size || "",
         status: lead.status || "Quote",
-        parts: lead.parts.length > 0 ? lead.parts : [
+        parts: lead.parts.length > 0 ? lead.parts.map(p => ({
+            ...p,
+            status: p.status || ""
+        })) : [
             {
                 part_name: "",
                 vendor: "",
@@ -41,6 +45,7 @@ export default function Edit({ lead }) {
                 sell_price: "0",
                 payment_status: "None",
                 method: "Cash",
+                status: "",
             }
         ]
     });
@@ -55,6 +60,7 @@ export default function Edit({ lead }) {
                 sell_price: "0",
                 payment_status: "None",
                 method: "Cash",
+                status: "",
             }
         ]);
     };
@@ -109,7 +115,7 @@ export default function Edit({ lead }) {
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <Input
-                                    label="Shop Name"
+                                    label="Shop"
                                     placeholder="Enter shop name"
                                     className="text-[13px] h-9"
                                     value={data.shop_name}
@@ -117,7 +123,7 @@ export default function Edit({ lead }) {
                                     error={errors.shop_name}
                                 />
                                 <Input
-                                    label="Requester Name"
+                                    label="Customer Name"
                                     placeholder="Enter name"
                                     className="text-[13px] h-9"
                                     value={data.name}
@@ -125,7 +131,7 @@ export default function Edit({ lead }) {
                                     error={errors.name}
                                 />
                                 <Input
-                                    label="Contact Number"
+                                    label="Phone"
                                     placeholder="Telephone number"
                                     className="text-[13px] h-9"
                                     value={data.contact_number}
@@ -133,7 +139,7 @@ export default function Edit({ lead }) {
                                     error={errors.contact_number}
                                 />
                                 <Input
-                                    label="Email Address"
+                                    label="Email"
                                     placeholder="Email address"
                                     type="email"
                                     className="text-[13px] h-9"
@@ -259,32 +265,54 @@ export default function Edit({ lead }) {
                         </div>
 
                         {/* Parts Selection */}
-                        <div className="bg-white p-3 rounded-xl border border-slate-200/60 shadow-sm">
-                            <div className="flex justify-between items-center mb-3 border-b border-slate-50 pb-2">
-                                <h3 className="text-[13px] font-bold text-slate-800 flex items-center gap-2">
-                                    <Package size={16} className="text-[#FF9F43]" />
+                        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                            <div className="flex justify-between items-center mb-4 pb-2 border-b border-slate-50">
+                                <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                                    <Package size={18} className="text-[#FF9F43]" />
                                     Parts Selection
                                 </h3>
                                 <button
                                     type="button"
                                     onClick={addPartRow}
-                                    className="text-[10px] font-bold text-slate-600 bg-slate-50 border border-slate-100 px-2 py-1 rounded-lg hover:bg-slate-100 transition-colors flex items-center gap-1"
+                                    className="text-xs font-bold text-slate-600 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg hover:bg-slate-100 transition-all flex items-center gap-2 shadow-sm"
                                 >
-                                    <Plus size={12} /> Add Row
+                                    <Plus size={14} /> Add Row
                                 </button>
                             </div>
 
-                            <div className="space-y-2">
+                            {/* Table Header Labels */}
+                            <div className="hidden xl:grid grid-cols-12 gap-3 mb-2 px-1">
+                                <div className="col-span-3 text-[11px] font-bold text-[#1e40af] uppercase">Parts</div>
+                                <div className="col-span-1 text-[11px] font-bold text-[#1e40af] uppercase text-center">Vendor</div>
+                                <div className="col-span-1 text-[11px] font-bold text-[#1e40af] uppercase text-center">Buy</div>
+                                <div className="col-span-1 text-[11px] font-bold text-[#1e40af] uppercase text-center">Sell</div>
+                                <div className="col-span-2 text-[11px] font-bold text-[#1e40af] uppercase text-center">Payment</div>
+                                <div className="col-span-2 text-[11px] font-bold text-[#1e40af] uppercase text-center">Method</div>
+                                <div className="col-span-2 text-[11px] font-bold text-[#1e40af] uppercase text-center">Status</div>
+                            </div>
+
+                            <div className="space-y-3">
                                 {data.parts.map((part, idx) => (
                                     <div 
                                         key={idx} 
-                                        className="grid grid-cols-1 md:grid-cols-12 gap-2 items-end bg-slate-50/40 p-2 rounded-lg border border-slate-100 relative group"
+                                        className="grid grid-cols-1 xl:grid-cols-12 gap-2 items-center bg-slate-50/30 p-2 rounded-xl border border-slate-100 relative group transition-all hover:bg-white hover:shadow-md"
                                     >
-                                        <div className="md:col-span-3">
-                                            <Input
-                                                label={idx === 0 ? "Part Name" : ""}
+                                        {/* Row Remove Button (Floating) */}
+                                        {data.parts.length > 1 && (
+                                            <button
+                                                type="button"
+                                                onClick={() => removePartRow(idx)}
+                                                className="absolute -right-2 -top-2 xl:top-1/2 xl:-translate-y-1/2 xl:-left-3 xl:right-auto opacity-100 xl:opacity-0 group-hover:opacity-100 transition-all z-10 bg-white text-rose-500 border border-rose-100 rounded-full w-6 h-6 flex items-center justify-center shadow-lg hover:bg-rose-500 hover:text-white"
+                                            >
+                                                <Trash2 size={12} />
+                                            </button>
+                                        )}
+
+                                        {/* Parts Input */}
+                                        <div className="col-span-12 xl:col-span-3">
+                                            <input
                                                 placeholder="Part name"
-                                                className="bg-white text-[12px] h-9"
+                                                className={`w-full h-9 bg-white border ${errors[`parts.${idx}.part_name`] ? 'border-rose-300' : 'border-slate-200'} rounded-lg px-2 text-[12px] focus:ring-2 focus:ring-[#FF9F43]/20 focus:border-[#FF9F43] outline-none transition-all font-medium`}
                                                 value={part.part_name}
                                                 onChange={(e) => handlePartChange(idx, "part_name", e.target.value)}
                                                 onKeyDown={(e) => {
@@ -293,77 +321,86 @@ export default function Edit({ lead }) {
                                                         addPartRow();
                                                     }
                                                 }}
-                                                error={errors[`parts.${idx}.part_name`]}
                                             />
                                         </div>
-                                        <div className="md:col-span-2">
-                                            <Input
-                                                label={idx === 0 ? "Vendor" : ""}
-                                                placeholder="Vendor"
-                                                className="bg-white text-[12px] h-9"
+
+                                        {/* Vendor */}
+                                        <div className="col-span-6 xl:col-span-1">
+                                            <select 
+                                                className="w-full h-9 bg-white border border-slate-200 rounded-lg px-1 text-[11px] font-medium transition-all outline-none"
                                                 value={part.vendor}
                                                 onChange={(e) => handlePartChange(idx, "vendor", e.target.value)}
-                                            />
+                                            >
+                                                <option value="">Vendor</option>
+                                                <option value="OEM">OEM</option>
+                                                <option value="Aftermarket">Aftermarket</option>
+                                                <option value="Used">Used</option>
+                                            </select>
                                         </div>
-                                        <div className="md:col-span-2">
-                                            <Input
-                                                label={idx === 0 ? "Buy Price" : ""}
-                                                placeholder="0.00"
+
+                                        {/* Buy Price */}
+                                        <div className="col-span-3 xl:col-span-1">
+                                            <input
+                                                placeholder="Buy"
                                                 type="number"
-                                                className="bg-white text-[12px] h-9"
+                                                className="w-full h-9 bg-white border border-slate-200 rounded-lg px-1 text-[11px] font-bold text-slate-600 transition-all outline-none"
                                                 value={part.buy_price}
                                                 onChange={(e) => handlePartChange(idx, "buy_price", e.target.value)}
                                             />
                                         </div>
-                                        <div className="md:col-span-2">
-                                            <Input
-                                                label={idx === 0 ? "Sell Price" : ""}
-                                                placeholder="0.00"
+
+                                        {/* Sell Price */}
+                                        <div className="col-span-3 xl:col-span-1">
+                                            <input
+                                                placeholder="Sell"
                                                 type="number"
-                                                className="bg-white text-[12px] h-9"
+                                                className="w-full h-9 bg-white border border-[#FF9F43]/30 rounded-lg px-1 text-[11px] font-black text-[#FF9F43] transition-all outline-none"
                                                 value={part.sell_price}
                                                 onChange={(e) => handlePartChange(idx, "sell_price", e.target.value)}
                                             />
                                         </div>
-                                        <div className="md:col-span-3">
-                                            <div className="flex gap-1.5 items-end">
-                                                <div className="grow grid grid-cols-2 gap-1.5">
-                                                    <div className="space-y-0.5">
-                                                        {idx === 0 && <label className="text-[10px] font-bold text-slate-400 uppercase">Status</label>}
-                                                        <select 
-                                                            className="h-9 bg-white border border-slate-100 rounded-lg px-2 text-[10px] focus:bg-white transition-all w-full"
-                                                            value={part.payment_status}
-                                                            onChange={(e) => handlePartChange(idx, "payment_status", e.target.value)}
-                                                        >
-                                                            <option>None</option>
-                                                            <option>Pending</option>
-                                                            <option>Paid</option>
-                                                            <option>Deposit Paid</option>
-                                                        </select>
-                                                    </div>
-                                                    <div className="space-y-0.5">
-                                                        {idx === 0 && <label className="text-[10px] font-bold text-slate-400 uppercase">Method</label>}
-                                                        <select 
-                                                            className="h-9 bg-white border border-slate-100 rounded-lg px-2 text-[10px] focus:bg-white transition-all w-full"
-                                                            value={part.method}
-                                                            onChange={(e) => handlePartChange(idx, "method", e.target.value)}
-                                                        >
-                                                            <option>Cash</option>
-                                                            <option>Card</option>
-                                                            <option>Bank Transfer</option>
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                                {data.parts.length > 1 && (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => removePartRow(idx)}
-                                                        className="inline-flex items-center justify-center w-8 h-8 text-slate-300 hover:text-rose-500 bg-white border border-slate-100 rounded-lg shadow-sm mb-[0.5px] transition-colors shrink-0"
-                                                    >
-                                                        <Trash2 size={14} />
-                                                    </button>
-                                                )}
-                                            </div>
+
+                                        {/* Payment Status */}
+                                        <div className="col-span-6 xl:col-span-2">
+                                            <select 
+                                                className="w-full h-9 bg-white border border-slate-200 rounded-lg px-2 text-[11px] font-medium transition-all outline-none"
+                                                value={part.payment_status}
+                                                onChange={(e) => handlePartChange(idx, "payment_status", e.target.value)}
+                                            >
+                                                <option value="None">None</option>
+                                                <option value="Due">Due</option>
+                                                <option value="Paid">Paid</option>
+                                                <option value="Deposit">Deposit</option>
+                                            </select>
+                                        </div>
+
+                                        {/* Method */}
+                                        <div className="col-span-6 xl:col-span-2">
+                                            <select 
+                                                className="w-full h-9 bg-white border border-slate-200 rounded-lg px-2 text-[11px] font-medium transition-all outline-none"
+                                                value={part.method}
+                                                onChange={(e) => handlePartChange(idx, "method", e.target.value)}
+                                            >
+                                                <option value="Cash">Cash</option>
+                                                <option value="Card">Card</option>
+                                                <option value="E-Transfer">E-Transfer</option>
+                                                <option value="Bank">Bank</option>
+                                            </select>
+                                        </div>
+
+                                        {/* Row Status */}
+                                        <div className="col-span-12 xl:col-span-2">
+                                            <select 
+                                                className="w-full h-9 bg-[#FF9F43]/5 border border-[#FF9F43]/10 text-[#FF9F43] font-bold rounded-lg px-2 text-[11px] uppercase tracking-wider transition-all outline-none"
+                                                value={part.status}
+                                                onChange={(e) => handlePartChange(idx, "status", e.target.value)}
+                                            >
+                                                <option value="">Status</option>
+                                                <option value="Pending">Pending</option>
+                                                <option value="Ordered">Ordered</option>
+                                                <option value="Received">Received</option>
+                                                <option value="Canceled">Canceled</option>
+                                            </select>
                                         </div>
                                     </div>
                                 ))}
@@ -373,19 +410,32 @@ export default function Edit({ lead }) {
 
                     {/* RIGHT COLUMN */}
                     <div className="lg:col-span-4 space-y-4">
-                        {/* Additional Notes */}
-                        <div className="bg-white p-3 rounded-xl border border-slate-200/60 shadow-sm">
-                            <h3 className="text-[13px] font-bold text-slate-800 mb-2 flex items-center gap-2">
-                                <FileText size={16} className="text-[#FF9F43]" />
-                                Notes
-                            </h3>
-                            <Input
-                                isTextArea
-                                placeholder="Requirements or notes..."
-                                className="min-h-[100px] text-[12px] focus:ring-[#FF9F43]/10"
-                                value={data.notes}
-                                onChange={(e) => setData("notes", e.target.value)}
-                            />
+                        {/* Additional Notes & PO */}
+                        <div className="bg-white p-3 rounded-xl border border-slate-200/60 shadow-sm space-y-4">
+                            <div>
+                                <h3 className="text-[13px] font-bold text-slate-800 mb-2 flex items-center gap-2">
+                                    <FileText size={16} className="text-[#FF9F43]" />
+                                    Notes
+                                </h3>
+                                <Input
+                                    isTextArea
+                                    placeholder="Requirements or notes..."
+                                    className="min-h-[100px] text-[12px] focus:ring-[#FF9F43]/10"
+                                    value={data.notes}
+                                    onChange={(e) => setData("notes", e.target.value)}
+                                />
+                            </div>
+
+                            <div className="pt-3 border-t border-slate-50">
+                                <Input
+                                    label="PO Number"
+                                    placeholder="Enter PO number"
+                                    className="text-[13px] h-9 font-bold text-[#D93025]"
+                                    value={data.po_number}
+                                    onChange={(e) => setData("po_number", e.target.value)}
+                                    error={errors.po_number}
+                                />
+                            </div>
                         </div>
 
                         {/* Payment Settings */}
@@ -416,10 +466,10 @@ export default function Edit({ lead }) {
                                             setData("parts", updated);
                                         }}
                                     >
-                                        <option>None</option>
-                                        <option>Pending</option>
-                                        <option>Paid</option>
-                                        <option>Deposit Paid</option>
+                                        <option value="None">None</option>
+                                        <option value="Due">Due</option>
+                                        <option value="Paid">Paid</option>
+                                        <option value="Deposit">Deposit</option>
                                     </select>
                                 </div>
                                 <div className="space-y-1.5 pt-2 border-t border-slate-50">

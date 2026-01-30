@@ -47,6 +47,11 @@ return new class extends Migration
             $table->string('reset_password_token')->nullable();
             $table->timestamp('reset_password_token_expire_at')->nullable();
 
+            // B2B Customer Discount & Purchase Tracking
+            $table->decimal('discount_rate', 5, 2)->default(0);
+            $table->decimal('total_purchases', 12, 2)->default(0);
+            $table->decimal('total_returns', 12, 2)->default(0);
+
             $table->rememberToken();
             $table->timestamps();
         });

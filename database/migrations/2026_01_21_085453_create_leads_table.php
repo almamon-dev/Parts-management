@@ -13,7 +13,9 @@ return new class extends Migration
     {
         Schema::create('leads', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->nullable()->constrained()->cascadeOnDelete();
             $table->string('lead_number')->nullable()->unique();
+            $table->string('po_number')->nullable();
             $table->string('shop_name')->nullable();
             $table->string('name'); // Required as per request
             $table->string('contact_number'); // Required as per request

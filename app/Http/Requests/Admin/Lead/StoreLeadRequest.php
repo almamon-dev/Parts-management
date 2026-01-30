@@ -17,6 +17,7 @@ class StoreLeadRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'po_number' => 'nullable|string|max:255',
             'shop_name' => 'nullable|string|max:255',
             'name' => 'required|string|max:255',
             'contact_number' => 'required|string|max:255',
@@ -40,6 +41,7 @@ class StoreLeadRequest extends FormRequest
             'parts.*.sell_price' => 'nullable|numeric|min:0',
             'parts.*.payment_status' => 'nullable|string|max:255',
             'parts.*.method' => 'nullable|string|max:255',
+            'parts.*.status' => 'nullable|string|max:255',
         ];
     }
 }

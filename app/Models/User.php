@@ -16,6 +16,7 @@ class User extends Authenticatable
         'profile_photo', 'company_name', 'address', 'company_phone', 'account_type',
         'store_hours', 'marketing_emails', 'order_confirmation',
         'order_cancellation', 'monthly_statement', 'is_verified', 'email_verified_at', 'reset_password_token', 'reset_password_token_expire_at',
+        'discount_rate', 'total_purchases', 'total_returns',
     ];
 
     protected $casts = [
@@ -26,6 +27,9 @@ class User extends Authenticatable
         'order_confirmation' => 'boolean',
         'order_cancellation' => 'boolean',
         'monthly_statement' => 'boolean',
+        'discount_rate' => 'decimal:2',
+        'total_purchases' => 'decimal:2',
+        'total_returns' => 'decimal:2',
     ];
 
     protected $hidden = [
@@ -72,5 +76,10 @@ class User extends Authenticatable
     public function payments()
     {
         return $this->hasMany(Payment::class);
+    }
+
+    public function productDiscounts()
+    {
+        return $this->hasMany(UserProductDiscount::class);
     }
 }

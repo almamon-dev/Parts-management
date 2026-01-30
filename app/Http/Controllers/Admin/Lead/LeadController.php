@@ -15,8 +15,9 @@ class LeadController extends Controller
 {
     public function index(Request $request)
     {
-        $filters = $request->only(['search']);
-        $leads = AdminLeadSnapshot::getPaginatedLeads($filters, 15);
+        $filters = $request->only(['search', 'status', 'per_page']);
+        $perPage = $request->input('per_page', 15);
+        $leads = AdminLeadSnapshot::getPaginatedLeads($filters, $perPage);
 
         return Inertia::render('Admin/Lead/Index', [
             'leads' => $leads,

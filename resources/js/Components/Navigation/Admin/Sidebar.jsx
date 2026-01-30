@@ -18,10 +18,13 @@ import {
     Headset,
     Image as ImageIcon,
     X,
+    Globe,
 } from "lucide-react";
 
 const Sidebar = ({ isCollapsed, isMobileOpen, setIsMobileOpen }) => {
     const { url } = usePage();
+    const { settings } = usePage().props;
+    
     const [openMenus, setOpenMenus] = useState({
         leads: false,
         products: false,
@@ -83,16 +86,11 @@ const Sidebar = ({ isCollapsed, isMobileOpen, setIsMobileOpen }) => {
                 },
             ],
         },
-        // {
-        //     label: "Sales - B2C",
-        //     path: "#",
-        //     icon: <BarChart2 size={18} />,
-        // },
-        // {
-        //     label: "Customers - B2B",
-        //     path: "#",
-        //     icon: <Users size={18} />,
-        // },
+        {
+            label: "Customers - B2B",
+            path: route("admin.customers.index"),
+            icon: <Users size={18} />,
+        },
         {
             label: "Products",
             path: route("admin.products.index"),
@@ -141,7 +139,7 @@ const Sidebar = ({ isCollapsed, isMobileOpen, setIsMobileOpen }) => {
         },
         {
             label: "Settings",
-            path: route("admin.settings.profile"),
+            path: route("admin.settings.index"),
             icon: <Settings size={18} />,
             key: "settings",
             children: [
@@ -149,6 +147,11 @@ const Sidebar = ({ isCollapsed, isMobileOpen, setIsMobileOpen }) => {
                     label: "Profile Settings",
                     path: route("admin.settings.profile"),
                     icon: <UserCircle size={14} />,
+                },
+                {
+                    label: "Site Configuration",
+                    path: route("admin.settings.index"),
+                    icon: <Globe size={14} />,
                 },
                 {
                     label: "Email Settings",
@@ -173,7 +176,7 @@ const Sidebar = ({ isCollapsed, isMobileOpen, setIsMobileOpen }) => {
                 }`}
             >
                 <img
-                    src="/img/logo.png"
+                    src={settings?.site_logo ? `/${settings.site_logo}` : "/img/logo.png"}
                     alt="Logo"
                     className={`object-contain ${
                         isCollapsed ? "h-8 w-8" : "h-9"
@@ -199,7 +202,6 @@ const Sidebar = ({ isCollapsed, isMobileOpen, setIsMobileOpen }) => {
 
                 <div className="space-y-1">
                     {menuItems.map((item) => {
-                        const currentPath = url.split("?")[0];
                         const getPathname = (path) => {
                             try {
                                 return path.startsWith("http")
@@ -210,13 +212,27 @@ const Sidebar = ({ isCollapsed, isMobileOpen, setIsMobileOpen }) => {
                             }
                         };
 
+                        const currentPath = url.split("?")[0];
                         const itemPath = getPathname(item.path);
-                        const isActive = item.children
-                            ? item.children.some(
-                                  (child) =>
-                                      currentPath === getPathname(child.path)
-                              )
-                            : currentPath === itemPath;
+                        
+                        // Robust active state calculation
+                        let isActive = false;
+                        if (item.children) {
+                            isActive = item.children.some(child => {
+                                const childPath = getPathname(child.path);
+                                return currentPath === childPath || (childPath !== '/' && currentPath.startsWith(childPath + '/'));
+                            });
+                        } else {
+                            isActive = currentPath === itemPath || (itemPath !== '/' && currentPath.startsWith(itemPath + '/'));
+                            // Special case for dashboard
+                            if (item.label === "Dashboard") isActive = currentPath === itemPath;
+                        }
+
+                        // Child active highlights
+                        const isChildActive = (childPath) => {
+                            const p = getPathname(childPath);
+                            return currentPath === p || (p !== '/' && currentPath.startsWith(p + '/'));
+                        };
 
                         return item.children ? (
                             <SidebarItem
@@ -236,16 +252,14 @@ const Sidebar = ({ isCollapsed, isMobileOpen, setIsMobileOpen }) => {
                                                 key={child.label}
                                                 href={child.path}
                                                 className={`flex items-center gap-3 ml-4 py-2 px-3 rounded-md text-sm transition-all ${
-                                                    currentPath ===
-                                                    getPathname(child.path)
+                                                    isChildActive(child.path)
                                                         ? "text-[#FF9F43] font-semibold bg-[#FF9F43]/10"
                                                         : "text-slate-500 hover:text-[#FF9F43] hover:bg-gray-50"
                                                 }`}
                                             >
                                                 <span
                                                     className={`${
-                                                        currentPath ===
-                                                        getPathname(child.path)
+                                                        isChildActive(child.path)
                                                             ? "text-[#FF9F43]"
                                                             : "text-slate-400"
                                                     }`}

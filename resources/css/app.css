@@ -3,14 +3,29 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Absolute Hide All Scrollbars but allow scrolling */
-html, body, * {
-    -ms-overflow-style: none !important;  /* IE and Edge */
-    scrollbar-width: none !important;  /* Firefox */
+/* Ensure scrolling works naturally */
+html, body {
+    overflow-x: hidden;
+    height: 100%;
 }
 
-*::-webkit-scrollbar {
-    display: none !important; /* Chrome, Safari and Opera */
+/* Custom Scrollbar for specific containers */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 20px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.2);
 }
 
 @layer base {
@@ -74,17 +89,32 @@ html, body, * {
         @apply border-border;
     }
     body {
-        @apply bg-background text-foreground font-sans;
-        font-family: 'Figtree', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif !important;
+        @apply bg-background text-foreground;
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", "Figtree", ui-sans-serif, system-ui, sans-serif !important;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+        scroll-behavior: smooth;
+        letter-spacing: -0.011em;
     }
 }
 @layer utilities {
-    @keyframes progress-indeterminate {
-        0% { transform: translateX(-100%); width: 30%; }
-        50% { transform: translateX(100%); width: 60%; }
-        100% { transform: translateX(400%); width: 30%; }
+    @keyframes progress-loader {
+        0% { transform: translateX(-100%); }
+        50% { transform: translateX(0); }
+        100% { transform: translateX(100%); }
     }
-    .animate-progress-indeterminate {
-        animation: progress-indeterminate 1.5s infinite linear;
+    .animate-infinite-loading {
+        animation: progress-loader 1.5s infinite ease-in-out;
+        width: 100%;
+    }
+
+    .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+    }
+
+    .scrollbar-hide {
+        -ms-overflow-style: none; /* IE and Edge */
+        scrollbar-width: none; /* Firefox */
     }
 }

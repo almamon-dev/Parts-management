@@ -18,7 +18,6 @@ class ProductUpdateRequest extends FormRequest
 
         return [
             'description' => 'required|string',
-            'buy_price' => 'required|numeric|min:0',
             'list_price' => 'required|numeric|min:0',
             'sku' => 'required|string|max:100|unique:products,sku,'.$productId,
             'category_id' => 'required|exists:categories,id',
@@ -43,7 +42,6 @@ class ProductUpdateRequest extends FormRequest
     {
         return [
             'sku.unique' => 'The provided SKU is already in use, please enter a unique one.',
-            'buy_price.required' => 'The buy price field is required.',
         ];
     }
 }

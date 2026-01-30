@@ -3,10 +3,12 @@
 use App\Http\Controllers\Admin\Announcement\AnnouncementController as AdminAnnouncementController;
 use App\Http\Controllers\Admin\Blog\IndexController as AdminBlogController;
 use App\Http\Controllers\Admin\Category\IndexController as AdminCategoryController;
+use App\Http\Controllers\Admin\Customer\CustomerController;
 use App\Http\Controllers\Admin\Lead\LeadController;
 use App\Http\Controllers\Admin\Order\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\Product\IndexController as AdminProductController;
 use App\Http\Controllers\Admin\ReturnRequest\ReturnRequestController as AdminReturnRequestController;
+use App\Http\Controllers\Admin\Setting\SettingController;
 use App\Http\Controllers\Admin\Settings\EmailSettingController;
 use App\Http\Controllers\Admin\Settings\PaymentSettingController;
 use App\Http\Controllers\Admin\Settings\ProfileSettingController;
@@ -156,6 +158,20 @@ Route::middleware(['auth'])->prefix('admin')->as('admin.')->group(function () {
     Route::resource('leads', LeadController::class);
     Route::get('leads/{lead}/invoice', [LeadController::class, 'invoice'])->name('leads.invoice');
 
+    // Customer Management (B2B)
+    Route::group(['prefix' => 'customers', 'as' => 'customers.'], function () {
+        Route::get('/', [CustomerController::class, 'index'])->name('index');
+        Route::post('/global-discount', [CustomerController::class, 'applyGlobalDiscount'])->name('global-discount');
+        Route::get('/search-products', [CustomerController::class, 'searchProducts'])->name('search-products');
+        Route::delete('/bulk-destroy', [CustomerController::class, 'bulkDestroy'])->name('bulk-destroy');
+        
+        Route::get('/{customer}', [CustomerController::class, 'show'])->name('show');
+        Route::patch('/{customer}/discount', [CustomerController::class, 'updateDiscount'])->name('update-discount');
+        Route::delete('/{customer}/product-discount/{product_id}', [CustomerController::class, 'removeProductDiscount'])->name('remove-product-discount');
+        Route::patch('/{customer}/reset-discount', [CustomerController::class, 'resetDiscount'])->name('reset-discount');
+        Route::delete('/{customer}', [CustomerController::class, 'destroy'])->name('destroy');
+    });
+
     // Support Management
     Route::group(['prefix' => 'support', 'as' => 'support.'], function () {
         Route::get('/', [AdminSupportController::class, 'index'])->name('index');
@@ -167,6 +183,12 @@ Route::middleware(['auth'])->prefix('admin')->as('admin.')->group(function () {
     // Announcements
     Route::resource('announcements', AdminAnnouncementController::class)->except(['show', 'edit', 'update']);
     Route::patch('announcements/{announcement}/status', [AdminAnnouncementController::class, 'updateStatus'])->name('announcements.update-status');
+
+    // Admin Settings
+    Route::group(['prefix' => 'settings', 'as' => 'settings.'], function () {
+        Route::get('/', [SettingController::class, 'index'])->name('index');
+        Route::post('/', [SettingController::class, 'update'])->name('update');
+    });
 
     // System Settings
     Route::group(['prefix' => 'settings', 'as' => 'settings.'], function () {

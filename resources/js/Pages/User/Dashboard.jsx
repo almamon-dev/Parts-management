@@ -30,7 +30,7 @@ const ProductCard = memo(({ product, quantity = 1, onQuantityChange, onAddToCart
                 {/* Badge Container */}
                 <div className="absolute top-2 left-2 md:top-3 md:left-3 z-10">
                     <div className="bg-slate-700/80 backdrop-blur-md text-white text-[9px] md:text-[11px] font-bold px-2 py-1 md:px-3 md:py-1.5 rounded-[6px] md:rounded-[8px] uppercase tracking-wide">
-                        {product.subCategory?.name || "Sale Items"}
+                        {product.category?.name || product.subCategory?.name || "Sale Items"}
                     </div>
                 </div>
                 
@@ -68,11 +68,21 @@ const ProductCard = memo(({ product, quantity = 1, onQuantityChange, onAddToCart
                     <h3 className="text-lg md:text-xl font-bold text-slate-900 tracking-tight mb-1 md:mb-2 uppercase line-clamp-1">
                         {product.sku || "N/A"}
                     </h3>
-                    <p className="text-[11px] md:text-[13px] font-semibold text-slate-600 uppercase tracking-tight mb-2 md:mb-3 line-clamp-1">
-                        {product.fitments?.[0]
-                            ? `${product.fitments[0].year_from}-${product.fitments[0].year_to} ${product.fitments[0].make} ${product.fitments[0].model}`
-                            : "General Fitment"}
-                    </p>
+                    <div className="flex items-center gap-1.5 mb-3">
+                        <div className="inline-flex items-center h-5 bg-slate-50 border border-slate-200 rounded px-2 gap-2 shadow-sm group-hover:border-[#A80000]/30 transition-colors">
+                            <span className="text-[9px] font-black text-[#A80000] whitespace-nowrap tracking-tighter">
+                                {product.fitments?.[0]
+                                    ? `${product.fitments[0].year_from} — ${product.fitments[0].year_to}`
+                                    : "N/A YEAR"}
+                            </span>
+                            <div className="w-px h-2.5 bg-slate-200" />
+                            <span className="text-[9px] font-black text-slate-500 uppercase truncate max-w-[150px]">
+                                {product.fitments?.[0]
+                                    ? `${product.fitments[0].make} ${product.fitments[0].model}`
+                                    : "Universal Fit"}
+                            </span>
+                        </div>
+                    </div>
                     <p className="text-slate-400 text-[11px] md:text-[13px] leading-snug line-clamp-2 md:line-clamp-3 font-medium">
                         {product.description}
                     </p>
@@ -82,16 +92,27 @@ const ProductCard = memo(({ product, quantity = 1, onQuantityChange, onAddToCart
                 <div className="mt-auto pt-3 md:pt-4 border-t border-slate-50 flex items-end justify-between gap-2 md:gap-4">
                     <div className="flex gap-3 md:gap-6">
                         <div className="flex flex-col">
-                            <span className="text-[10px] md:text-[12px] font-bold text-slate-400 uppercase tracking-tighter mb-0.5 md:mb-1">List</span>
-                            <span className="text-[14px] md:text-[16px] font-bold text-slate-400 line-through tracking-tight leading-none">
-                                ${product.list_price || "0.00"}
-                            </span>
-                        </div>
-                        <div className="flex flex-col">
-                            <span className="text-[10px] md:text-[12px] font-bold text-slate-400 uppercase tracking-tighter mb-0.5 md:mb-1">Price</span>
-                            <span className="text-[16px] md:text-[20px] font-black text-[#A80000] tracking-tighter leading-none">
-                                ${product.list_price || "0.00"}
-                            </span>
+                            <div className="flex items-center gap-1.5 mb-0.5 md:mb-1">
+                                <span className="text-[10px] md:text-[12px] font-black text-[#A80000] uppercase tracking-widest">Your Price</span>
+                                {product.applied_discount > 0 && (
+                                    <span className={cn(
+                                        "text-[8px] md:text-[10px] font-black px-1.5 py-0.5 rounded-full",
+                                        product.discount_type === 'specific' ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
+                                    )}>
+                                        {product.applied_discount}% OFF
+                                    </span>
+                                )}
+                            </div>
+                            <div className="flex items-baseline gap-1.5">
+                                <span className={cn("text-[16px] md:text-[20px] font-black tracking-tighter leading-none", product.applied_discount > 0 ? "text-emerald-600" : "text-slate-950")}>
+                                    ${product.your_price || product.list_price || "0.00"}
+                                </span>
+                                {product.applied_discount > 0 && (
+                                    <span className="text-[10px] md:text-[12px] font-bold text-slate-400 line-through tracking-tighter opacity-60">
+                                        ${product.list_price}
+                                    </span>
+                                )}
+                            </div>
                         </div>
                     </div>
 
@@ -228,7 +249,8 @@ export default function Dashboard({ stats, sections, categories: dynamicCategori
                     {categories.map((cat, idx) => (
                         <div
                             key={idx}
-                            className="bg-[#EBEBEB] rounded-[10px] p-4 lg:p-6 flex flex-col items-center justify-between transition-all hover:shadow-xl border border-transparent hover:border-white group"
+                            onClick={() => router.get(route('parts.index'), { category: cat.title })}
+                            className="bg-[#EBEBEB] rounded-[10px] p-4 lg:p-6 flex flex-col items-center justify-between transition-all hover:shadow-xl border border-transparent hover:border-white group cursor-pointer active:scale-[0.98]"
                         >
                             <div className="w-full h-32 lg:h-36 flex items-center justify-center mb-4">
                                 <img
@@ -273,8 +295,11 @@ export default function Dashboard({ stats, sections, categories: dynamicCategori
                                 Here's what's happening with your auto parts orders today.
                             </p>
 
-                            <button className="bg-[#B90000] text-white pr-2 py-2 rounded-full flex items-center gap-3 sm:gap-6 hover:scale-[1.02] transition-all shadow-xl group">
-                                <span className="pl-4 sm:pl-6 text-base sm:text-lg font-black uppercase  tracking-tighter">
+                            <button 
+                                onClick={() => router.get(route('parts.index'))}
+                                className="bg-[#B90000] text-white pr-2 py-2 rounded-full flex items-center gap-3 sm:gap-6 hover:scale-[1.02] transition-all shadow-xl group"
+                            >
+                                <span className="pl-4 sm:pl-6 text-base sm:text-lg font-black uppercase tracking-tighter">
                                     Buy Items
                                 </span>
                                 <div className="bg-white/20 p-2 sm:p-2.5 rounded-full border border-white/10">
@@ -315,7 +340,7 @@ export default function Dashboard({ stats, sections, categories: dynamicCategori
                     <div className="bg-white rounded-[15px] overflow-hidden shadow-sm border border-gray-100 p-1 group">
                          <div className="relative w-full rounded-[12px] overflow-hidden">
                             <img 
-                                src={`/${announcement.image_path}`} 
+                                src={`${announcement.image_path}`} 
                                 alt={announcement.title || "Announcement"} 
                                 className="w-full h-auto block transition-transform duration-1000 group-hover:scale-[1.01]" 
                             />
@@ -347,10 +372,10 @@ function StatCard({ icon, title, value, onClick }) {
     return (
         <div 
             onClick={onClick}
-            className="bg-white p-6 rounded-[10px] shadow-sm flex flex-col justify-between relative group cursor-pointer border border-transparent hover:border-gray-100 transition-all flex-1 overflow-hidden"
+            className="bg-white p-6 rounded-[20px] shadow-sm flex flex-col justify-between relative group cursor-pointer border border-slate-100 hover:border-[#B90000]/20 hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-500 flex-1 overflow-hidden"
         >
             <div
-                className="absolute bottom-[-10%] right-[-5%] w-48 h-48 opacity-[0.03] pointer-events-none transition-transform duration-700 group-hover:scale-110"
+                className="absolute bottom-[-10%] right-[-5%] w-48 h-48 opacity-[0.03] pointer-events-none transition-transform duration-700 group-hover:scale-125 group-hover:rotate-12"
                 style={{
                     backgroundImage: `url("${svgPattern}")`,
                     backgroundSize: "contain",
@@ -361,24 +386,24 @@ function StatCard({ icon, title, value, onClick }) {
             />
 
             <div className="flex justify-between items-center z-10">
-                <div className="flex items-center gap-3 md:gap-4">
-                    <div className="p-3 md:p-4 bg-[#F8F9FB] rounded-xl md:rounded-2xl group-hover:bg-gray-100 transition-colors">
-                        {React.cloneElement(icon, { size: 20, className: icon.props.className + " md:w-6 md:h-6" })}
+                <div className="flex items-center gap-3 md:gap-5">
+                    <div className="p-3.5 md:p-4 bg-slate-50 rounded-2xl group-hover:bg-white group-hover:shadow-inner transition-all duration-300">
+                        {React.cloneElement(icon, { size: 22, className: icon.props.className + " transition-transform group-hover:scale-110" })}
                     </div>
                     <div>
-                         <p className="text-[#475569] font-bold text-base md:text-lg tracking-tight">
+                         <p className="text-slate-500 font-bold text-sm md:text-base uppercase tracking-wider">
                             {title}
                         </p>
                     </div>
                 </div>
 
-                <div className="p-2 md:p-2.5 bg-[#F8F9FB] rounded-full group-hover:bg-black group-hover:text-white transition-all transform group-hover:rotate-45 shadow-sm">
-                    <ArrowUpRight size={18} className="md:w-5 md:h-5" />
+                <div className="p-2 md:p-2.5 bg-slate-50 rounded-full group-hover:bg-black group-hover:text-white transition-all transform group-hover:rotate-45 shadow-sm border border-slate-100">
+                    <ArrowUpRight size={18} />
                 </div>
             </div>
 
-            <div className="mt-3 md:mt-4 z-10">
-                <h3 className="text-[2rem] md:text-[2.5rem] font-black text-[#0F172A] tracking-tighter leading-none">
+            <div className="mt-6 md:mt-8 z-10">
+                <h3 className="text-[2.5rem] md:text-[3.5rem] font-black text-slate-900 tracking-tighter leading-none transition-all group-hover:translate-x-1">
                     {String(value).padStart(2, '0')}
                 </h3>
             </div>

@@ -29,20 +29,39 @@ const YEARS = Array.from({ length: 2026 - 1995 + 1 }, (_, i) => 1995 + i)
     .reverse()
     .map((year) => ({ value: year.toString(), label: year.toString() }));
 
-const CAR_MODELS = [
-    // ACURA
-    "ILX", "MDX", "NSX", "RDX", "RLX", "TLX",
-    // AUDI
-    "A3", "A4", "A5", "A6", "A7", "A8", "Q3", "Q5", "Q7", "Q8", "TT",
-    // BMW
-    "1 Series", "2 Series", "3 Series", "4 Series", "5 Series", "7 Series", "8 Series", "X1", "X2", "X3", "X4", "X5", "X6", "X7", "Z4",
-    // FORD
-    "F-150", "Mustang", "Explorer", "Escape", "Focus", "Fusion", "Edge", "Ranger",
-    // HONDA
-    "Civic", "Accord", "CR-V", "Pilot", "Odyssey", "HR-V", "Ridgeline", "Fit",
-    // TOYOTA
-    "Corolla", "Camry", "RAV4", "Tacoma", "Highlander", "4Runner", "Sienna", "Tundra", "Prius"
-].map(model => ({ value: model, label: model }));
+// Make to Models Mapping
+const MAKE_MODELS = {
+    "ACURA": ["ILX", "MDX", "NSX", "RDX", "RLX", "TLX"],
+    "AUDI": ["A3", "A4", "A5", "A6", "A7", "A8", "Q3", "Q5", "Q7", "Q8", "TT"],
+    "BMW": ["1 Series", "2 Series", "3 Series", "4 Series", "5 Series", "7 Series", "8 Series", "X1", "X2", "X3", "X4", "X5", "X6", "X7", "Z4"],
+    "BUICK": ["Enclave", "Encore", "Envision", "LaCrosse", "Regal"],
+    "CADILLAC": ["ATS", "CT4", "CT5", "CT6", "Escalade", "XT4", "XT5", "XT6"],
+    "CHEVROLET": ["Blazer", "Camaro", "Colorado", "Corvette", "Cruze", "Equinox", "Impala", "Malibu", "Silverado", "Suburban", "Tahoe", "Traverse"],
+    "CHRYSLER": ["200", "300", "Pacifica", "Town & Country"],
+    "DODGE": ["Challenger", "Charger", "Durango", "Grand Caravan", "Journey", "Ram 1500"],
+    "FORD": ["Bronco", "Edge", "Escape", "Expedition", "Explorer", "F-150", "F-250", "Fiesta", "Focus", "Fusion", "Mustang", "Ranger"],
+    "GMC": ["Acadia", "Canyon", "Sierra", "Terrain", "Yukon"],
+    "HONDA": ["Accord", "Civic", "CR-V", "Fit", "HR-V", "Odyssey", "Pilot", "Ridgeline"],
+    "HYUNDAI": ["Accent", "Elantra", "Kona", "Palisade", "Santa Fe", "Sonata", "Tucson"],
+    "JEEP": ["Cherokee", "Compass", "Gladiator", "Grand Cherokee", "Renegade", "Wrangler"],
+    "KIA": ["Forte", "K5", "Optima", "Rio", "Sedona", "Sorento", "Soul", "Sportage", "Telluride"],
+    "LEXUS": ["ES", "GS", "GX", "IS", "LC", "LS", "LX", "NX", "RC", "RX"],
+    "MAZDA": ["CX-3", "CX-5", "CX-9", "Mazda3", "Mazda6", "MX-5"],
+    "MERCEDES": ["A-Class", "C-Class", "E-Class", "G-Class", "GLA", "GLC", "GLE", "GLS", "S-Class"],
+    "NISSAN": ["Altima", "Armada", "Frontier", "Kicks", "Maxima", "Murano", "Pathfinder", "Rogue", "Sentra", "Titan"],
+    "RAM": ["1500", "2500", "3500", "ProMaster"],
+    "SUBARU": ["Ascent", "Crosstrek", "Forester", "Impreza", "Legacy", "Outback", "WRX"],
+    "TESLA": ["Model 3", "Model S", "Model X", "Model Y"],
+    "TOYOTA": ["4Runner", "Camry", "Corolla", "Highlander", "Prius", "RAV4", "Sienna", "Tacoma", "Tundra"],
+    "VOLKSWAGEN": ["Atlas", "Golf", "Jetta", "Passat", "Tiguan"],
+    "VOLVO": ["S60", "S90", "V60", "XC40", "XC60", "XC90"]
+};
+
+// Helper function to get models for a specific make
+const getModelsForMake = (make) => {
+    if (!make || !MAKE_MODELS[make]) return [];
+    return MAKE_MODELS[make].map(model => ({ value: model, label: model }));
+};
 
 export default function Edit({ product, categories, subCategories }) {
     const { data, setData, post, processing, errors, clearErrors } = useForm({
@@ -180,7 +199,7 @@ export default function Edit({ product, categories, subCategories }) {
                                             label="Year To"
                                             placeholder="Select Year"
                                             className="bg-white text-[13px]"
-                                            options={YEARS}
+                                            options={fit.year_from ? YEARS.filter(year => parseInt(year.value) >= parseInt(fit.year_from)) : []}
                                             value={fit.year_to}
                                             onChange={(e) =>
                                                 updateFitment(
@@ -194,7 +213,7 @@ export default function Edit({ product, categories, subCategories }) {
                                             label="Make"
                                             placeholder="Select Make"
                                             className="bg-white text-[13px]"
-                                            options={MAKES}
+                                            options={fit.year_to ? MAKES : []}
                                             value={fit.make}
                                             onChange={(e) =>
                                                 updateFitment(
@@ -209,7 +228,7 @@ export default function Edit({ product, categories, subCategories }) {
                                                 label="Model"
                                                 placeholder="Select Model"
                                                 className="grow bg-white text-[13px]"
-                                                options={CAR_MODELS}
+                                                options={getModelsForMake(fit.make)}
                                                 value={fit.model}
                                                 onChange={(e) =>
                                                     updateFitment(
@@ -392,19 +411,7 @@ export default function Edit({ product, categories, subCategories }) {
                         <div className="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm space-y-4">
                             <div className="space-y-3 pb-3 border-b border-slate-50">
                                 <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Pricing (USD)</h4>
-                                <div className="grid grid-cols-2 gap-3">
-                                    <Input
-                                        label="Buy Price"
-                                        type="number"
-                                        className="text-[13px]"
-                                        value={data.buy_price}
-                                        onChange={(e) =>
-                                            handleInputChange(
-                                                "buy_price",
-                                                e.target.value
-                                            )
-                                        }
-                                    />
+                                <div className="grid grid-cols-1 gap-3">
                                     <Input
                                         label="List Price"
                                         type="number"

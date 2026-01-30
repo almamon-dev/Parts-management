@@ -101,6 +101,10 @@ export default function Invoice({ lead }) {
                                     <div className="w-1/2 bg-slate-200 p-1 text-[10px] sm:text-[11px] font-black border-r-[2px] border-slate-400 text-center uppercase">Invoice Number</div>
                                     <div className="w-1/2 p-1 text-[10px] sm:text-[11px] font-bold text-center">INV-{String(lead.id).padStart(6, '0')}</div>
                                 </div>
+                                <div className="flex">
+                                    <div className="w-1/2 bg-slate-200 p-1 text-[10px] sm:text-[11px] font-black border-r-[2px] border-slate-400 text-center uppercase">PO Number</div>
+                                    <div className="w-1/2 p-1 text-[10px] sm:text-[11px] font-black text-center text-[#D93025]">{lead.po_number || "N/A"}</div>
+                                </div>
                             </div>
                             {/* Barcode Mock */}
                             <div className="mt-2 flex flex-col items-center opacity-80 overflow-hidden">

@@ -153,7 +153,14 @@ export default function Show({ lead }) {
                                                             part.payment_status === 'Pending' ? 'bg-amber-50 border-amber-100 text-amber-600' : 
                                                             'bg-slate-50 border-slate-100 text-slate-500'
                                                         }`}>
-                                                            {part.payment_status}
+                                                            Pay: {part.payment_status}
+                                                        </div>
+                                                        <div className={`px-1.5 py-0.5 rounded text-[9px] font-bold border w-fit ${
+                                                            part.status === 'Received' ? 'bg-blue-50 border-blue-100 text-blue-600' : 
+                                                            part.status === 'Ordered' ? 'bg-indigo-50 border-indigo-100 text-indigo-600' : 
+                                                            'bg-slate-50 border-slate-100 text-slate-500'
+                                                        }`}>
+                                                            Item: {part.status || 'Pending'}
                                                         </div>
                                                         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">{part.method}</span>
                                                     </div>

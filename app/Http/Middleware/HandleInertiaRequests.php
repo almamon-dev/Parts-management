@@ -37,7 +37,16 @@ class HandleInertiaRequests extends Middleware
             'flash' => [
                 'success' => $request->session()->get('success'),
                 'error' => $request->session()->get('error'),
+                'warning' => $request->session()->get('warning'),
             ],
+            'errors' => function () use ($request) {
+                return $request->session()->get('errors')
+                    ? $request->session()->get('errors')->getBag('default')->getMessages()
+                    : (object) [];
+            },
+            'settings' => function () {
+                return \App\Models\Setting::all()->pluck('value', 'key');
+            },
 
             'cart' => function () {
                 if (! auth()->user()) {
@@ -54,6 +63,7 @@ class HandleInertiaRequests extends Middleware
 
                 $mappedItems = $cartItems->map(function ($item) {
                     $firstFile = $item->product->files->first();
+
                     return [
                         'id' => $item->id,
                         'product_id' => $item->product_id,

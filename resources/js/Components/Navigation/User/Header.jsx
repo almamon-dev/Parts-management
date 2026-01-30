@@ -43,7 +43,7 @@ const Header = ({ onMenuClick, onCartClick }) => {
 
                 <div className="flex flex-col min-w-0">
                     <h1 className="text-base md:text-2xl font-bold text-slate-900 leading-tight truncate">
-                        Welcome, {user?.first_name || "User"}
+                        Welcome, {user?.company_name || "User"}
                     </h1>
                     <p className="text-[10px] md:text-sm text-slate-400 mt-0.5 hidden sm:block leading-relaxed truncate">
                         Here's what's happening with your auto parts orders today.
@@ -52,18 +52,6 @@ const Header = ({ onMenuClick, onCartClick }) => {
             </div>
 
             <div className="flex items-center gap-1.5 md:gap-6 shrink-0">
-                <div className="relative hidden xl:block">
-                    <Search
-                        size={18}
-                        className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400"
-                    />
-                    <input
-                        type="text"
-                        placeholder="Search here..."
-                        className="w-[350px] 2xl:w-[450px] pl-12 pr-4 py-3 rounded-full bg-[#F8F9FA] border-none text-slate-500 focus:outline-none placeholder:text-slate-400 text-sm"
-                    />
-                </div>
-
                 <div className="flex items-center gap-1 md:gap-3">
                     <button
                         onClick={onCartClick}
@@ -77,10 +65,10 @@ const Header = ({ onMenuClick, onCartClick }) => {
                         )}
                     </button>
 
-                    <button className="relative p-2 md:p-3.5 rounded-full bg-[#F8F9FA] text-slate-500 hover:bg-gray-100 transition-all duration-300">
+                    {/* <button className="relative p-2 md:p-3.5 rounded-full bg-[#F8F9FA] text-slate-500 hover:bg-gray-100 transition-all duration-300">
                         <Bell size={18} className="md:size-[22px]" />
                         <span className="absolute top-2 md:top-2.5 right-2 md:right-2.5 w-2 md:w-2.5 h-2 md:h-2.5 bg-orange-400 border-2 border-white rounded-full" />
-                    </button>
+                    </button> */}
                 </div>
 
                 {/* Optimized User Profile Section matching Image */}

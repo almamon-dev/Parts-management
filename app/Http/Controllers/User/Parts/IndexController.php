@@ -40,49 +40,73 @@ class IndexController extends Controller
         $query->when($request->category, fn ($q, $cat) => $q->whereHas('category', fn ($c) => $c->where('name', $cat)));
         $query->when($request->location, fn ($q, $loc) => $q->where('location_id', $loc));
 
+        $user = auth()->user();
         $products = $query->with(['category:id,name', 'subCategory:id,name', 'partsNumbers', 'files', 'fitments'])
-            ->withExists(['favourites as is_favorite' => function ($q) {
-                $q->where('user_id', auth()->id());
+            ->withExists(['favourites as is_favorite' => function ($q) use ($user) {
+                $q->where('user_id', $user->id);
             }])
-            ->withExists(['carts as in_cart' => function ($q) {
-                $q->where('user_id', auth()->id());
+            ->withExists(['carts as in_cart' => function ($q) use ($user) {
+                $q->where('user_id', $user->id);
             }])
             ->latest()
-            ->get();
+            ->get()
+            ->map(function ($product) use ($user) {
+                $specificDiscount = $product->userProductDiscounts()
+                    ->where('user_id', $user->id)
+                    ->first();
 
-        // Optimized Filter Options
+                if ($specificDiscount && $specificDiscount->discount_rate > 0) {
+                    $product->applied_discount = $specificDiscount->discount_rate;
+                    $product->discount_type = 'specific';
+                } elseif ($user->discount_rate > 0) {
+                    $product->applied_discount = $user->discount_rate;
+                    $product->discount_type = 'global';
+                } else {
+                    $product->applied_discount = 0;
+                    $product->discount_type = null;
+                }
+
+                $product->your_price = number_format($product->getPriceForUser($user), 2, '.', '');
+                return $product;
+            });
+
+        // Optimized Filter Options - Independent of Category for better UX
         $filterOptions = [
-            'makes' => DB::table('fitments')
-                ->distinct()
-                ->orderBy('make')
-                ->pluck('make')
-                ->toArray(), // Force array
-
-            'models' => DB::table('fitments')
-                ->when($request->make, fn ($q, $make) => $q->where('make', $make))
-                ->distinct()
-                ->orderBy('model')
-                ->pluck('model')
-                ->toArray(),
-
             'years' => DB::table('fitments')
                 ->distinct()
                 ->orderByDesc('year_from')
                 ->pluck('year_from')
                 ->toArray(),
 
-            'locations' => Product::whereNotNull('location_id')
+            'makes' => $request->year_from ? DB::table('fitments')
+                ->where('year_from', '<=', $request->year_from)
+                ->where('year_to', '>=', $request->year_from)
                 ->distinct()
-                ->orderBy('location_id')
-                ->pluck('location_id')
-                ->toArray(),
+                ->orderBy('make')
+                ->pluck('make')
+                ->toArray() : [],
+
+            'models' => ($request->year_from && $request->make) ? DB::table('fitments')
+                ->where('year_from', '<=', $request->year_from)
+                ->where('year_to', '>=', $request->year_from)
+                ->where('make', $request->make)
+                ->distinct()
+                ->orderBy('model')
+                ->pluck('model')
+                ->toArray() : [],
         ];
 
         return Inertia::render('User/Parts/Index', [
             'products' => $products,
             'categories' => Category::all(['id', 'name']),
             'filterOptions' => $filterOptions,
-            'filters' => $request->only(['search', 'category', 'year_from', 'make', 'model', 'location']),
+            'filters' => [
+                'search' => $request->search ?? null,
+                'category' => $request->category ?? null,
+                'year_from' => $request->year_from ?? null,
+                'make' => $request->make ?? null,
+                'model' => $request->model ?? null,
+            ],
         ]);
     }
 

@@ -13,13 +13,16 @@ import {
     Package,
     Pencil,
     FileText,
+    Phone,
+    Tag,
 } from "lucide-react";
 
 export default function Index({ leads, filters = {} }) {
     const {
-        search, handleSearch, isLoading,
+        search, handleSearch, isLoading, loadingType,
         selectedIds, toggleSelectAll, toggleSelect,
         selectAllGlobal, setSelectAllGlobal, clearSelection,
+        currentFilters, handleFilterChange, handleClearFilters,
     } = TableManager("admin.leads.index", leads.data, {
         ...filters,
         only: ["leads"]
@@ -27,35 +30,22 @@ export default function Index({ leads, filters = {} }) {
 
     const isAllPageSelected = leads.data.length > 0 && (selectAllGlobal || leads.data.every((p) => selectedIds.includes(p.id)));
 
-    const getStatusStyles = (status) => {
-        switch (status) {
-            case "Quote":
-                return "bg-yellow-100 text-yellow-700 border-yellow-200";
-            case "Processing":
-                return "bg-red-100 text-red-700 border-red-200";
-            case "Fulfilled":
-                return "bg-green-100 text-green-700 border-green-200";
-            default:
-                return "bg-slate-100 text-slate-700 border-slate-200";
-        }
-    };
-
     return (
         <AdminLayout>
             <Head title="Lead Management" />
 
-            <div className="p-8 bg-[#F8FAFC] min-h-screen font-sans">
+            <div className="font-sans">
                 {/* Header Section */}
-                <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                     <div>
-                        <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Leads</h1>
-                        <p className="text-slate-500 mt-1">Track and manage your sales leads and parts requests.</p>
+                        <h1 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">Leads</h1>
+                        <p className="text-slate-500 text-sm mt-1">Track and manage your sales leads and parts requests.</p>
                     </div>
 
                     <div className="flex items-center gap-2">
                         <Link
                             href={route("admin.leads.create")}
-                            className="inline-flex items-center justify-center px-4 py-2.5 bg-[#FF9F43] text-white text-[13px] font-bold rounded-lg hover:bg-[#e68a30] transition-all duration-200 shadow-lg shadow-[#FF9F43]/20"
+                            className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2.5 bg-[#FF9F43] text-white text-[13px] font-bold rounded-lg hover:bg-[#e68a30] transition-all duration-200 shadow-lg shadow-[#FF9F43]/20"
                         >
                             <Plus size={16} className="mr-2" /> Add New Lead
                         </Link>
@@ -64,36 +54,46 @@ export default function Index({ leads, filters = {} }) {
 
                 {/* Search & Bulk Action Bar */}
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200/60 overflow-hidden relative">
-                    {/* Progress Bar */}
-                    {isLoading && (
-                        <div className="absolute top-0 left-0 right-0 h-0.5 bg-[#FF9F43]/10 overflow-hidden z-20">
-                            <div className="h-full bg-[#FF9F43] animate-progress-indeterminate w-1/3 rounded-full" />
-                        </div>
-                    )}
-
-                    {isAllPageSelected && !selectAllGlobal && leads.total > leads.data.length && (
+                    <div className={`transition-all duration-300 overflow-hidden ${isAllPageSelected && !selectAllGlobal && leads.total > leads.data.length ? 'max-h-20 opacity-100' : 'max-h-0 opacity-0'}`}>
                         <div className="bg-[#FF9F43]/10 border-b border-[#FF9F43]/20 px-6 py-3 text-[13px] text-[#e68a30] flex items-center justify-center gap-2">
                             <span>All <b>{leads.data.length}</b> leads on this page are selected.</span>
                             <button onClick={() => setSelectAllGlobal(true)} className="font-bold underline">Select all {leads.total.toLocaleString()}</button>
                         </div>
-                    )}
+                    </div>
 
-                    <div className="flex flex-wrap items-center justify-between p-4 border-b border-slate-100 gap-4">
-                        <div className="flex flex-wrap items-center gap-3 flex-1">
-                            <div className="relative w-full max-w-sm">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                    <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between p-4 border-b border-slate-100 gap-4">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full lg:w-auto flex-1">
+                            {/* Search Input with Local Spinner */}
+                            <div className="relative w-full sm:max-w-md">
+                                <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center text-slate-400">
+                                    {isLoading && loadingType === 'search' ? (
+                                        <div className="w-4 h-4 border-2 border-[#FF9F43] border-t-transparent rounded-full animate-spin" />
+                                    ) : (
+                                        <Search size={16} />
+                                    )}
+                                </div>
                                 <input
                                     type="text" 
                                     value={search} 
                                     onChange={(e) => handleSearch(e.target.value)}
-                                    placeholder="Search leads..."
+                                    placeholder="Search by Invoice, Shop, Name, VIN, Part..."
                                     className="w-full pl-10 pr-4 py-2 bg-slate-50 border-slate-200 rounded-lg text-[13px] focus:bg-white focus:ring-2 focus:ring-[#FF9F43]/10 transition-all outline-none border focus:border-[#FF9F43]"
                                 />
                             </div>
+
+                            {/* Clear Filters */}
+                            {search && (
+                                <button
+                                    onClick={handleClearFilters}
+                                    className="text-[12px] font-bold text-[#FF9F43] hover:text-[#e68a30] transition-colors whitespace-nowrap"
+                                >
+                                    Clear Filters
+                                </button>
+                            )}
                         </div>
 
                         {(selectedIds.length > 0 || selectAllGlobal) && (
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 w-full lg:w-auto justify-end border-t lg:border-t-0 pt-3 lg:pt-0">
                                 <button
                                     onClick={clearSelection}
                                     className="inline-flex items-center gap-2 px-3 py-2 text-slate-500 hover:text-slate-800 text-[13px] font-medium transition-colors"
@@ -111,11 +111,11 @@ export default function Index({ leads, filters = {} }) {
                         )}
                     </div>
 
-                    <div className="overflow-x-auto custom-scrollbar">
-                        <table className="w-full text-left border-collapse min-w-[1000px]">
+                    <div className="overflow-x-auto custom-scrollbar relative w-full touch-pan-x">
+                        <table className="w-full text-left border-collapse min-w-[1500px]">
                             <thead>
-                                <tr className="bg-slate-50/50 text-slate-500 font-semibold text-[11px] uppercase tracking-wider border-b border-slate-100">
-                                    <th className="py-3 px-6 w-12 text-center">
+                                <tr className="bg-slate-50/80 text-slate-500 font-semibold text-[11px] uppercase tracking-wider border-b border-slate-100">
+                                    <th className="py-3 px-4 w-10 text-center sticky left-0 z-10 bg-slate-50/95 backdrop-blur-sm border-r border-slate-100">
                                         <input 
                                             type="checkbox" 
                                             checked={isAllPageSelected} 
@@ -123,20 +123,29 @@ export default function Index({ leads, filters = {} }) {
                                             className="w-4 h-4 rounded border-slate-300 text-[#FF9F43] focus:ring-[#FF9F43] transition-all" 
                                         />
                                     </th>
-                                    <th className="py-3 px-6">Lead ID</th>
-                                    <th className="py-3 px-6">Lead Information</th>
-                                    <th className="py-3 px-6">Vehicle Details</th>
-                                    <th className="py-3 px-6">Parts</th>
-                                    <th className="py-3 px-6 text-center">Status</th>
-                                    <th className="py-3 px-6">Location</th>
-                                    <th className="py-3 px-6 text-right pr-10">Actions</th>
+                                    <th className="py-3 px-4 whitespace-nowrap">Date</th>
+                                    <th className="py-3 px-4 whitespace-nowrap">Shop Name</th>
+                                    <th className="py-3 px-4 whitespace-nowrap">Name</th>
+                                    <th className="py-3 px-4 whitespace-nowrap">Contact</th>
+                                    <th className="py-3 px-4">Description</th>
+                                    <th className="py-3 px-4">Vendor</th>
+                                    <th className="py-3 px-4 text-center">Buy</th>
+                                    <th className="py-3 px-4 text-center">Sell</th>
+                                    <th className="py-3 px-4">Notes</th>
+                                    <th className="py-3 px-4">City</th>
+                                    <th className="py-3 px-4">PO Number</th>
+                                    <th className="py-3 px-4">Invoice #</th>
+                                    <th className="py-3 px-4 text-right sticky right-0 z-10 bg-slate-50/95 backdrop-blur-sm border-l border-slate-100">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className={`divide-y divide-slate-50 transition-all duration-300 ${isLoading ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
-                                {leads.data.length > 0 ? (
+                            <tbody className={`divide-y divide-slate-100 ${isLoading ? 'opacity-40 pointer-events-none' : 'opacity-100'} transition-opacity duration-200`}>
+                                {(leads.data && leads.data.length > 0) ? (
                                     leads.data.map((lead) => (
-                                        <tr key={lead.id} className={`${selectedIds.includes(lead.id) || selectAllGlobal ? 'bg-[#FF9F43]/5' : 'hover:bg-slate-50/30'} transition-all duration-150`}>
-                                            <td className="py-4 px-6 text-center">
+                                        <tr key={lead.id} className={`
+                                            ${selectedIds.includes(lead.id) || selectAllGlobal ? 'bg-[#FF9F43]/5' : 'hover:bg-slate-50/50'} 
+                                            transition-all text-[12px] group
+                                        `}>
+                                            <td className="py-3 px-4 text-center sticky left-0 z-10 bg-white/95 backdrop-blur-sm border-r border-slate-50 group-hover:bg-slate-50/95 transition-all">
                                                 <input 
                                                     type="checkbox" 
                                                     checked={selectedIds.includes(lead.id) || selectAllGlobal} 
@@ -144,75 +153,86 @@ export default function Index({ leads, filters = {} }) {
                                                     className="w-4 h-4 rounded border-slate-300 text-[#FF9F43] focus:ring-[#FF9F43] transition-all" 
                                                 />
                                             </td>
-                                            <td className="py-4 px-6">
-                                                <span className="inline-flex items-center px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-[11px] font-bold border border-slate-200 uppercase whitespace-nowrap tracking-tighter">
-                                                    {lead.lead_number || `LD-${String(lead.id).padStart(5, '0')}`}
-                                                </span>
+                                            <td className="py-3 px-3 whitespace-nowrap text-slate-500">
+                                                {new Date(lead.created_at).toLocaleDateString()}
                                             </td>
-                                            <td className="py-4 px-6">
-                                                <div className="flex flex-col">
-                                                    <span className="font-semibold text-slate-800 text-[13px] leading-snug mb-0.5">{lead.shop_name}</span>
-                                                    <div className="flex items-center gap-2 text-[11px] font-medium text-slate-500">
-                                                        <span>{lead.name}</span>
-                                                        <span className="text-slate-300">•</span>
-                                                        <span>{lead.email}</span>
-                                                    </div>
+                                            <td className="py-3 px-3 whitespace-nowrap font-bold text-slate-900 uppercase">
+                                                {lead.shop_name}
+                                            </td>
+                                            <td className="py-3 px-3 whitespace-nowrap font-semibold text-slate-700">
+                                                {lead.name}
+                                            </td>
+                                            <td className="py-3 px-3 whitespace-nowrap text-slate-600">
+                                                <div className="flex items-center gap-1.5">
+                                                    <span className="p-1 rounded bg-slate-100 text-[#FF9F43]">
+                                                        <Phone size={12} strokeWidth={3} />
+                                                    </span>
+                                                    {lead.contact_number}
                                                 </div>
                                             </td>
-                                            <td className="py-4 px-6">
-                                                <div className="flex flex-col">
-                                                    <span className="text-[13px] font-semibold text-slate-800 tracking-tight">{lead.vehicle_info}</span>
-                                                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">VIN: {lead.vin || 'N/A'}</span>
+                                            <td className="py-3 px-3 text-slate-600 line-clamp-1 max-w-[200px]" title={lead.vehicle_info}>
+                                                {lead.vehicle_info}
+                                            </td>
+                                            <td className="py-3 px-3 whitespace-nowrap text-slate-600">
+                                                {lead.vendors}
+                                            </td>
+                                            <td className="py-3 px-3 text-center font-bold text-slate-900">
+                                                ${parseFloat(lead.total_buy || 0).toLocaleString()}
+                                            </td>
+                                            <td className="py-3 px-3 text-center font-bold text-[#FF9F43]">
+                                                ${parseFloat(lead.total_sell || 0).toLocaleString()}
+                                            </td>
+                                            <td className="py-3 px-3 max-w-[120px] truncate text-slate-500" title={lead.notes}>
+                                                {lead.notes}
+                                            </td>
+                                            <td className="py-3 px-3 whitespace-nowrap text-slate-500">
+                                                {lead.city}
+                                            </td>
+                                            <td className="py-3 px-3">
+                                                <div className="flex items-center gap-2 text-slate-600 font-medium">
+                                                    <Tag size={12} className="text-[#FF9F43]" />
+                                                    {lead.po_number || "-"}
                                                 </div>
                                             </td>
-                                            <td className="py-4 px-6 text-center">
-                                                <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#FF9F43]/10 text-[#FF9F43] rounded-full text-[10px] font-bold border border-[#FF9F43]/20">
-                                                    <Package size={12} />
-                                                    {lead.parts_count} ITEM{lead.parts_count !== 1 ? 'S' : ''}
+                                            <td className="py-3 px-3 font-bold text-slate-900 tracking-tight">
+                                                <div className="flex items-center gap-2">
+                                                    <span className={`w-1.5 h-1.5 rounded-full ${lead.status === 'Processing' ? 'bg-[#FF9F43]' : lead.status === 'Fulfilled' ? 'bg-[#00B050]' : 'bg-slate-300'}`} />
+                                                    {lead.lead_number || `INV${String(lead.id).padStart(5, '0')}`}
                                                 </div>
                                             </td>
-                                            <td className="py-4 px-6 text-center">
-                                                <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${getStatusStyles(lead.status)}`}>
-                                                    {lead.status?.toUpperCase() || 'QUOTE'}
+                                            <td className="py-3 px-3 text-right sticky right-0 z-10 bg-white/95 backdrop-blur-sm border-l border-slate-50 group-hover:bg-slate-50/95 transition-all">
+                                                <div className="flex items-center justify-end gap-1">
+                                                    <Link
+                                                        href={route("admin.leads.invoice", lead.id)}
+                                                        className="p-1.5 rounded-lg text-slate-400 hover:text-[#FF9F43] hover:bg-[#FF9F43]/5 transition-all"
+                                                        title="Invoice"
+                                                    >
+                                                        <FileText size={15} />
+                                                    </Link>
+                                                    <Link
+                                                        href={route("admin.leads.edit", lead.id)}
+                                                        className="p-1.5 rounded-lg text-slate-400 hover:text-[#FF9F43] hover:bg-[#FF9F43]/5 transition-all"
+                                                    >
+                                                        <Pencil size={15} />
+                                                    </Link>
+                                                    <Link
+                                                        href={route("admin.leads.show", lead.id)}
+                                                        className="p-1.5 rounded-lg text-slate-400 hover:text-[#FF9F43] hover:bg-[#FF9F43]/5 transition-all"
+                                                    >
+                                                        <Eye size={15} />
+                                                    </Link>
                                                 </div>
-                                            </td>
-                                            <td className="py-4 px-6">
-                                                <div className="flex items-center gap-2 text-slate-600">
-                                                    <MapPin size={14} className="text-slate-400 opacity-60" />
-                                                    <span className="text-[12px] font-medium">{lead.city}, {lead.province}</span>
-                                                </div>
-                                            </td>
-                                            <td className="py-4 px-6 text-right pr-6 flex items-center justify-end gap-2">
-                                                <Link
-                                                    href={route("admin.leads.invoice", lead.id)}
-                                                    className="inline-flex items-center justify-center w-8 h-8 bg-white border border-slate-200 rounded-lg text-slate-400 hover:text-[#FF9F43] hover:border-[#FF9F43]/30 transition-all group/quote"
-                                                    title="Create Quote/Invoice"
-                                                >
-                                                    <FileText size={14} className="group-hover/quote:scale-110 transition-transform" />
-                                                </Link>
-                                                <Link
-                                                    href={route("admin.leads.edit", lead.id)}
-                                                    className="inline-flex items-center justify-center w-8 h-8 bg-white border border-slate-200 rounded-lg text-slate-400 hover:text-[#FF9F43] hover:border-[#FF9F43]/30 transition-all"
-                                                >
-                                                    <Pencil size={14} />
-                                                </Link>
-                                                <Link
-                                                    href={route("admin.leads.show", lead.id)}
-                                                    className="inline-flex items-center justify-center w-8 h-8 bg-white border border-slate-200 rounded-lg text-slate-400 hover:text-[#FF9F43] hover:border-[#FF9F43]/30 transition-all group/btn"
-                                                >
-                                                    <Eye size={16} className="group-hover/btn:scale-110 transition-transform" />
-                                                </Link>
                                             </td>
                                         </tr>
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan="7" className="py-20 text-center">
-                                            <div className="flex flex-col items-center gap-3">
-                                                <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-slate-300">
+                                        <td colSpan="13" className="py-20 text-center bg-white">
+                                            <div className="flex flex-col items-center gap-3 text-slate-400">
+                                                <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center">
                                                     <Search size={32} />
                                                 </div>
-                                                <p className="text-slate-400 font-medium text-[14px]">No leads found matching your criteria.</p>
+                                                <p className="font-medium">No leads found matching your criteria.</p>
                                             </div>
                                         </td>
                                     </tr>

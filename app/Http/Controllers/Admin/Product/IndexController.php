@@ -83,7 +83,6 @@ class IndexController extends Controller
                 'category_id' => $request->category_id,
                 'sub_category_id' => $request->sub_category_id,
                 'description' => $request->description,
-                'buy_price' => $request->buy_price,
                 'list_price' => $request->list_price,
                 'stock_oakville' => $request->stock_oakville ?? 0,
                 'stock_mississauga' => $request->stock_mississauga ?? 0,
@@ -143,7 +142,7 @@ class IndexController extends Controller
             Cache::forget('product_counts');
             Cache::forget('product_no_image_count');
 
-            return redirect()->route('products.index')
+            return redirect()->route('admin.products.index')
                 ->with('success', 'Product created successfully.');
 
         } catch (\Exception $e) {
@@ -163,7 +162,6 @@ class IndexController extends Controller
             'product' => [
                 'id' => $product->id,
                 'description' => $product->description,
-                'buy_price' => $product->buy_price,
                 'list_price' => $product->list_price,
                 'sku' => $product->sku,
                 'location_id' => $product->location_id,
@@ -237,7 +235,7 @@ class IndexController extends Controller
             Cache::forget('product_counts');
             Cache::forget('product_no_image_count');
 
-            return redirect()->route('products.index')->with('success', 'Product updated successfully.');
+            return redirect()->route('admin.products.index')->with('success', 'Product updated successfully.');
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -271,7 +269,7 @@ class IndexController extends Controller
             foreach ($product->files as $file) {
                 Helper::deleteFile($file->file_path);
             }
-            
+
             // Delete the product (cascading deletes should handle fitments/part numbers if set up)
             $product->delete();
 
@@ -280,11 +278,12 @@ class IndexController extends Controller
             Cache::forget('product_counts');
             Cache::forget('product_no_image_count');
 
-            return redirect()->route('products.index')->with('success', 'Product deleted successfully.');
+            return redirect()->route('admin.products.index')->with('success', 'Product deleted successfully.');
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Delete Error: ' . $e->getMessage());
-            return back()->withErrors(['error' => 'Deletion failed: ' . $e->getMessage()]);
+            Log::error('Delete Error: '.$e->getMessage());
+
+            return back()->withErrors(['error' => 'Deletion failed: '.$e->getMessage()]);
         }
     }
 
@@ -295,7 +294,7 @@ class IndexController extends Controller
     {
         $request->validate([
             'ids' => 'required|array',
-            'ids.*' => 'exists:products,id'
+            'ids.*' => 'exists:products,id',
         ]);
 
         DB::beginTransaction();
@@ -314,11 +313,12 @@ class IndexController extends Controller
             Cache::forget('product_counts');
             Cache::forget('product_no_image_count');
 
-            return redirect()->route('products.index')->with('success', 'Selected products deleted successfully.');
+            return redirect()->route('admin.products.index')->with('success', 'Selected products deleted successfully.');
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Bulk Delete Error: ' . $e->getMessage());
-            return back()->withErrors(['error' => 'Bulk deletion failed: ' . $e->getMessage()]);
+            Log::error('Bulk Delete Error: '.$e->getMessage());
+
+            return back()->withErrors(['error' => 'Bulk deletion failed: '.$e->getMessage()]);
         }
     }
 }

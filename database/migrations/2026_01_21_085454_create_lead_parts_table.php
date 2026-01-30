@@ -20,6 +20,7 @@ return new class extends Migration
             $table->decimal('sell_price', 15, 2)->default(0);
             $table->string('payment_status')->nullable();
             $table->string('method')->nullable();
+            $table->string('status')->nullable();
             $table->timestamps();
         });
     }

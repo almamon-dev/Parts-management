@@ -50,24 +50,11 @@ const Header = ({ onMenuClick }) => {
 
             {/* RIGHT SECTION */}
             <div className="flex items-center gap-2 md:gap-4 lg:gap-6">
-                {/* Search Bar - Hidden on Mobile/Tablets, visible on XL screens */}
-                <div className="relative hidden xl:block">
-                    <Search
-                        size={18}
-                        className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
-                    />
-                    <input
-                        type="text"
-                        placeholder="Search parts..."
-                        className="w-[300px] 2xl:w-[450px] pl-11 pr-4 py-2.5 rounded-full bg-gray-50 border border-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF9F43]/10 focus:border-[#FF9F43]/20 transition-all"
-                    />
-                </div>
-
                 {/* Notification Bell */}
-                <button className="relative p-2.5 md:p-3 rounded-full bg-gray-50 text-slate-600 hover:bg-gray-100 transition shrink-0">
+                {/* <button className="relative p-2.5 md:p-3 rounded-full bg-gray-50 text-slate-600 hover:bg-gray-100 transition shrink-0">
                     <Bell size={20} />
                     <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-[#FF9F43] border-2 border-white rounded-full" />
-                </button>
+                </button> */}
 
                 {/* Profile Dropdown */}
                 <div ref={dropdownRef} className="relative shrink-0">

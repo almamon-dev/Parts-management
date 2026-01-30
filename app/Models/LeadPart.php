@@ -14,6 +14,7 @@ class LeadPart extends Model
         'sell_price',
         'payment_status',
         'method',
+        'status',
     ];
 
     public function lead()

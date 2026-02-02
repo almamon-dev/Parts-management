@@ -76,36 +76,46 @@ const FavoriteCard = memo(({ fav, quantity, onQuantityChange, onAddToCart, onDel
 
                 {/* Footer Section - High Density */}
                 <div className="mt-auto pt-3 border-t border-slate-50 flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-4">
+                    <div className="flex gap-4">
                         <div className="flex flex-col">
-                            <span className="text-[9px] font-black text-slate-300 uppercase tracking-tighter leading-none mb-0.5">MSRP</span>
-                            <span className="text-[12px] font-bold text-slate-300 line-through tracking-tight leading-none">
+                            <span className="text-[10px] font-black text-slate-300 uppercase tracking-tighter leading-none mb-1">MSRP</span>
+                            <span className="text-[14px] font-bold text-slate-300 line-through tracking-tight leading-none">
                                 ${product.list_price || "0.00"}
                             </span>
                         </div>
                         <div className="flex flex-col">
-                            <span className="text-[9px] font-black text-[#AD0100] uppercase tracking-tighter leading-none mb-0.5">Dealer</span>
-                            <span className="text-[16px] font-black text-[#AD0100] tracking-tighter leading-none">
-                                ${product.list_price || "0.00"}
+                            <div className="flex items-center gap-1.5 mb-1">
+                                <span className="text-[10px] font-black text-[#AD0100] uppercase tracking-tighter leading-none">Dealer</span>
+                                {product.applied_discount > 0 && (
+                                    <span className={cn(
+                                        "text-[8px] font-black px-1.5 py-0.5 rounded-full",
+                                        product.discount_type === 'specific' ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
+                                    )}>
+                                        {product.applied_discount}% OFF
+                                    </span>
+                                )}
+                            </div>
+                            <span className={cn("text-[18px] font-black tracking-tighter leading-none", product.applied_discount > 0 ? "text-emerald-600" : "text-[#AD0100]")}>
+                                ${product.your_price || product.list_price || "0.00"}
                             </span>
                         </div>
                     </div>
 
                     <div className="flex items-center gap-1.5 pt-1">
-                        <div className="flex items-center bg-white border border-slate-200 rounded-lg h-8 overflow-hidden shadow-sm">
+                        <div className="flex items-center bg-white border border-slate-200 rounded-lg h-9 overflow-hidden shadow-sm">
                             <button
                                 onClick={() => onQuantityChange(product.id, -1)}
-                                className="w-7 h-full flex items-center justify-center text-slate-400 hover:bg-slate-50 transition-colors border-r border-slate-100"
+                                className="w-8 h-full flex items-center justify-center text-slate-400 hover:bg-slate-50 transition-colors border-r border-slate-100"
                                 disabled={quantity <= 1}
                             >
                                 <Minus size={12} />
                             </button>
-                            <span className="w-7 text-center text-[11px] font-black text-slate-800">
+                            <span className="w-8 text-center text-[12px] font-black text-slate-800">
                                 {quantity}
                             </span>
                             <button
                                 onClick={() => onQuantityChange(product.id, 1)}
-                                className="w-7 h-full flex items-center justify-center text-slate-400 hover:bg-slate-50 transition-colors border-l border-slate-100"
+                                className="w-8 h-full flex items-center justify-center text-slate-400 hover:bg-slate-50 transition-colors border-l border-slate-100"
                             >
                                 <Plus size={12} />
                             </button>
@@ -113,9 +123,9 @@ const FavoriteCard = memo(({ fav, quantity, onQuantityChange, onAddToCart, onDel
 
                         <button
                             onClick={() => onAddToCart(product.id, quantity)}
-                            className="w-8 h-8 bg-[#AD0100] hover:bg-red-800 text-white rounded-lg flex items-center justify-center shadow-md shadow-red-100 transition-all active:scale-95 group/btn"
+                            className="w-9 h-9 bg-[#AD0100] hover:bg-red-800 text-white rounded-lg flex items-center justify-center shadow-md shadow-red-100 transition-all active:scale-95 group/btn"
                         >
-                            <Plus size={16} className="transition-transform group-hover/btn:rotate-90" />
+                            <ShoppingCart size={18} className="transition-transform group-hover/btn:scale-110" />
                         </button>
                     </div>
                 </div>

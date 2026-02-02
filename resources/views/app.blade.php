@@ -6,17 +6,14 @@
 
         @php
             $settings = \App\Models\Setting::all()->pluck('value', 'key');
-            $favicon = $settings['site_favicon'] ?? null;
+            $favicon = $settings['site_favicon'] ?? $settings['site_logo'] ?? 'img/logo.png';
             $siteName = $settings['site_name'] ?? config('app.name', 'Laravel');
         @endphp
         
         <title inertia>{{ $siteName }}</title>
         
-        @if($favicon)
-            <link rel="icon" type="image/x-icon" href="{{ asset($favicon) }}">
-        @else
-            <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
-        @endif
+        <link rel="icon" href="{{ asset($favicon) }}">
+        <link rel="shortcut icon" href="{{ asset($favicon) }}">
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.googleapis.com">

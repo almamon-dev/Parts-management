@@ -63,6 +63,8 @@ class HandleInertiaRequests extends Middleware
 
                 $mappedItems = $cartItems->map(function ($item) {
                     $firstFile = $item->product->files->first();
+                    $user = auth()->user();
+                    $price = $item->product->getPriceForUser($user);
 
                     return [
                         'id' => $item->id,
@@ -70,7 +72,7 @@ class HandleInertiaRequests extends Middleware
                         'sku' => $item->product->sku,
                         'name' => $item->product->name,
                         'description' => $item->product->description,
-                        'buy_price' => $item->product->buy_price ?? $item->product->list_price,
+                        'buy_price' => $price,
                         'quantity' => $item->quantity,
                         'image' => \App\Helpers\Helper::generateURL($firstFile?->file_path),
                     ];

@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { router, usePage, Link } from "@inertiajs/react";
-import { X, Plus, Minus, Trash2, ShoppingBag, ArrowRight, Bookmark, Eye, ChevronLeft } from "lucide-react";
+import { X, Plus, Minus, Trash2, ShoppingBag,ArrowUpRight , Bookmark, Eye, ChevronLeft } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-hot-toast";
 
@@ -59,6 +59,12 @@ const CartDrawer = ({ isOpen, onClose }) => {
         });
     };
 
+    // Helper to format price safely
+    const formatPrice = (price) => {
+        const num = parseFloat(price);
+        return isNaN(num) ? "0.00" : num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    };
+
     return (
         <AnimatePresence>
             {isOpen && (
@@ -80,140 +86,134 @@ const CartDrawer = ({ isOpen, onClose }) => {
                         transition={{ type: "spring", damping: 30, stiffness: 300 }}
                         className="fixed top-0 right-0 h-full w-full max-w-[420px] bg-white shadow-[-20px_0_60px_-15px_rgba(0,0,0,0.1)] z-[101] flex flex-col"
                     >
-                        {/* Compact Header */}
-                        <div className="flex items-center gap-3 px-5 py-4 border-b border-gray-100">
+                        {/* Header matching image */}
+                        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-50">
+                            <h2 className="text-[20px] font-bold text-[#1E293B] tracking-tight">
+                                Shopping Cart
+                            </h2>
                             <button
                                 onClick={onClose}
-                                className="p-1 hover:bg-gray-100 rounded-full text-slate-400 hover:text-red-600 transition-colors"
+                                className="p-1.5 hover:bg-gray-100 rounded-full text-slate-400 transition-colors border border-gray-200"
                             >
-                                <ChevronLeft size={20} />
+                                <X size={20} />
                             </button>
-                            <h2 className="text-lg font-extrabold text-slate-800 tracking-tight">
-                                Your Shopping Cart
-                            </h2>
                         </div>
 
-                        {/* Cart Items List - Small Spacing Design */}
-                        <div className="flex-1 overflow-y-auto px-4 py-3 custom-scrollbar space-y-2">
+                        {/* Cart Items List */}
+                        <div className="flex-1 overflow-y-auto px-4 py-6 custom-scrollbar space-y-4">
                             {cartItems && cartItems.length > 0 ? (
                                 cartItems.map((item) => (
-                                    <div key={item.id} className="bg-white border border-gray-100 rounded-xl p-2.5 flex gap-3 hover:border-red-100 transition-all group relative">
+                                    <div key={item.id} className="bg-white border border-gray-100 rounded-[20px] p-4 flex gap-4 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_25px_-5px_rgba(0,0,0,0.06)] transition-all relative group">
                                         {/* Product Image */}
-                                        <div className="w-16 h-16 bg-gray-50 rounded-lg overflow-hidden flex-shrink-0 flex items-center justify-center p-1.5 border border-gray-50">
+                                        <div className="w-[85px] h-[85px] bg-[#F8F9FA] rounded-[15px] overflow-hidden flex-shrink-0 flex items-center justify-center p-2">
                                             {item.image ? (
                                                 <img src={item.image} alt={item.name} className="w-full h-full object-contain" />
                                             ) : (
-                                                <ShoppingBag className="text-gray-300" size={20} />
+                                                <ShoppingBag className="text-gray-300" size={24} />
                                             )}
                                         </div>
 
-                                        {/* Product Info - Tighter Layout */}
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex justify-between items-start">
-                                                <div className="flex flex-col">
-                                                    <span className="text-[8px] font-black text-red-600 uppercase tracking-[0.2em]">
-                                                        {item.sku}
-                                                    </span>
-                                                    <h4 className="text-[12px] font-bold text-slate-900 line-clamp-1 mt-0.5">
-                                                        {item.name}
-                                                    </h4>
+                                        {/* Product Info */}
+                                        <div className="flex-1 min-w-0 pr-6">
+                                            <div className="flex flex-col">
+                                                <div className="flex justify-between items-start">
+                                                    <div>
+                                                        <h4 className="text-[15px] font-bold text-[#1E293B] uppercase tracking-tight line-clamp-1">
+                                                            {item.sku || 'N/A'}
+                                                        </h4>
+                                                        <p className="text-[13px] font-semibold text-[#64748B] line-clamp-1 mt-0.5">
+                                                            {item.name}
+                                                        </p>
+                                                    </div>
+                                                    {/* Delete Button on top right of item area */}
+                                                    <button 
+                                                        onClick={() => handleRemoveItem(item.id)}
+                                                        className="w-8 h-8 flex items-center justify-center bg-[#FEF2F2] text-[#EF4444] hover:bg-[#FEE2E2] rounded-full transition-all border border-[#FEE2E2] shrink-0"
+                                                    >
+                                                        <Trash2 size={14} />
+                                                    </button>
                                                 </div>
-                                                <button 
-                                                    onClick={() => handleRemoveItem(item.id)}
-                                                    className="w-6 h-6 flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-full transition-all"
-                                                >
-                                                    <Trash2 size={12} />
-                                                </button>
+                                                <p className="text-[11px] text-[#94A3B8] font-medium leading-tight mt-1 line-clamp-2">
+                                                    {item.description || "2016 -2019 CHEVROLET SILVERADO 1500\nFront Grille, MADE OF PLASTIC, ACDELCO - BRAKES"}
+                                                </p>
                                             </div>
 
-                                            <div className="flex items-center justify-between mt-2">
-                                                {/* Quantity Selector - Compact */}
-                                                <div className="flex items-center bg-[#F8F9FA] rounded-full p-0.5 border border-gray-100">
+                                            <div className="flex items-center justify-between mt-4">
+                                                {/* Quantity Selector matching image */}
+                                                <div className="flex items-center bg-white border border-gray-200 rounded-lg overflow-hidden h-8">
                                                     <button 
                                                         onClick={() => handleUpdateQuantity(item.id, item.quantity, -1)}
                                                         disabled={item.quantity <= 1}
-                                                        className="w-5 h-5 flex items-center justify-center text-slate-400 hover:text-red-600 rounded-full disabled:opacity-30"
+                                                        className="w-8 h-full flex items-center justify-center text-slate-500 hover:bg-gray-50 disabled:opacity-30 border-r border-gray-100"
                                                     >
-                                                        <Minus size={8} />
+                                                        <Minus size={12} />
                                                     </button>
-                                                    <span className="w-5 text-center text-[11px] font-black text-slate-800">{item.quantity}</span>
+                                                    <span className="w-10 text-center text-[13px] font-bold text-[#1E293B] leading-none">
+                                                        {item.quantity}
+                                                    </span>
                                                     <button 
                                                         onClick={() => handleUpdateQuantity(item.id, item.quantity, 1)}
-                                                        className="w-5 h-5 flex items-center justify-center text-slate-400 hover:text-red-600 rounded-full"
+                                                        className="w-8 h-full flex items-center justify-center text-slate-500 hover:bg-gray-50 border-l border-gray-100"
                                                     >
-                                                        <Plus size={8} />
+                                                        <Plus size={12} />
                                                     </button>
                                                 </div>
 
-                                                <div className="text-right">
-                                                    <div className="text-[13px] font-black text-slate-900 leading-none">
-                                                        ${(item.buy_price * item.quantity).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                                                    </div>
+                                                <div className="text-[15px] font-bold text-[#1E293B]">
+                                                    ${formatPrice(item.buy_price * item.quantity)}
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 ))
                             ) : (
-                                <div className="h-full flex flex-col items-center justify-center text-center py-10">
-                                    <ShoppingBag size={32} className="text-slate-200 mb-2" />
-                                    <p className="text-slate-400 font-bold uppercase tracking-widest text-[9px]">Empty Cart</p>
-                                </div>
-                            )}
-
-                            {cartItems && cartItems.length > 0 && (
-                                <div className="pt-1">
-                                    <button
-                                        onClick={onClose}
-                                        className="group w-full flex items-center justify-center gap-2 py-2.5 border-2 border-red-700 text-red-700 rounded-full font-black hover:bg-red-50 transition-all active:scale-[0.98]"
-                                    >
-                                        <Plus size={14} strokeWidth={3} className="group-hover:rotate-90 transition-transform duration-300" />
-                                        <span className="text-[10px] uppercase tracking-widest">Add Another Item</span>
-                                    </button>
+                                <div className="h-full flex flex-col items-center justify-center text-center py-20">
+                                    <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-4">
+                                        <ShoppingBag size={32} className="text-slate-200" />
+                                    </div>
+                                    <p className="text-[#64748B] font-bold text-sm">Your cart is empty</p>
+                                    <p className="text-[#94A3B8] text-xs mt-1">Looks like you haven't added anything to your cart yet.</p>
                                 </div>
                             )}
                         </div>
 
-                        {/* Order Summary - Premium Compact */}
-                        <div className="px-5 py-5 bg-white border-t border-gray-100 shadow-[0_-15px_40px_-20px_rgba(0,0,0,0.08)]">
-                            <h3 className="text-base font-bold text-slate-800 mb-4">Order Summary</h3>
-                            
-                            <div className="space-y-2.5 mb-5">
-                                <div className="flex justify-between text-[12px] font-bold text-slate-400 italic-none">
-                                    <span className="uppercase tracking-wider">Subtotal</span>
-                                    <span className="text-slate-900 font-black">${parseFloat(cartSubtotal || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                        {/* Order Summary matching image */}
+                        <div className="px-6 py-6 bg-white border-t border-gray-50">
+                            <div className="space-y-4 mb-8">
+                                <div className="flex justify-between items-center text-[14px] font-semibold text-[#64748B]">
+                                    <span>Subtotal</span>
+                                    <span className="text-[#1E293B] font-bold">${formatPrice(cartSubtotal)}</span>
                                 </div>
-                                <div className="flex justify-between text-[12px] font-bold text-slate-400 border-b border-gray-50 pb-2.5">
-                                    <span className="uppercase tracking-wider text-[10px]">Shipping</span>
-                                    <span className="text-green-600 text-[10px] font-black uppercase tracking-widest">Calculated at checkout</span>
-                                </div>
-                                <div className="flex justify-between items-end pt-1">
-                                    <span className="text-sm font-black text-slate-800 tracking-tight">Total Amount</span>
-                                    <span className="text-xl font-black text-red-600 leading-none">
-                                        ${parseFloat(cartSubtotal || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                <div className="h-px bg-gray-50" />
+                                <div className="flex justify-between items-center">
+                                    <span className="text-[18px] font-bold text-[#1E293B]">Total</span>
+                                    <span className="text-[20px] font-black text-[#C52020]">
+                                        ${formatPrice(cartSubtotal)}
                                     </span>
                                 </div>
                             </div>
 
-                            <div className="flex flex-col gap-2.5">
-                                <button
-                                    onClick={handleCheckout}
-                                    disabled={!cartItems?.length}
-                                    className="group w-full h-[50px] bg-[#C52020] hover:bg-red-700 text-white rounded-full flex items-center justify-center font-black shadow-lg shadow-red-500/10 transition-all active:scale-[0.98] disabled:opacity-50"
-                                >
-                                    <span className="mr-3 uppercase tracking-wider text-[12px]">Proceed to Checkout</span>
-                                    <div className="bg-white/10 p-1.5 rounded-full group-hover:translate-x-1 transition-transform">
-                                        <ArrowRight size={14} strokeWidth={3} />
-                                    </div>
-                                </button>
-
+                            <div className="grid grid-cols-2 gap-2">
                                 <button 
                                     onClick={handleSaveQuote}
                                     disabled={!cartItems?.length}
-                                    className="group w-full h-[50px] border-2 border-red-100 text-red-600 rounded-full flex items-center justify-center font-black hover:bg-red-50 transition-all active:scale-[0.98] disabled:opacity-30"
+                                    className="group h-[46px] px-2 border border-[#DEE2E6] hover:border-[#CED4DA] text-[#1E293B] rounded-[24px] flex items-center justify-center font-bold transition-all hover:bg-[#F8F9FA] disabled:opacity-30"
                                 >
-                                    <span className="mr-2 uppercase tracking-wider text-[12px]">Save Quote</span>
-                                    <Bookmark size={15} fill="currentColor" className="opacity-10" />
+                                    <span className="mr-1.5 text-[#C52020] text-[11px] uppercase tracking-tight whitespace-nowrap">Save Quote</span>
+                                    <div className="w-6 h-6 bg-[#FEF2F2] rounded-full flex items-center justify-center text-[#C52020] group-hover:bg-[#FEE2E2] transition-colors shrink-0">
+                                        <ArrowUpRight size={12} strokeWidth={3} />
+                                    </div>
+                                </button>
+
+                                <button
+                                    onClick={handleCheckout}
+                                    disabled={!cartItems?.length}
+                                    className="group h-[46px] px-2 bg-[#C52020] hover:bg-[#A51A1A] text-white rounded-[24px] flex items-center justify-center font-bold shadow-lg shadow-red-900/10 transition-all disabled:opacity-50"
+                                >
+                                    <span className="mr-1.5 text-[11px] uppercase tracking-tight whitespace-nowrap">Checkout</span>
+                                    <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center text-white backdrop-blur-sm group-hover:bg-white/30 transition-colors shrink-0">
+                                        <ArrowUpRight size={12} strokeWidth={3} />
+                                    </div>
                                 </button>
                             </div>
                         </div>

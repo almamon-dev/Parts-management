@@ -29,7 +29,7 @@ class IndexController extends Controller
             ->get()
             ->map(function ($item) {
                 $firstFile = $item->product->files->first();
-                $price = $item->product->buy_price ?? $item->product->list_price;
+                $price = $item->product->getPriceForUser(auth()->user());
 
                 return [
                     'id' => $item->id,

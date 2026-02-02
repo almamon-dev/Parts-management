@@ -55,11 +55,11 @@ const Header = ({ onMenuClick, onCartClick }) => {
                 <div className="flex items-center gap-1 md:gap-3">
                     <button
                         onClick={onCartClick}
-                        className="relative p-2 md:p-3.5 rounded-full bg-[#F8F9FA] text-red-600 hover:bg-red-50 hover:text-red-700 transition-all duration-300"
+                        className="group relative p-2 md:p-3.5 rounded-full bg-[#F8F9FA] text-[#C52020] hover:bg-red-50 hover:text-red-700 transition-all duration-300"
                     >
-                        <ShoppingCart size={18} className="md:size-[22px]" />
+                        <ShoppingCart size={18} className="md:size-[22px] transition-transform group-hover:scale-110" />
                         {cartCount > 0 && (
-                            <span className="absolute -top-1 -right-1 min-w-[16px] md:min-w-[18px] h-4 md:h-4.5 px-1 md:px-1.5 flex items-center justify-center bg-red-600 border-2 border-white rounded-full text-[8px] md:text-[9px] font-black text-white">
+                            <span className="absolute -top-1 -right-1 flex h-[18px] min-w-[18px] md:h-[22px] md:min-w-[22px] items-center justify-center rounded-full bg-[#C52020] border-2 border-white text-[9px] md:text-[11px] font-extrabold text-white shadow-sm transform transition-transform group-hover:scale-110 group-active:scale-95 leading-none px-1">
                                 {cartCount}
                             </span>
                         )}

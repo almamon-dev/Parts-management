@@ -14,9 +14,9 @@ return new class extends Migration
 
         Schema::create('products', function (Blueprint $table) {
             $table->id();
-
-            $table->foreignId('category_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('sub_category_id')->constrained('sub_categories')->cascadeOnDelete();
+            $table->foreignId('part_type_id')->constrained('categories')->cascadeOnDelete();
+            $table->foreignId('shop_view_id')->nullable()->constrained('categories')->nullOnDelete();
+            $table->foreignId('sorting_id')->nullable()->constrained('categories')->nullOnDelete();
 
             $table->text('description');
 
@@ -37,8 +37,8 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(
-                ['visibility', 'category_id', 'sub_category_id'],
-                'idx_products_visibility_category_sub'
+                ['visibility', 'part_type_id', 'shop_view_id', 'sorting_id'],
+                'idx_products_visibility_tiers'
             );
         });
 

@@ -2,86 +2,76 @@
 
 namespace App\Http\Controllers\Admin\Product;
 
-use App\Exports\ProductsExport;
 use App\Helpers\Helper;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ProductStoreRequest;
 use App\Http\Requests\Admin\ProductUpdateRequest;
 use App\Models\Category;
-use App\Models\PartsNumber;
 use App\Models\Product;
 use App\Models\ProductFile;
-use App\Models\SubCategory;
 use App\Services\AdminProductSnapshot;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
-use Maatwebsite\Excel\Facades\Excel;
 
 class IndexController extends Controller
 {
     public function index(Request $request)
     {
-        // Optimized File Cache - Fast Count Queries (No Redis Required)
-        $counts = Cache::remember('product_counts', 3600, function () {
-            // Single query to get all counts - much faster than multiple queries
-            $data = Product::selectRaw("
-                COUNT(*) as all_count,
-                SUM(CASE WHEN visibility = 'public' THEN 1 ELSE 0 END) as published,
-                SUM(CASE WHEN visibility = 'draft' THEN 1 ELSE 0 END) as draft,
-                SUM(CASE WHEN visibility = 'private' THEN 1 ELSE 0 END) as private
-            ")->first();
-
-            // Separate optimized query for no_image count
-            $noImageCount = Cache::remember('product_no_image_count', 3600, function () {
-                return Product::whereDoesntHave('files')->count();
-            });
-
-            return [
-                'all' => $data->all_count,
-                'published' => (int) $data->published,
-                'draft' => (int) $data->draft,
-                'private' => (int) $data->private,
-                'no_image' => $noImageCount,
-            ];
-        });
+        $counts = [
+            'all' => Product::count(),
+            'published' => Product::where('visibility', 'public')->count(),
+            'draft' => Product::where('visibility', 'draft')->count(),
+            'private' => Product::where('visibility', 'private')->count(),
+            'no_image' => Product::whereDoesntHave('files')->count(),
+        ];
 
         $products = AdminProductSnapshot::get($request);
 
         return Inertia::render('Admin/Product/Index', [
             'products' => $products,
             'counts' => $counts,
-            'categories' => cache()->rememberForever('admin_categories', fn () => Category::select('id', 'name')->get()),
-            'subCategories' => cache()->rememberForever('admin_sub_categories', fn () => SubCategory::select('id', 'name', 'category_id')->get()),
-            'filters' => $request->only(['search', 'status', 'category', 'sub_category', 'per_page']),
+            'categoriesTier1' => Category::where('category_type', 1)->select('id', 'name')->get(),
+            'categoriesTier2' => Category::where('category_type', 2)->select('id', 'name')->get(),
+            'categoriesTier3' => Category::where('category_type', 3)->select('id', 'name')->get(),
+            'filters' => $request->only(['search', 'status', 'category', 'category_2', 'category_3', 'per_page']),
         ]);
-    }
-
-    public function export()
-    {
-        return Excel::download(new ProductsExport, 'products_list.xlsx');
     }
 
     public function create()
     {
         return Inertia::render('Admin/Product/Create', [
-            'categories' => Category::all(),
-            'subCategories' => SubCategory::all(),
+            'categoriesTier1' => Category::where('category_type', 1)->get(),
+            'categoriesTier2' => Category::where('category_type', 2)->get(),
+            'categoriesTier3' => Category::where('category_type', 3)->get(),
         ]);
     }
 
-    // store product
     public function store(ProductStoreRequest $request)
     {
         DB::beginTransaction();
 
         try {
-            // 1. Create the Main Product
+            // Generate PP ID: PP110001, PP110002, etc.
+            $latestProduct = Product::whereNotNull('pp_id')
+                ->where('pp_id', 'like', 'PP%')
+                ->orderBy('pp_id', 'desc')
+                ->first();
+
+            if ($latestProduct) {
+                $lastNumber = (int) str_replace('PP', '', $latestProduct->pp_id);
+                $nextNumber = $lastNumber + 1;
+            } else {
+                $nextNumber = 110001;
+            }
+            $ppId = 'PP'.$nextNumber;
+
             $product = Product::create([
-                'category_id' => $request->category_id,
-                'sub_category_id' => $request->sub_category_id,
+                'pp_id' => $ppId,
+                'part_type_id' => $request->part_type_id,
+                'shop_view_id' => $request->shop_view_id,
+                'sorting_id' => $request->sorting_id,
                 'description' => $request->description,
                 'list_price' => $request->list_price,
                 'stock_oakville' => $request->stock_oakville ?? 0,
@@ -90,93 +80,65 @@ class IndexController extends Controller
                 'sku' => $request->sku,
                 'location_id' => $request->location_id,
                 'visibility' => $request->visibility ?? 'public',
+                'position' => $request->position,
+                'is_clearance' => $request->boolean('is_clearance'),
             ]);
 
-            // 2. Save Fitments
-            if ($request->has('fitments')) {
-                foreach ($request->fitments as $fitment) {
-                    // Only save if year_from or make is provided to avoid empty rows
-                    if (! empty($fitment['year_from']) || ! empty($fitment['make'])) {
-                        $product->fitments()->create([
-                            'year_from' => $fitment['year_from'],
-                            'year_to' => $fitment['year_to'],
-                            'make' => $fitment['make'],
-                            'model' => $fitment['model'],
-                        ]);
+            if ($request->fitments) {
+                foreach ($request->fitments as $fit) {
+                    if (! empty($fit['year_from']) && ! empty($fit['year_to']) && ! empty($fit['make']) && ! empty($fit['model'])) {
+                        $product->fitments()->create($fit);
                     }
                 }
             }
 
-            // 3. Save Part Numbers
-            if ($request->has('part_numbers')) {
-                foreach ($request->part_numbers as $number) {
-                    if (! empty($number)) {
-                        PartsNumber::create([
-                            'product_id' => $product->id,
-                            'part_number' => $number,
-                        ]);
+            if ($request->part_numbers) {
+                foreach ($request->part_numbers as $num) {
+                    if (! empty($num)) {
+                        $product->partsNumbers()->create(['part_number' => $num]);
                     }
                 }
             }
 
-            // 4. Handle Image Uploads
             if ($request->hasFile('images')) {
                 foreach ($request->file('images') as $image) {
-                    $fileName = $image->getClientOriginalName();
-                    $fileSize = $image->getSize();
-                    $fileType = $image->getClientMimeType();
-                    $path = Helper::uploadFile('products', $image, true);
-                    ProductFile::create([
-                        'product_id' => $product->id,
-                        'file_name' => $fileName,
-                        'file_path' => $path['original'],
-                        'thumbnail_path' => $path['thumbnail'],
-                        'file_size' => $fileSize,
-                        'file_type' => $fileType,
-                    ]);
+                    $upload = Helper::uploadFile('products', $image, true);
+                    if ($upload) {
+                        $product->files()->create([
+                            'file_name' => $image->getClientOriginalName(),
+                            'file_path' => $upload['original'],
+                            'file_type' => $image->getMimeType(),
+                            'thumbnail_path' => $upload['thumbnail'] ?? $upload['original'],
+                            'file_size' => $image->getSize(),
+                        ]);
+                    }
                 }
             }
 
             DB::commit();
-            AdminProductSnapshot::flush();
-            Cache::forget('product_counts');
-            Cache::forget('product_no_image_count');
 
-            return redirect()->route('admin.products.index')
-                ->with('success', 'Product created successfully.');
+            return redirect()->route('admin.products.index')->with('success', 'Product created successfully.');
 
         } catch (\Exception $e) {
             DB::rollBack();
+            Log::error('Product Store Error: '.$e->getMessage());
 
-            return back()->withErrors(['error' => 'Failed to create product. Please try again.'])
-                ->withInput();
+            return back()->withErrors(['error' => 'Failed to create product. '.$e->getMessage()]);
         }
     }
 
-    // end
     public function edit(Product $product)
     {
-        $product->load(['partsNumbers', 'fitments', 'files']);
+        $product->load(['partType', 'shopView', 'sorting', 'fitments', 'partsNumbers', 'files']);
 
         return Inertia::render('Admin/Product/Edit', [
             'product' => [
-                'id' => $product->id,
-                'description' => $product->description,
-                'list_price' => $product->list_price,
-                'sku' => $product->sku,
-                'location_id' => $product->location_id,
-                'visibility' => $product->visibility,
-                'category_id' => $product->category_id,
-                'sub_category_id' => $product->sub_category_id,
-                'stock_oakville' => $product->stock_oakville,
-                'stock_mississauga' => $product->stock_mississauga,
-                'stock_saskatoon' => $product->stock_saskatoon,
+                ...$product->toArray(),
                 'part_numbers' => $product->partsNumbers->pluck('part_number')->toArray(),
-                'fitments' => $product->fitments,
-                'files' => $product->files,
             ],
-            'categories' => Category::all(['id', 'name']),
-            'subCategories' => SubCategory::all(['id', 'name', 'category_id']),
+            'categoriesTier1' => Category::where('category_type', 1)->get(),
+            'categoriesTier2' => Category::where('category_type', 2)->get(),
+            'categoriesTier3' => Category::where('category_type', 3)->get(),
         ]);
     }
 
@@ -184,14 +146,26 @@ class IndexController extends Controller
     {
         DB::beginTransaction();
         try {
-            // -- product update
-            $product->update($request->validated());
+            $product->update([
+                'part_type_id' => $request->part_type_id,
+                'shop_view_id' => $request->shop_view_id,
+                'sorting_id' => $request->sorting_id,
+                'description' => $request->description,
+                'list_price' => $request->list_price,
+                'stock_oakville' => $request->stock_oakville ?? 0,
+                'stock_mississauga' => $request->stock_mississauga ?? 0,
+                'stock_saskatoon' => $request->stock_saskatoon ?? 0,
+                'sku' => $request->sku,
+                'location_id' => $request->location_id,
+                'visibility' => $request->visibility ?? 'public',
+                'position' => $request->position,
+                'is_clearance' => $request->boolean('is_clearance'),
+            ]);
 
-            // -- delete old fitments
             $product->fitments()->delete();
             if ($request->fitments) {
                 foreach ($request->fitments as $fit) {
-                    if (! empty($fit['year_from'])) {
+                    if (! empty($fit['year_from']) && ! empty($fit['year_to']) && ! empty($fit['make']) && ! empty($fit['model'])) {
                         $product->fitments()->create($fit);
                     }
                 }
@@ -206,119 +180,143 @@ class IndexController extends Controller
                 }
             }
 
-            // -- delete old files
             if ($request->hasFile('images')) {
                 foreach ($request->file('images') as $image) {
-                    if ($image->isValid()) {
-                        // after validation
-                        $fileName = $image->getClientOriginalName();
-                        $fileSize = $image->getSize();
-                        $fileType = $image->getClientMimeType();
-
-                        // -- file upload
-                        $path = Helper::uploadFile('products', $image, true);
-
-                        // -- database save
+                    $upload = Helper::uploadFile('products', $image, true);
+                    if ($upload) {
                         $product->files()->create([
-                            'file_name' => $fileName,
-                            'file_size' => $fileSize,
-                            'file_path' => $path['original'],
-                            'thumbnail_path' => $path['thumbnail'],
-                            'file_type' => $fileType,
+                            'file_path' => $upload['original'],
+                            'file_type' => $image->getMimeType(),
+                            'thumbnail_path' => $upload['thumbnail'] ?? $upload['original'],
                         ]);
                     }
                 }
             }
 
             DB::commit();
-            AdminProductSnapshot::flush();
-            Cache::forget('product_counts');
-            Cache::forget('product_no_image_count');
 
             return redirect()->route('admin.products.index')->with('success', 'Product updated successfully.');
 
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Update Error: '.$e->getMessage());
+            Log::error('Product Update Error: '.$e->getMessage());
 
-            return back()->withErrors(['error' => 'Update failed: '.$e->getMessage()]);
+            return back()->withErrors(['error' => 'Failed to update product. '.$e->getMessage()]);
         }
     }
 
-    // delete image
-    public function destroyFile(ProductFile $file)
+    public function destroy(Product $product)
+    {
+        Log::info('Product Destroying:', ['id' => $product->id]);
+        try {
+            $product->delete();
+
+            return redirect()->route('admin.products.index')->with('success', 'Product deleted successfully.');
+        } catch (\Exception $e) {
+            Log::error('Product Delete Error: '.$e->getMessage());
+
+            return back()->withErrors(['error' => 'Failed to delete product. It may be linked to orders or other records.']);
+        }
+    }
+
+    public function bulkDestroy(Request $request)
+    {
+        Log::info('Bulk Destroy Request:', $request->all());
+
+        try {
+            if ($request->boolean('all')) {
+                $query = Product::query();
+
+                if ($request->search) {
+                    $search = $request->search;
+                    $query->where(function ($qq) use ($search) {
+                        $qq->where('sku', 'like', "{$search}%")
+                            ->orWhere('pp_id', 'like', "{$search}%")
+                            ->orWhere('description', 'like', "%{$search}%")
+                            ->orWhereHas('partsNumbers', function ($pq) use ($search) {
+                                $pq->where('part_number', 'like', "%{$search}%");
+                            });
+                    });
+                }
+
+                $query->get()->each->delete();
+                $message = 'All filtered products deleted successfully.';
+            } else {
+                $request->validate([
+                    'ids' => 'required|array',
+                    'ids.*' => 'exists:products,id',
+                ]);
+
+                Product::whereIn('id', $request->ids)->get()->each->delete();
+                $message = count($request->ids).' products deleted successfully.';
+            }
+
+            return redirect()->route('admin.products.index')->with('success', $message);
+        } catch (\Exception $e) {
+            Log::error('Bulk Delete Error: '.$e->getMessage());
+
+            return back()->withErrors(['error' => 'Bulk delete failed: '.$e->getMessage()]);
+        }
+    }
+
+    public function destroyFile($id)
     {
         try {
-            Helper::deleteFile($file->file_path);
+            $file = ProductFile::findOrFail($id);
+
+            // Delete physical files
+            if ($file->file_path && file_exists(public_path($file->file_path))) {
+                @unlink(public_path($file->file_path));
+            }
+            if ($file->thumbnail_path && file_exists(public_path($file->thumbnail_path))) {
+                @unlink(public_path($file->thumbnail_path));
+            }
+
             $file->delete();
 
             return back()->with('success', 'Image deleted successfully.');
         } catch (\Exception $e) {
-            return back()->withErrors(['error' => 'File deletion failed: '.$e->getMessage()]);
+            return back()->withErrors(['error' => 'Failed to delete image.']);
         }
     }
 
-    /**
-     * Delete a product and its associated files
-     */
-    public function destroy(Product $product)
+    public function export(Request $request)
     {
-        DB::beginTransaction();
-        try {
-            // Delete associated files from storage
-            foreach ($product->files as $file) {
-                Helper::deleteFile($file->file_path);
-            }
+        $products = Product::query()
+            ->select([
+                'pp_id', 'sku', 'description', 'list_price',
+                'stock_oakville', 'stock_mississauga', 'stock_saskatoon', 'visibility',
+            ])
+            ->get();
 
-            // Delete the product (cascading deletes should handle fitments/part numbers if set up)
-            $product->delete();
+        $headers = [
+            'Content-type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename=products_export_'.date('Y-m-d').'.csv',
+            'Pragma' => 'no-cache',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0',
+        ];
 
-            DB::commit();
-            AdminProductSnapshot::flush();
-            Cache::forget('product_counts');
-            Cache::forget('product_no_image_count');
-
-            return redirect()->route('admin.products.index')->with('success', 'Product deleted successfully.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Delete Error: '.$e->getMessage());
-
-            return back()->withErrors(['error' => 'Deletion failed: '.$e->getMessage()]);
-        }
-    }
-
-    /**
-     * Delete multiple products at once
-     */
-    public function bulkDestroy(Request $request)
-    {
-        $request->validate([
-            'ids' => 'required|array',
-            'ids.*' => 'exists:products,id',
-        ]);
-
-        DB::beginTransaction();
-        try {
-            $products = Product::whereIn('id', $request->ids)->with('files')->get();
+        $callback = function () use ($products) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, ['PP ID', 'SKU', 'Description', 'List Price', 'Stock OKV', 'Stock MSA', 'Stock SKT', 'Visibility']);
 
             foreach ($products as $product) {
-                foreach ($product->files as $file) {
-                    Helper::deleteFile($file->file_path);
-                }
-                $product->delete();
+                fputcsv($file, [
+                    $product->pp_id,
+                    $product->sku,
+                    $product->description,
+                    $product->list_price,
+                    $product->stock_oakville,
+                    $product->stock_mississauga,
+                    $product->stock_saskatoon,
+                    $product->visibility,
+                ]);
             }
 
-            DB::commit();
-            AdminProductSnapshot::flush();
-            Cache::forget('product_counts');
-            Cache::forget('product_no_image_count');
+            fclose($file);
+        };
 
-            return redirect()->route('admin.products.index')->with('success', 'Selected products deleted successfully.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Bulk Delete Error: '.$e->getMessage());
-
-            return back()->withErrors(['error' => 'Bulk deletion failed: '.$e->getMessage()]);
-        }
+        return response()->stream($callback, 200, $headers);
     }
 }

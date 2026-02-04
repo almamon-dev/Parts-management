@@ -48,8 +48,9 @@ class HandleInertiaRequests extends Middleware
                 return \App\Models\Setting::all()->pluck('value', 'key');
             },
 
-            'cart' => function () {
-                if (! auth()->user()) {
+            'cart' => function () use ($request) {
+                $user = $request->user();
+                if (! $user) {
                     return [
                         'items' => [],
                         'count' => 0,
@@ -57,13 +58,12 @@ class HandleInertiaRequests extends Middleware
                     ];
                 }
 
-                $cartItems = auth()->user()->carts()
+                $cartItems = $user->carts()
                     ->with('product.files')
                     ->get();
 
-                $mappedItems = $cartItems->map(function ($item) {
+                $mappedItems = $cartItems->map(function ($item) use ($user) {
                     $firstFile = $item->product->files->first();
-                    $user = auth()->user();
                     $price = $item->product->getPriceForUser($user);
 
                     return [

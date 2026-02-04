@@ -7,25 +7,41 @@ use Illuminate\Database\Eloquent\Model;
 class Product extends Model
 {
     protected $fillable = [
-        'category_id', 'sub_category_id', 'description',
+        'pp_id', 'part_type_id', 'shop_view_id', 'sorting_id', 'description',
         'buy_price', 'list_price', 'stock_oakville',
         'stock_mississauga', 'stock_saskatoon', 'sku',
-        'location_id', 'visibility',
+        'location_id', 'visibility', 'position', 'is_clearance',
     ];
 
     protected $casts = [
         'buy_price' => 'decimal:2',
         'list_price' => 'decimal:2',
+        'is_clearance' => 'boolean',
     ];
 
-    public function category()
+    protected static function booted()
     {
-        return $this->belongsTo(Category::class);
+        static::deleting(function ($product) {
+            foreach ($product->files as $file) {
+                \App\Helpers\Helper::deleteFile($file->file_path);
+                \App\Helpers\Helper::deleteFile($file->thumbnail_path);
+            }
+        });
     }
 
-    public function subCategory()
+    public function partType()
     {
-        return $this->belongsTo(SubCategory::class, 'sub_category_id');
+        return $this->belongsTo(Category::class, 'part_type_id');
+    }
+
+    public function shopView()
+    {
+        return $this->belongsTo(Category::class, 'shop_view_id');
+    }
+
+    public function sorting()
+    {
+        return $this->belongsTo(Category::class, 'sorting_id');
     }
 
     public function files()

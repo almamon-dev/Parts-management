@@ -1,48 +1,57 @@
-import React from "react";
-import Swal from "sweetalert2";
+import React, { useState } from "react";
 import { router } from "@inertiajs/react";
 import { Trash2 } from "lucide-react";
+import DeleteConfirmationModal from "./admin/DeleteConfirmationModal";
+import toast from "react-hot-toast";
 
 export default function ConfirmDelete({
     id,
     routeName,
-    title = "Are you sure?",
-    text = "This action cannot be undone!",
-    confirmButtonText = "Yes, delete it!",
+    title = "Delete Item",
+    text = "Are you sure you want to delete this item? This action is permanent and cannot be undone.",
+    confirmButtonText = "Yes, Delete",
     cancelButtonText = "Cancel",
 }) {
-    const handleClick = () => {
-        Swal.fire({
-            title,
-            text,
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonColor: "#EF4444", // Red-500
-            cancelButtonColor: "#64748B", // Slate-500
-            confirmButtonText,
-            cancelButtonText,
-            customClass: {
-                popup: "rounded-2xl",
-                confirmButton: "rounded-full px-6 py-2 font-bold",
-                cancelButton: "rounded-full px-6 py-2 font-bold",
+    const [isOpen, setIsOpen] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    const handleConfirm = () => {
+        setIsDeleting(true);
+        router.delete(route(routeName, id), {
+            preserveScroll: true,
+            preserveState: false,
+            onSuccess: () => {
+                setIsOpen(false);
             },
-        }).then((result) => {
-            if (result.isConfirmed) {
-                router.delete(route(routeName, id), {
-                    preserveScroll: true,
-                });
-            }
+            onFinish: () => {
+                setIsDeleting(false);
+            },
+            onError: () => {
+                setIsDeleting(false);
+            },
         });
     };
 
     return (
-        <button
-            type="button"
-            onClick={handleClick}
-            className="flex items-center justify-center w-8 h-8 rounded-full bg-[#F1F5F9] text-[#B91C1C] hover:bg-red-50 hover:text-red-700 transition-all duration-200 border border-transparent active:scale-95"
-            title="Delete Item"
-        >
-            <Trash2 size={16} strokeWidth={2.5} />
-        </button>
+        <>
+            <button
+                type="button"
+                onClick={() => setIsOpen(true)}
+                className="flex items-center justify-center w-8 h-8 rounded-lg bg-slate-50 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-all duration-200 border border-slate-100 active:scale-95"
+            >
+                <Trash2 size={16} strokeWidth={2} />
+            </button>
+
+            <DeleteConfirmationModal
+                isOpen={isOpen}
+                onClose={() => !isDeleting && setIsOpen(false)}
+                onConfirm={handleConfirm}
+                title={title}
+                message={text}
+                confirmText={confirmButtonText}
+                cancelText={cancelButtonText}
+                isDeleting={isDeleting}
+            />
+        </>
     );
 }

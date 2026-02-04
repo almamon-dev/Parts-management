@@ -18,17 +18,13 @@ class CategoryService
             foreach ($data['categories'] as $categoryData) {
                 $imagePath = $this->handleImageUpload($categoryData['image'] ?? null);
 
-                $category = Category::create([
+                Category::create([
                     'name' => $categoryData['name'],
                     'slug' => Str::slug($categoryData['name']),
                     'image' => $imagePath,
+                    'category_type' => $categoryData['category_type'] ?? 1,
                     'status' => $categoryData['status'] ?? 'active',
-                    'featured' => $categoryData['featured'] ?? false,
                 ]);
-
-                if (! empty($categoryData['sub_categories'])) {
-                    $this->syncSubCategories($category, $categoryData['sub_categories']);
-                }
             }
             $this->clearCache();
         });
@@ -48,10 +44,6 @@ class CategoryService
             $data['slug'] = Str::slug($data['name']);
             $category->update($data);
 
-            if (isset($data['sub_categories'])) {
-                $this->syncSubCategories($category, $data['sub_categories']);
-            }
-
             $this->clearCache();
         });
     }
@@ -63,31 +55,9 @@ class CategoryService
     {
         return DB::transaction(function () use ($category) {
             Helper::deleteFile($category->image);
-            $category->subCategories()->delete();
             $category->delete();
             $this->clearCache();
         });
-    }
-
-    /**
-     * Sync SubCategories (Create, Update, Delete)
-     */
-    protected function syncSubCategories(Category $category, array $subCategories)
-    {
-        $submittedIds = collect($subCategories)->pluck('id')->filter()->toArray();
-        $category->subCategories()->whereNotIn('id', $submittedIds)->delete();
-
-        foreach ($subCategories as $subData) {
-            if (! empty($subData['name'])) {
-                $category->subCategories()->updateOrCreate(
-                    ['id' => $subData['id'] ?? null],
-                    [
-                        'name' => $subData['name'],
-                        'status' => $subData['status'] ?? 'active',
-                    ]
-                );
-            }
-        }
     }
 
     protected function handleImageUpload($file)
@@ -104,6 +74,8 @@ class CategoryService
     {
         cache()->forget('category_counts');
         cache()->forget('admin_categories');
-        cache()->forget('admin_sub_categories');
+        cache()->forget('admin_categories_1');
+        cache()->forget('admin_categories_2');
+        cache()->forget('admin_categories_3');
     }
 }

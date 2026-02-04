@@ -22,8 +22,9 @@ class ProductsExport implements FromCollection, WithHeadings, WithMapping
     public function collection()
     {
         return Product::with([
-            'category',
-            'subCategory',
+            'partType',
+            'shopView',
+            'sorting',
             'partsNumbers',
             'files',
             'fitments',
@@ -35,8 +36,9 @@ class ProductsExport implements FromCollection, WithHeadings, WithMapping
         $headers = [
             'SKU',
             'Description',
-            'Category',
-            'Sub-Category',
+            'Part Type',
+            'Shop View',
+            'Sorting',
             'Buy Price',
             'List Price',
             'Stock (Oak)',
@@ -67,8 +69,9 @@ class ProductsExport implements FromCollection, WithHeadings, WithMapping
         $base = [
             $product->sku,
             $product->description,
-            $product->category?->name,
-            $product->subCategory?->name,
+            $product->partType?->name,
+            $product->shopView?->name,
+            $product->sorting?->name,
             $product->buy_price,
             $product->list_price,
             $product->stock_oakville,

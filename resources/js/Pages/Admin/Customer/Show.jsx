@@ -15,7 +15,10 @@ import {
     Package,
     Plus,
     Calendar,
-    ArrowRight
+    ArrowRight,
+    Settings,
+    Clock,
+    CheckCircle2
 } from "lucide-react";
 
 export default function Show({ customer, categories = [], filterOptions = { years: [], makes: [], models: [] } }) {
@@ -186,14 +189,15 @@ export default function Show({ customer, categories = [], filterOptions = { year
                         </div>
                     </div>
 
-                    <div className="border-t border-slate-100 px-8 py-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <div className="border-t border-slate-100 px-8 py-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         <div className="flex items-center gap-4">
                             <div className="w-10 h-10 bg-slate-50 rounded-lg flex items-center justify-center text-slate-400">
                                 <Building2 size={20} />
                             </div>
                             <div>
-                                <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Company</p>
+                                <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Company & Position</p>
                                 <p className="text-sm font-semibold text-slate-900">{customer.company_name || "N/A"}</p>
+                                <p className="text-[11px] text-slate-400 font-medium">{customer.position || "No position set"}</p>
                             </div>
                         </div>
                         <div className="flex items-center gap-4">
@@ -201,17 +205,9 @@ export default function Show({ customer, categories = [], filterOptions = { year
                                 <Mail size={20} />
                             </div>
                             <div>
-                                <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Email</p>
+                                <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Contact Methods</p>
                                 <p className="text-sm font-semibold text-slate-900">{customer.email}</p>
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 bg-slate-50 rounded-lg flex items-center justify-center text-slate-400">
-                                <Phone size={20} />
-                            </div>
-                            <div>
-                                <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Phone</p>
-                                <p className="text-sm font-semibold text-slate-900">{customer.phone_number || "N/A"}</p>
+                                <p className="text-[11px] text-slate-400 font-medium">{customer.phone_number || "No phone set"}</p>
                             </div>
                         </div>
                         <div className="flex items-center gap-4">
@@ -219,26 +215,26 @@ export default function Show({ customer, categories = [], filterOptions = { year
                                 <MapPin size={20} />
                             </div>
                             <div>
-                                <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Address</p>
-                                <p className="text-sm font-semibold text-slate-900 truncate max-w-[150px]">{customer.address || "N/A"}</p>
+                                <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Company Address</p>
+                                <p className="text-sm font-semibold text-slate-900 truncate max-w-[250px]" title={customer.address}>{customer.address || "N/A"}</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Left Column: Stats & Global Discount */}
+                    {/* Left Column: Stats & Global Discount info moved here */}
                     <div className="lg:col-span-1 space-y-6">
-                        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-                            <h2 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
+                        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 text-center">
+                            <h2 className="text-lg font-bold text-slate-900 mb-4 inline-flex items-center gap-2">
                                 <Percent size={20} className="text-[#FF9F43]" />
                                 Global Discount
                             </h2>
-                            <div className="bg-[#FF9F43]/5 rounded-2xl p-6 border border-[#FF9F43]/10 text-center">
+                            <div className="bg-[#FF9F43]/5 rounded-2xl p-6 border border-[#FF9F43]/10">
                                 <div className="text-4xl font-black text-[#FF9F43] mb-1">
                                     {customer.discount_rate}%
                                 </div>
-                                <p className="text-slate-500 text-xs font-medium">Applied to all products</p>
+                                <p className="text-slate-500 text-xs font-medium uppercase tracking-widest">Active Rate</p>
                                 <button
                                     onClick={() => {
                                         setDiscountType("global");
@@ -252,22 +248,82 @@ export default function Show({ customer, categories = [], filterOptions = { year
                         </div>
 
                         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-                            <h2 className="text-lg font-bold text-slate-900 mb-6">Purchase Summary</h2>
-                            <div className="space-y-4">
-                                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
-                                    <span className="text-sm font-medium text-slate-600">Total Purchases</span>
-                                    <span className="text-lg font-bold text-slate-900">${parseFloat(customer.total_purchases).toLocaleString()}</span>
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                                    <Settings size={20} />
                                 </div>
-                                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
-                                    <span className="text-sm font-medium text-slate-600">Total Returns</span>
-                                    <span className="text-lg font-bold text-slate-900">${parseFloat(customer.total_returns).toLocaleString()}</span>
+                                <h2 className="text-lg font-bold text-slate-900">Account Type</h2>
+                            </div>
+                            <div className="inline-flex items-center px-4 py-2 bg-blue-50 text-blue-700 rounded-xl text-sm font-bold border border-blue-100 uppercase tracking-wide">
+                                {customer.account_type || "N/A"}
+                            </div>
+                        </div>
+                        
+                        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="p-2 bg-green-50 text-green-600 rounded-lg">
+                                    <CheckCircle2 size={20} />
                                 </div>
+                                <h2 className="text-lg font-bold text-slate-900">Email Preferences</h2>
+                            </div>
+                            <div className="space-y-2">
+                                {[
+                                    { label: "Marketing Emails", value: customer.marketing_emails },
+                                    { label: "Order Confirmation", value: customer.order_confirmation },
+                                    { label: "Order Cancellation", value: customer.order_cancellation },
+                                    { label: "Monthly Statement", value: customer.monthly_statement }
+                                ].map((pref, i) => (
+                                    <div key={i} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
+                                        <span className="text-xs font-semibold text-slate-600">{pref.label}</span>
+                                        <div className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded ${pref.value ? 'bg-green-100 text-green-700' : 'bg-slate-200 text-slate-500'}`}>
+                                            {pref.value ? 'ON' : 'OFF'}
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         </div>
                     </div>
 
-                    {/* Right Column: Specific Product Discounts */}
-                    <div className="lg:col-span-2">
+                    {/* Middle Column: Store Hours & Specific Discounts */}
+                    <div className="lg:col-span-2 space-y-6">
+                        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="p-2 bg-[#FF9F43]/10 text-[#FF9F43] rounded-lg">
+                                    <Clock size={20} />
+                                </div>
+                                <h2 className="text-lg font-bold text-slate-900">Store Hours</h2>
+                            </div>
+                            {customer.store_hours ? (
+                                <>
+                                    {/* Summary Format support */}
+                                    {customer.store_hours.start_day ? (
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Active Days</p>
+                                                <p className="text-sm font-bold text-slate-900">{customer.store_hours.start_day} - {customer.store_hours.end_day}</p>
+                                            </div>
+                                            <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Operation Times</p>
+                                                <p className="text-sm font-bold text-slate-900">{customer.store_hours.open_time} - {customer.store_hours.close_time}</p>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        /* Per-day Format support (Seeder format) */
+                                        <div className="grid grid-cols-2 gap-2">
+                                            {Object.entries(customer.store_hours).map(([day, hours]) => (
+                                                <div key={day} className="flex justify-between items-center p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+                                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{day}</span>
+                                                    <span className="text-[12px] font-bold text-slate-700">{hours}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </>
+                            ) : (
+                                <p className="text-sm text-slate-400 italic">No hours configured</p>
+                            )}
+                        </div>
+
                         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                             <div className="p-6 border-b border-slate-100 flex items-center justify-between">
                                 <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
@@ -279,10 +335,10 @@ export default function Show({ customer, categories = [], filterOptions = { year
                                         setDiscountType("specific");
                                         setShowDiscountModal(true);
                                     }}
-                                    className="inline-flex items-center px-3 py-1.5 bg-[#FF9F43]/10 text-[#FF9F43] text-xs font-bold rounded-lg hover:bg-[#FF9F43] hover:text-white transition-all"
+                                    className="inline-flex items-center px-4 py-2 bg-[#FF9F43]/10 text-[#FF9F43] text-xs font-bold rounded-xl hover:bg-[#FF9F43] hover:text-white transition-all shadow-sm"
                                 >
-                                    <Plus size={14} className="mr-1" />
-                                    Add Specific
+                                    <Plus size={16} className="mr-1" />
+                                    Add Specific Discount
                                 </button>
                             </div>
 
@@ -295,8 +351,8 @@ export default function Show({ customer, categories = [], filterOptions = { year
                                                     <Package size={24} />
                                                 </div>
                                                 <div>
-                                                    <h3 className="text-sm font-bold text-slate-900">{discount.product.description}</h3>
-                                                    <p className="text-[11px] text-slate-500 font-medium">SKU: {discount.product.sku} | List Price: ${discount.product.list_price}</p>
+                                                    <h3 className="text-sm font-bold text-slate-900 truncate max-w-[300px]">{discount.product.description}</h3>
+                                                    <p className="text-[11px] text-slate-500 font-medium font-mono">SKU: {discount.product.sku} | List: ${discount.product.list_price}</p>
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-6">
@@ -304,11 +360,10 @@ export default function Show({ customer, categories = [], filterOptions = { year
                                                     <div className="inline-flex items-center px-3 py-1 bg-green-50 text-green-600 rounded-full text-[13px] font-black">
                                                         {discount.discount_rate}% OFF
                                                     </div>
-                                                    <p className="text-[10px] text-slate-400 mt-1 font-bold">DISCOUNT RATE</p>
                                                 </div>
                                                 <button
                                                     onClick={() => removeSpecificDiscount(discount.product_id)}
-                                                    className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                                                    className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
                                                 >
                                                     <Trash2 size={18} />
                                                 </button>
@@ -316,12 +371,9 @@ export default function Show({ customer, categories = [], filterOptions = { year
                                         </div>
                                     ))
                                 ) : (
-                                    <div className="p-16 text-center">
-                                        <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                                            <Package size={32} className="text-slate-300" />
-                                        </div>
-                                        <h3 className="text-slate-900 font-bold">No specific discounts</h3>
-                                        <p className="text-slate-500 text-sm mt-1">This user currently only has a global discount rate.</p>
+                                    <div className="p-16 text-center text-slate-400">
+                                        <Package size={40} className="mx-auto mb-4 opacity-20" />
+                                        <p className="text-sm font-medium">No specific product discounts found</p>
                                     </div>
                                 )}
                             </div>
@@ -333,51 +385,51 @@ export default function Show({ customer, categories = [], filterOptions = { year
             {/* Discount Modal */}
             {showDiscountModal && (
                 <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-2 sm:p-4 backdrop-blur-[2px]">
-                    <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl transform transition-all border border-slate-100 overflow-hidden">
-                        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-50">
-                            <h3 className="text-base font-bold text-slate-900">
-                                Manage Discounts
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl transform transition-all border border-slate-100 overflow-hidden">
+                        <div className="flex items-center justify-between px-6 py-5 border-b border-slate-50">
+                            <h3 className="text-lg font-bold text-slate-900">
+                                Manage Discounts - {customer.name}
                             </h3>
                             <button 
                                 onClick={() => setShowDiscountModal(false)}
-                                className="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-50 text-slate-400 hover:bg-red-50 hover:text-red-500 transition-all"
+                                className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 text-slate-400 hover:bg-red-50 hover:text-red-500 transition-all"
                             >
-                                <Plus size={20} className="rotate-45" />
+                                <Plus size={24} className="rotate-45" />
                             </button>
                         </div>
 
-                        <div className="p-5 overflow-y-auto max-h-[85vh]">
-                            {/* Custom Tab Component */}
-                            <div className="flex gap-1 p-1 bg-slate-100 rounded-lg mb-4">
+                        <div className="p-6 overflow-y-auto max-h-[85vh]">
+                            {/* Tabs */}
+                            <div className="flex gap-2 p-1 bg-slate-100 rounded-xl mb-6">
                                 <button
                                     onClick={() => setDiscountType("global")}
-                                    className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-md text-[13px] font-bold transition-all ${
+                                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-[13px] font-bold transition-all ${
                                         discountType === "global"
-                                            ? "bg-white text-[#FF9F43] shadow-sm"
-                                            : "text-slate-500 hover:text-slate-700 font-semibold"
+                                            ? "bg-white text-[#FF9F43] shadow-md"
+                                            : "text-slate-500 hover:text-slate-700"
                                     }`}
                                 >
-                                    <Percent size={14} /> Global
+                                    <Percent size={16} /> Global Rate
                                 </button>
                                 <button
                                     onClick={() => setDiscountType("specific")}
-                                    className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-md text-[13px] font-bold transition-all ${
+                                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-[13px] font-bold transition-all ${
                                         discountType === "specific"
-                                            ? "bg-white text-[#FF9F43] shadow-sm"
-                                            : "text-slate-500 hover:text-slate-700 font-semibold"
+                                            ? "bg-white text-[#FF9F43] shadow-md"
+                                            : "text-slate-500 hover:text-slate-700"
                                     }`}
                                 >
-                                    <Package size={14} /> Specific
+                                    <Package size={16} /> Product Specific
                                 </button>
                             </div>
 
-                            <form onSubmit={saveDiscount} className="space-y-4">
+                            <form onSubmit={saveDiscount} className="space-y-6">
                                 {discountType === "global" ? (
-                                    <div className="p-6 bg-slate-50 rounded-xl border border-slate-100 text-center">
-                                        <label className="block text-xs font-bold text-slate-600 mb-3 uppercase tracking-wider">
+                                    <div className="p-8 bg-slate-50 rounded-2xl border border-slate-100 text-center">
+                                        <label className="block text-xs font-black text-slate-400 mb-4 uppercase tracking-[0.2em]">
                                             Global Discount Rate
                                         </label>
-                                        <div className="relative max-w-[140px] mx-auto">
+                                        <div className="relative max-w-[160px] mx-auto">
                                             <input
                                                 type="number"
                                                 min="0"
@@ -385,10 +437,10 @@ export default function Show({ customer, categories = [], filterOptions = { year
                                                 step="0.1"
                                                 value={discountRate}
                                                 onChange={(e) => setDiscountRate(e.target.value)}
-                                                className="w-full pl-4 pr-10 py-3 bg-white border border-slate-200 rounded-xl text-2xl font-bold text-center text-[#FF9F43] focus:ring-2 focus:ring-[#FF9F43]/20 focus:border-[#FF9F43] outline-none transition-all"
+                                                className="w-full pl-6 pr-12 py-4 bg-white border border-slate-200 rounded-2xl text-3xl font-black text-center text-[#FF9F43] focus:ring-4 focus:ring-[#FF9F43]/10 focus:border-[#FF9F43] outline-none transition-all"
                                                 required={discountType === "global"}
                                             />
-                                            <div className="absolute right-4 top-1/2 -translate-y-1/2 text-lg font-bold text-slate-300">%</div>
+                                            <div className="absolute right-5 top-1/2 -translate-y-1/2 text-xl font-black text-slate-200">%</div>
                                         </div>
                                     </div>
                                 ) : (
@@ -398,7 +450,7 @@ export default function Show({ customer, categories = [], filterOptions = { year
                                             {['category', 'year_from', 'make', 'model'].map((key) => (
                                                 <div key={key}>
                                                     <select 
-                                                        className="w-full bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-[11px] font-bold text-slate-700 outline-none disabled:bg-slate-50 disabled:text-slate-400"
+                                                        className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-[11px] font-bold text-slate-700 outline-none focus:bg-white focus:border-[#FF9F43] disabled:opacity-50"
                                                         value={filters[key] || ""}
                                                         onChange={(e) => handleFilterChange(key, e.target.value)}
                                                         disabled={
@@ -423,10 +475,9 @@ export default function Show({ customer, categories = [], filterOptions = { year
                                             ))}
                                         </div>
 
-                                        {/* Search & Actions */}
                                         <div className="flex gap-2">
                                             <div className="relative flex-1">
-                                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300" size={14} />
+                                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                                                 <input
                                                     type="text"
                                                     value={searchQuery}
@@ -434,130 +485,114 @@ export default function Show({ customer, categories = [], filterOptions = { year
                                                         setSearchQuery(e.target.value);
                                                         debouncedSearch(e.target.value);
                                                     }}
-                                                    placeholder="Search SKU or Name..."
-                                                    className="w-full pl-9 pr-3 py-1.5 bg-slate-50 border-slate-200 rounded-lg text-xs font-medium outline-none focus:bg-white focus:border-[#FF9F43] transition-all"
+                                                    placeholder="Search SKU, Part Number or Description..."
+                                                    className="w-full pl-12 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium outline-none focus:bg-white focus:border-[#FF9F43] transition-all"
                                                 />
                                             </div>
                                             {searchResults.length > 0 && (
                                                 <button 
                                                     type="button"
                                                     onClick={addAllSelected}
-                                                    className="px-3 py-1.5 bg-slate-900 text-white rounded-lg text-[10px] font-bold hover:bg-slate-800 transition-all flex items-center gap-1.5"
+                                                    className="px-4 py-2.5 bg-slate-900 text-white rounded-xl text-xs font-black hover:bg-slate-800 transition-all flex items-center gap-2"
                                                 >
-                                                    <Plus size={12} /> Add All
+                                                    <Plus size={16} /> Add All
                                                 </button>
                                             )}
                                         </div>
 
-                                        {/* Results Table - More Compact */}
-                                        <div className="max-h-48 overflow-y-auto rounded-lg border border-slate-100 bg-white shadow-sm">
+                                        <div className="max-h-60 overflow-y-auto rounded-2xl border border-slate-100 bg-white shadow-inner">
                                             {isSearching ? (
-                                                <div className="p-4 text-center">
-                                                    <div className="w-4 h-4 border-2 border-[#FF9F43] border-t-transparent rounded-full animate-spin mx-auto" />
+                                                <div className="p-8 text-center">
+                                                    <div className="w-6 h-6 border-3 border-[#FF9F43] border-t-transparent rounded-full animate-spin mx-auto" />
                                                 </div>
                                             ) : searchResults.length > 0 ? (
-                                                <table className="w-full text-left text-[11px]">
+                                                <table className="w-full text-left text-[12px]">
                                                     <tbody className="divide-y divide-slate-50">
                                                         {searchResults.map(product => (
                                                             <tr key={product.id} className="hover:bg-slate-50/50 transition-colors">
-                                                                <td className="px-3 py-2 max-w-[200px] truncate">
-                                                                    <span className="font-bold text-slate-700">{product.description}</span>
+                                                                <td className="px-4 py-3">
+                                                                    <div className="font-bold text-slate-800">{product.description}</div>
+                                                                    <div className="text-[10px] text-slate-400 font-mono mt-0.5">{product.sku}</div>
                                                                 </td>
-                                                                <td className="px-3 py-2 text-slate-400 font-mono">{product.sku}</td>
-                                                                <td className="px-3 py-2 text-right">
+                                                                <td className="px-4 py-3 text-right">
                                                                     <button
                                                                         type="button"
                                                                         onClick={() => addProduct(product)}
-                                                                        className={`p-1.5 rounded-md transition-all ${
+                                                                        className={`p-2 rounded-lg transition-all ${
                                                                             selectedProducts.find(p => p.id === product.id)
-                                                                            ? "text-green-500"
-                                                                            : "text-slate-300 hover:text-[#FF9F43]"
+                                                                            ? "bg-green-100 text-green-600"
+                                                                            : "bg-slate-50 text-slate-300 hover:text-[#FF9F43] hover:bg-[#FF9F43]/10"
                                                                         }`}
                                                                     >
-                                                                        <Plus size={16} className={selectedProducts.find(p => p.id === product.id) ? "hidden" : "block"} />
-                                                                        <svg className={selectedProducts.find(p => p.id === product.id) ? "block w-4 h-4" : "hidden"} viewBox="0 0 20 20" fill="currentColor">
-                                                                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                                                        </svg>
+                                                                        <Plus size={20} className={selectedProducts.find(p => p.id === product.id) ? "hidden" : "block"} />
+                                                                        <CheckCircle2 className={selectedProducts.find(p => p.id === product.id) ? "block w-5 h-5" : "hidden"} />
                                                                     </button>
                                                                 </td>
                                                             </tr>
                                                         ))}
                                                     </tbody>
                                                 </table>
-                                            ) : (searchQuery || filters.category || filters.year_from || filters.make || filters.model) ? (
-                                                <div className="p-4 text-center text-slate-400 text-[10px] font-bold uppercase tracking-tight">
-                                                    No results match your criteria
-                                                </div>
                                             ) : (
-                                                <div className="p-4 text-center text-slate-300 text-[10px] font-bold italic">
-                                                    Select a filter or search to find products
+                                                <div className="p-12 text-center text-slate-300 font-bold uppercase tracking-widest text-xs italic">
+                                                    Use filters or search to begin
                                                 </div>
                                             )}
                                         </div>
 
-                                        {/* Selected Items List - Tightened */}
-                                        <div className="space-y-2 pt-2 border-t border-slate-50">
-                                            <div className="flex items-center justify-between">
-                                                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">
-                                                    Selection ({selectedProducts.length})
-                                                </h4>
-                                                {selectedProducts.length > 0 && (
-                                                    <button 
-                                                        type="button"
-                                                        onClick={() => setSelectedProducts([])}
-                                                        className="text-[10px] font-bold text-red-400 hover:text-red-500"
-                                                    >
-                                                        Clear
-                                                    </button>
-                                                )}
-                                            </div>
-                                            <div className="max-h-40 overflow-y-auto space-y-1">
-                                                {selectedProducts.map(product => (
-                                                    <div key={product.id} className="flex items-center justify-between p-2 bg-slate-50 rounded-lg group">
-                                                        <div className="flex-1 min-w-0 pr-3">
-                                                            <p className="text-[11px] font-bold text-slate-700 truncate">{product.description}</p>
-                                                            <p className="text-[9px] text-slate-400 font-bold">{product.sku}</p>
-                                                        </div>
-                                                        <div className="flex items-center gap-2">
-                                                            <div className="relative w-16">
-                                                                <input
-                                                                    type="number"
-                                                                    value={product.discount_rate}
-                                                                    onChange={(e) => updateProductDiscountRate(product.id, e.target.value)}
-                                                                    className="w-full pl-2 pr-4 py-1.5 bg-white border border-slate-200 rounded-md text-[11px] font-bold outline-none focus:border-[#FF9F43]"
-                                                                    placeholder="Rate"
-                                                                    required
-                                                                />
-                                                                <span className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[10px] text-slate-300 font-bold">%</span>
+                                        {selectedProducts.length > 0 && (
+                                            <div className="space-y-2 pt-4 border-t border-slate-100">
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">
+                                                        Selected Items ({selectedProducts.length})
+                                                    </h4>
+                                                </div>
+                                                <div className="max-h-48 overflow-y-auto space-y-2">
+                                                    {selectedProducts.map(product => (
+                                                        <div key={product.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200/50">
+                                                            <div className="flex-1 min-w-0 pr-4">
+                                                                <p className="text-xs font-bold text-slate-700 truncate">{product.description}</p>
                                                             </div>
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => removeProduct(product.id)}
-                                                                className="w-7 h-7 flex items-center justify-center text-slate-300 hover:text-red-500 rounded-md"
-                                                            >
-                                                                <Plus size={14} className="rotate-45" />
-                                                            </button>
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="relative w-24">
+                                                                    <input
+                                                                        type="number"
+                                                                        value={product.discount_rate}
+                                                                        onChange={(e) => updateProductDiscountRate(product.id, e.target.value)}
+                                                                        className="w-full pl-3 pr-8 py-2 bg-white border border-slate-200 rounded-lg text-xs font-black outline-none focus:border-[#FF9F43]"
+                                                                        placeholder="Rate"
+                                                                        required
+                                                                    />
+                                                                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-300 font-black">%</span>
+                                                                </div>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => removeProduct(product.id)}
+                                                                    className="w-8 h-8 flex items-center justify-center text-slate-300 hover:text-red-500 rounded-lg transition-colors"
+                                                                >
+                                                                    <Plus size={18} className="rotate-45" />
+                                                                </button>
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                ))}
+                                                    ))}
+                                                </div>
                                             </div>
-                                        </div>
+                                        )}
                                     </div>
                                 )}
 
-                                <div className="flex gap-3 pt-2">
+                                <div className="flex gap-3 pt-6">
                                     <button
                                         type="button"
                                         onClick={() => setShowDiscountModal(false)}
-                                        className="flex-1 py-2.5 px-4 border border-slate-200 rounded-lg text-slate-600 text-xs font-bold hover:bg-slate-50 transition-all"
+                                        className="flex-1 py-3.5 px-6 border-2 border-slate-50 rounded-2xl text-slate-500 text-sm font-bold hover:bg-slate-50 transition-all"
                                     >
                                         Cancel
                                     </button>
                                     <button
                                         type="submit"
-                                        className="flex-1 py-2.5 px-4 bg-[#FF9F43] text-white rounded-lg text-xs font-black hover:bg-[#e68a30] transition-all shadow-md shadow-[#FF9F43]/20"
+                                        className="flex-1 py-3.5 px-6 bg-[#FF9F43] text-white rounded-2xl text-sm font-black hover:bg-[#e68a30] transition-all shadow-xl shadow-[#FF9F43]/20"
                                     >
-                                        Apply Changes
+                                        Apply Discount
                                     </button>
                                 </div>
                             </form>

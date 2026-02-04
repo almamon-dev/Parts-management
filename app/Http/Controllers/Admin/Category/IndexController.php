@@ -30,10 +30,9 @@ class IndexController extends Controller
         });
 
         $categories = Category::query()
-            ->with(['subCategories']) // Eager load sub categories
-            ->withCount('subCategories')
             ->when($request->search, fn ($q, $s) => $q->where('name', 'like', "%$s%"))
             ->when($request->status && $request->status !== 'all', fn ($q, $s) => $q->where('status', $request->status))
+            ->when($request->type, fn ($q, $t) => $q->where('category_type', $t))
             ->latest()
             ->paginate($request->per_page ?? 10)
             ->withQueryString();
@@ -41,7 +40,7 @@ class IndexController extends Controller
         return Inertia::render('Admin/Category/Index', [
             'category' => $categories,
             'counts' => $counts,
-            'filters' => $request->only(['search', 'status', 'per_page']),
+            'filters' => $request->only(['search', 'status', 'type', 'per_page']),
         ]);
     }
 
@@ -55,7 +54,7 @@ class IndexController extends Controller
         try {
             $this->categoryService->storeCategories($request->validated());
 
-            return redirect()->route('categories.index')->with('success', 'Created successfully!');
+            return redirect()->route('admin.categories.index')->with('success', 'Created successfully!');
         } catch (\Exception $e) {
             Log::error('Category Store Error: '.$e->getMessage());
 
@@ -65,9 +64,6 @@ class IndexController extends Controller
 
     public function edit(Category $category)
     {
-
-        $category->load('subCategories');
-
         return Inertia::render('Admin/Category/Edit', [
             'category' => $category,
         ]);
@@ -78,12 +74,13 @@ class IndexController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'status' => 'required|in:active,inactive',
+            'category_type' => 'required|integer|between:1,3',
         ]);
 
         try {
             $this->categoryService->updateCategory($category, $request->all(), $request->file('image'));
 
-            return redirect()->route('categories.index')->with('success', 'Updated successfully!');
+            return redirect()->route('admin.categories.index')->with('success', 'Updated successfully!');
         } catch (\Exception $e) {
             Log::error('Category Update Error: '.$e->getMessage());
 
@@ -96,9 +93,38 @@ class IndexController extends Controller
         try {
             $this->categoryService->deleteCategory($category);
 
-            return back()->with('success', 'Deleted successfully!');
+            return redirect()->route('admin.categories.index')->with('success', 'Deleted successfully!');
         } catch (\Exception $e) {
             return back()->withErrors(['error' => 'Delete failed.']);
+        }
+    }
+
+    public function bulkDestroy(Request $request)
+    {
+        Log::info('Category Bulk Destroy Request:', $request->all());
+        try {
+            $ids = $request->ids;
+            if ($request->boolean('all')) {
+                $query = Category::query();
+                if ($request->search) {
+                    $query->where('name', 'like', "%{$request->search}%");
+                }
+                if ($request->status && $request->status !== 'all') {
+                    $query->where('status', $request->status);
+                }
+                if ($request->type && $request->type !== 'all') {
+                    $query->where('category_type', $request->type);
+                }
+                $query->get()->each->delete();
+            } else {
+                Category::whereIn('id', $ids)->get()->each->delete();
+            }
+
+            return redirect()->route('admin.categories.index')->with('success', 'Selected categories deleted successfully!');
+        } catch (\Exception $e) {
+            Log::error('Category Bulk Delete Error: '.$e->getMessage());
+
+            return back()->withErrors(['error' => 'Bulk delete failed: '.$e->getMessage()]);
         }
     }
 }

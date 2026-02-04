@@ -91,11 +91,33 @@ export function TableManager(routeName, data = [], initialOptions = {}) {
         setSelectAllGlobal(false);
     }, []);
 
+    const handlePerPageChange = useCallback((value) => {
+        handleFilterChange({ per_page: value, page: 1 });
+    }, [handleFilterChange]);
+
+    const handleSort = useCallback((column) => {
+        const currentSort = optionsRef.current?.sort;
+        const currentDir = optionsRef.current?.direction;
+        const newDir = currentSort === column && currentDir === 'asc' ? 'desc' : 'asc';
+        handleFilterChange({ sort: column, direction: newDir, page: 1 });
+    }, [handleFilterChange]);
+
     return {
-        search, handleSearch, isLoading,
-        selectedIds, toggleSelectAll, toggleSelect,
-        selectAllGlobal, setSelectAllGlobal, clearSelection,
-        handleFilterChange, handleClearFilters,
+        search, 
+        handleSearch, 
+        isLoading,
+        processing: isLoading, // Alias for compatibility
+        data: optionsRef.current || {}, // Alias for compatibility
+        selectedIds, 
+        toggleSelectAll, 
+        toggleSelect,
+        selectAllGlobal, 
+        setSelectAllGlobal, 
+        clearSelection,
+        handleFilterChange, 
+        handleClearFilters,
+        handlePerPageChange,
+        handleSort,
         currentFilters: optionsRef.current || {}
     };
 }

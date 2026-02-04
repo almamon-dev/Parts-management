@@ -22,7 +22,6 @@ export default function Index({ customers, filters = {}, stats }) {
     const [showGlobalModal, setShowGlobalModal] = useState(false);
     const [globalDiscount, setGlobalDiscount] = useState({ rate: "", apply_to: "all" });
 
-
     const {
         search,
         handleSearch,
@@ -52,12 +51,6 @@ export default function Index({ customers, filters = {}, stats }) {
         });
     };
 
-    const resetDiscount = (customerId) => {
-        if (confirm("Are you sure you want to reset this customer's discount?")) {
-            router.patch(route("admin.customers.reset-discount", customerId));
-        }
-    };
-
     return (
         <AdminLayout>
             <Head title="Customers - B2B" />
@@ -70,53 +63,38 @@ export default function Index({ customers, filters = {}, stats }) {
                             Customers - B2B
                         </h1>
                         <p className="text-slate-500 text-sm mt-1">
-                            Manage customer discounts and track purchases
+                            Manage B2B customer profiles and contact details
                         </p>
                     </div>
-
-                    <button
-                        onClick={() => setShowGlobalModal(true)}
-                        className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2.5 bg-[#FF9F43] text-white text-[13px] font-bold rounded-lg hover:bg-[#e68a30] transition-all duration-200 shadow-lg shadow-[#FF9F43]/20"
-                    >
-                        <Percent size={16} className="mr-2" />
-                        Apply Global Discount
-                    </button>
+                    <div className="flex gap-3">
+                        <button
+                            onClick={() => setShowGlobalModal(true)}
+                            className="inline-flex items-center px-5 py-2.5 bg-[#FF9F43] text-white text-[13px] font-bold rounded-xl hover:bg-[#e68a30] transition-all shadow-lg shadow-[#FF9F43]/20"
+                        >
+                            <Percent size={18} className="mr-2" />
+                            Apply Global Discount
+                        </button>
+                    </div>
                 </div>
 
                 {/* Stats Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                     <div className="bg-white rounded-xl shadow-sm border border-slate-200/60 p-5">
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-                                    Total Customers
+                                    Total B2B Partners
                                 </p>
                                 <p className="text-2xl font-bold text-slate-900 mt-1">
                                     {stats.total_customers}
                                 </p>
                             </div>
-                            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                                <Users className="w-6 h-6 text-blue-600" />
+                            <div className="w-12 h-12 bg-[#FF9F43]/10 rounded-lg flex items-center justify-center">
+                                <Users className="w-6 h-6 text-[#FF9F43]" />
                             </div>
                         </div>
                     </div>
-
-                    <div className="bg-white rounded-xl shadow-sm border border-slate-200/60 p-5">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-                                    With Discount
-                                </p>
-                                <p className="text-2xl font-bold text-slate-900 mt-1">
-                                    {stats.with_discount}
-                                </p>
-                            </div>
-                            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                                <Percent className="w-6 h-6 text-green-600" />
-                            </div>
-                        </div>
-                    </div>
-
+                    
                     <div className="bg-white rounded-xl shadow-sm border border-slate-200/60 p-5">
                         <div className="flex items-center justify-between">
                             <div>
@@ -136,60 +114,6 @@ export default function Index({ customers, filters = {}, stats }) {
 
                 {/* Search & Table Container */}
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200/60 overflow-hidden relative">
-                    {/* Filter Tabs */}
-                    <div className="flex items-center gap-2 p-4 border-b border-slate-100 bg-slate-50/30">
-                        <button
-                            onClick={() => router.get(route("admin.customers.index"), {}, { preserveState: true })}
-                            className={`px-4 py-2 rounded-lg text-[13px] font-semibold transition-all ${
-                                !filters.discount_filter
-                                    ? "bg-[#FF9F43] text-white shadow-lg shadow-[#FF9F43]/20"
-                                    : "text-slate-600 hover:bg-slate-100"
-                            }`}
-                        >
-                            All Customers
-                            <span className="ml-2 px-2 py-0.5 rounded-full bg-white/20 text-[11px]">
-                                {stats.total_customers}
-                            </span>
-                        </button>
-                        <button
-                            onClick={() =>
-                                router.get(
-                                    route("admin.customers.index"),
-                                    { discount_filter: "with_discount" },
-                                    { preserveState: true }
-                                )
-                            }
-                            className={`px-4 py-2 rounded-lg text-[13px] font-semibold transition-all ${
-                                filters.discount_filter === "with_discount"
-                                    ? "bg-[#FF9F43] text-white shadow-lg shadow-[#FF9F43]/20"
-                                    : "text-slate-600 hover:bg-slate-100"
-                            }`}
-                        >
-                            With Discount
-                            <span className="ml-2 px-2 py-0.5 rounded-full bg-white/20 text-[11px]">
-                                {stats.with_discount}
-                            </span>
-                        </button>
-                        <button
-                            onClick={() =>
-                                router.get(
-                                    route("admin.customers.index"),
-                                    { discount_filter: "no_discount" },
-                                    { preserveState: true }
-                                )
-                            }
-                            className={`px-4 py-2 rounded-lg text-[13px] font-semibold transition-all ${
-                                filters.discount_filter === "no_discount"
-                                    ? "bg-[#FF9F43] text-white shadow-lg shadow-[#FF9F43]/20"
-                                    : "text-slate-600 hover:bg-slate-100"
-                            }`}
-                        >
-                            No Discount
-                            <span className="ml-2 px-2 py-0.5 rounded-full bg-white/20 text-[11px]">
-                                {stats.total_customers - stats.with_discount}
-                            </span>
-                        </button>
-                    </div>
 
                     <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between p-4 border-b border-slate-100 gap-4">
                         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full lg:w-auto flex-1">
@@ -253,21 +177,20 @@ export default function Index({ customers, filters = {}, stats }) {
                     </div>
 
                     <div className="overflow-x-auto custom-scrollbar relative w-full touch-pan-x">
-                        <table className="w-full text-left border-collapse min-w-[1400px]">
+                        <table className="w-full text-left border-collapse min-w-[1500px]">
                             <thead>
                                 <tr className="bg-slate-50/80 text-slate-500 font-semibold text-[11px] uppercase tracking-wider border-b border-slate-100">
                                     <th className="py-3 px-4 w-10">
                                         {/* Selection placeholder */}
                                     </th>
-                                    <th className="py-3 px-4 whitespace-nowrap">Date Registered</th>
-                                    <th className="py-3 px-4 whitespace-nowrap">Shop Name</th>
-                                    <th className="py-3 px-4 whitespace-nowrap">Manager</th>
-                                    <th className="py-3 px-4 whitespace-nowrap">Contact</th>
+                                    <th className="py-3 px-4 whitespace-nowrap">Company Name</th>
+                                    <th className="py-3 px-4 whitespace-nowrap">Full Name</th>
+                                    <th className="py-3 px-4 whitespace-nowrap">Discount</th>
+                                    <th className="py-3 px-4 whitespace-nowrap">Position</th>
+                                    <th className="py-3 px-4 whitespace-nowrap">Account Type</th>
+                                    <th className="py-3 px-4 whitespace-nowrap">Phone Number</th>
                                     <th className="py-3 px-4 whitespace-nowrap">Email Address</th>
-                                    <th className="py-3 px-4 text-center whitespace-nowrap">Discount Rate</th>
-                                    <th className="py-3 px-4 text-center whitespace-nowrap">Total Purchases</th>
-                                    <th className="py-3 px-4 text-center whitespace-nowrap">Total Returns</th>
-                                    <th className="py-3 px-4 whitespace-nowrap">Address</th>
+                                    <th className="py-3 px-4 whitespace-nowrap">Company Address</th>
                                     <th className="py-3 px-4 text-right sticky right-0 z-10 bg-slate-50/95 backdrop-blur-sm border-l border-slate-100">
                                         Actions
                                     </th>
@@ -292,9 +215,6 @@ export default function Index({ customers, filters = {}, stats }) {
                                                     className="w-4 h-4 text-[#FF9F43] border-slate-300 rounded focus:ring-[#FF9F43] transition-all cursor-pointer"
                                                 />
                                             </td>
-                                            <td className="py-3 px-3 whitespace-nowrap text-slate-500">
-                                                {new Date(customer.created_at).toLocaleDateString()}
-                                            </td>
                                             <td className="py-3 px-3 whitespace-nowrap font-bold text-slate-900 uppercase">
                                                 <div className="flex items-center gap-2">
                                                     <Building2 size={14} className="text-[#FF9F43]" />
@@ -309,42 +229,27 @@ export default function Index({ customers, filters = {}, stats }) {
                                                     {customer.name}
                                                 </Link>
                                             </td>
-                                            <td className="py-3 px-3 whitespace-nowrap text-slate-600">
-                                                <div className="flex items-center gap-1.5">
-                                                    <span className="p-1 rounded bg-slate-100 text-[#FF9F43]">
-                                                        <Phone size={12} strokeWidth={3} />
-                                                    </span>
-                                                    {customer.phone_number || "N/A"}
-                                                </div>
-                                            </td>
-                                            <td className="py-3 px-3 text-slate-600">
-                                                <div className="flex items-center gap-1.5">
-                                                    <Mail size={12} className="text-slate-400" />
-                                                    {customer.email}
-                                                </div>
-                                            </td>
-                                            <td className="py-3 px-3 text-center">
-                                                <span
-                                                    className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold ${
-                                                        customer.discount_rate > 0
-                                                            ? "bg-[#FF9F43]/10 text-[#FF9F43]"
-                                                            : "bg-slate-100 text-slate-500"
-                                                    }`}
-                                                >
+                                            <td className="py-3 px-3 whitespace-nowrap">
+                                                <div className="inline-flex items-center px-2 py-1 bg-green-50 text-green-700 rounded-lg font-black border border-green-100">
                                                     {customer.discount_rate}%
+                                                </div>
+                                            </td>
+                                            <td className="py-3 px-3 whitespace-nowrap text-slate-500">
+                                                {customer.position || "N/A"}
+                                            </td>
+                                            <td className="py-3 px-3 whitespace-nowrap">
+                                                <span className="px-2 py-1 rounded text-[10px] bg-blue-50 text-blue-600 font-bold border border-blue-100 uppercase">
+                                                    {customer.account_type || "N/A"}
                                                 </span>
                                             </td>
-                                            <td className="py-3 px-3 text-center font-bold text-slate-900">
-                                                ${parseFloat(customer.total_purchases || 0).toLocaleString()}
+                                            <td className="py-3 px-3 whitespace-nowrap text-slate-600 font-medium">
+                                                {customer.phone_number || "N/A"}
                                             </td>
-                                            <td className="py-3 px-3 text-center font-medium text-slate-600">
-                                                ${parseFloat(customer.total_returns || 0).toLocaleString()}
+                                            <td className="py-3 px-3 text-slate-600">
+                                                {customer.email}
                                             </td>
-                                            <td className="py-3 px-3 text-slate-500 max-w-[200px] truncate">
-                                                <div className="flex items-center gap-1.5">
-                                                    <MapPin size={12} className="text-slate-400 flex-shrink-0" />
-                                                    {customer.address || "N/A"}
-                                                </div>
+                                            <td className="py-3 px-3 text-slate-500 max-w-[250px] truncate" title={customer.address}>
+                                                {customer.address || "N/A"}
                                             </td>
                                             <td className="py-3 px-3 text-right sticky right-0 z-10 bg-white/95 backdrop-blur-sm border-l border-slate-50 group-hover:bg-slate-50/95 transition-all">
                                                 <div className="flex items-center justify-end gap-2">
@@ -354,15 +259,6 @@ export default function Index({ customers, filters = {}, stats }) {
                                                     >
                                                         Details
                                                     </Link>
-                                                    {customer.discount_rate > 0 && (
-                                                        <button
-                                                            onClick={() => resetDiscount(customer.id)}
-                                                            className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
-                                                            title="Reset Discount"
-                                                        >
-                                                            <RefreshCw size={14} />
-                                                        </button>
-                                                    )}
                                                     <ConfirmDelete
                                                         id={customer.id}
                                                         routeName="admin.customers.destroy"
@@ -396,62 +292,74 @@ export default function Index({ customers, filters = {}, stats }) {
                 </div>
             </div>
 
-
             {/* Global Discount Modal */}
             {showGlobalModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md">
-                        <h3 className="text-lg font-bold text-slate-900 mb-4">
-                            Apply Global Discount
-                        </h3>
-                        <form onSubmit={applyGlobalDiscount} className="space-y-4">
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+                    <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md transform transition-all border border-slate-100">
+                        <div className="flex items-center justify-between mb-6">
+                            <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                                <Percent className="text-[#FF9F43]" />
+                                Apply Global Discount
+                            </h3>
+                            <button 
+                                onClick={() => setShowGlobalModal(false)}
+                                className="text-slate-400 hover:text-slate-600 transition-colors"
+                            >
+                                <Plus size={24} className="rotate-45" />
+                            </button>
+                        </div>
+
+                        <form onSubmit={applyGlobalDiscount} className="space-y-6">
                             <div>
-                                <label className="block text-[13px] font-semibold text-slate-700 mb-2">
+                                <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 px-1">
                                     Discount Rate (%)
                                 </label>
-                                <input
-                                    type="number"
-                                    min="0"
-                                    max="100"
-                                    step="0.01"
-                                    value={globalDiscount.rate}
-                                    onChange={(e) =>
-                                        setGlobalDiscount({ ...globalDiscount, rate: e.target.value })
-                                    }
-                                    placeholder="Enter discount percentage"
-                                    className="w-full px-4 py-2 border border-slate-300 rounded-lg text-[13px] focus:ring-2 focus:ring-[#FF9F43]/10 focus:border-[#FF9F43] outline-none"
-                                    required
-                                />
+                                <div className="relative">
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        max="100"
+                                        step="0.01"
+                                        value={globalDiscount.rate}
+                                        onChange={(e) =>
+                                            setGlobalDiscount({ ...globalDiscount, rate: e.target.value })
+                                        }
+                                        placeholder="0.00"
+                                        className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-2xl font-black text-[#FF9F43] focus:ring-4 focus:ring-[#FF9F43]/10 focus:border-[#FF9F43] outline-none transition-all pr-12"
+                                        required
+                                    />
+                                    <span className="absolute right-5 top-1/2 -translate-y-1/2 text-xl font-black text-slate-200">%</span>
+                                </div>
                             </div>
                             <div>
-                                <label className="block text-[13px] font-semibold text-slate-700 mb-2">
-                                    Apply To
+                                <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 px-1">
+                                    Apply To Group
                                 </label>
                                 <select
                                     value={globalDiscount.apply_to}
                                     onChange={(e) =>
                                         setGlobalDiscount({ ...globalDiscount, apply_to: e.target.value })
                                     }
-                                    className="w-full px-4 py-2 border border-slate-300 rounded-lg text-[13px] focus:ring-2 focus:ring-[#FF9F43]/10 focus:border-[#FF9F43] outline-none"
+                                    className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-[13px] font-bold text-slate-700 focus:bg-white focus:ring-4 focus:ring-[#FF9F43]/10 focus:border-[#FF9F43] outline-none transition-all appearance-none cursor-pointer"
                                 >
-                                    <option value="all">All Customers</option>
-                                    <option value="existing_discount">Customers with Existing Discount</option>
-                                    <option value="no_discount">Customers without Discount</option>
+                                    <option value="all">All B2B Partners</option>
+                                    <option value="existing_discount">Partners with Existing Discount</option>
+                                    <option value="no_discount">Partners without Discount</option>
                                 </select>
                             </div>
-                            <div className="flex gap-3 justify-end pt-2">
+                            <div className="flex gap-3 pt-2">
                                 <button
                                     type="button"
                                     onClick={() => setShowGlobalModal(false)}
-                                    className="px-4 py-2 border border-slate-300 rounded-lg text-slate-700 text-[13px] font-medium hover:bg-slate-50 transition-colors"
+                                    className="flex-1 py-4 border-2 border-slate-50 rounded-2xl text-slate-500 text-sm font-bold hover:bg-slate-50 transition-all"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
-                                    className="px-4 py-2 bg-[#FF9F43] text-white rounded-lg text-[13px] font-bold hover:bg-[#e68a30] transition-colors shadow-lg shadow-[#FF9F43]/20"
+                                    className="flex-1 py-4 bg-[#FF9F43] text-white rounded-2xl text-sm font-black hover:bg-[#e68a30] transition-all shadow-xl shadow-[#FF9F43]/20"
                                 >
-                                    Apply Discount
+                                    Apply Changes
                                 </button>
                             </div>
                         </form>

@@ -27,8 +27,14 @@ const FavoriteCard = memo(({ fav, quantity, onQuantityChange, onAddToCart, onDel
             {/* Image Container - Reduced Height */}
             <div className="relative h-[180px] w-full overflow-hidden bg-slate-50/50">
                 <div className="absolute top-2.5 left-2.5 z-10">
-                    <div className="bg-white/90 backdrop-blur-sm shadow-sm text-slate-900 text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider border border-slate-100">
-                        {product.subCategory?.name || "Premium Part"}
+                    <div className="bg-white/90 backdrop-blur-sm shadow-sm text-slate-900 text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider border border-slate-100 flex items-center gap-1.5">
+                        <span className="text-[#AD0100]">{product.partType?.name || "Premium"}</span>
+                        {product.shopView && (
+                            <>
+                                <div className="w-1 h-1 rounded-full bg-slate-300" />
+                                <span className="text-slate-500">{product.shopView?.name}</span>
+                            </>
+                        )}
                     </div>
                 </div>
                 

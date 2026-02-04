@@ -34,7 +34,7 @@ export default function SettingsPage() {
         company_name: auth.user.company_name || "",
         position: auth.user.position || "",
         address: auth.user.address || "",
-        account_type: auth.user.account_type || "Mechanic Shop",
+        account_type: auth.user.account_type || "Mechanic",
     });
 
     // Password Form
@@ -293,10 +293,11 @@ export default function SettingsPage() {
                                             onChange={e => companyForm.setData("account_type", e.target.value)}
                                             className="w-full h-[54px] bg-white border border-[#E2E8F0] rounded-[14px] px-6 text-[15px] focus:border-[#AD0100] transition-colors outline-none appearance-none cursor-pointer"
                                         >
-                                            <option value="Mechanic Shop">Mechanic Shop</option>
-                                            <option value="Fleet Management">Fleet Management</option>
-                                            <option value="Reseller">Reseller</option>
-                                            <option value="Other">Other</option>
+                                            <option value="Bodyshop">Bodyshop</option>
+                                            <option value="Towing / Fleet Services">Towing / Fleet Services</option>
+                                            <option value="Auto Part Store">Auto Part Store</option>
+                                            <option value="Dealership">Dealership</option>
+                                            <option value="Mechanic">Mechanic</option>
                                         </select>
                                     </div>
                                     <div className="pt-6 flex justify-end">

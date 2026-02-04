@@ -19,10 +19,13 @@ class AdminOrderSnapshot
             $perPage = $request->per_page ?? 10;
 
             $query = Order::query()
-                ->select(['id', 'user_id', 'order_number', 'subtotal', 'tax', 'total_amount', 'status', 'created_at'])
+                ->select(['id', 'user_id', 'order_number', 'subtotal', 'tax', 'total_amount', 'status', 'order_type', 'shipping_address', 'created_at'])
+                ->whereHas('payment', function ($q) {
+                    $q->where('status', 'succeeded');
+                })
                 ->with([
                     'user:id,first_name,last_name,email',
-                    'payment:id,order_id,status,transaction_id'
+                    'payment:id,order_id,status,transaction_id',
                 ])
                 ->withCount('items');
 
@@ -31,11 +34,11 @@ class AdminOrderSnapshot
                 $search = $request->search;
                 $query->where(function ($q) use ($search) {
                     $q->where('order_number', 'like', "{$search}%")
-                      ->orWhereHas('user', function($uq) use ($search) {
-                          $uq->where('first_name', 'like', "%{$search}%")
-                            ->orWhere('last_name', 'like', "%{$search}%")
-                            ->orWhere('email', 'like', "%{$search}%");
-                      });
+                        ->orWhereHas('user', function ($uq) use ($search) {
+                            $uq->where('first_name', 'like', "%{$search}%")
+                                ->orWhere('last_name', 'like', "%{$search}%")
+                                ->orWhere('email', 'like', "%{$search}%");
+                        });
                 });
             }
 

@@ -24,7 +24,7 @@ import {
 const Sidebar = ({ isCollapsed, isMobileOpen, setIsMobileOpen }) => {
     const { url } = usePage();
     const { settings } = usePage().props;
-    
+
     const [openMenus, setOpenMenus] = useState({
         leads: false,
         products: false,
@@ -36,43 +36,74 @@ const Sidebar = ({ isCollapsed, isMobileOpen, setIsMobileOpen }) => {
         setOpenMenus((prev) => ({ ...prev, [key]: !prev[key] }));
     };
 
-    useEffect(() => {
-        menuItems.forEach((item) => {
+    const checkActive = (item) => {
+        try {
+            // Priority 1: Use Ziggy's route().current() if available
             if (
-                item.children &&
-                item.children.some((child) => url.startsWith(child.path))
+                item.activeIdentifier &&
+                window.route &&
+                window.route().current
             ) {
-                setOpenMenus((prev) => ({ ...prev, [item.key]: true }));
+                return window.route().current(item.activeIdentifier);
             }
-        });
-    }, [url]);
+
+            // Priority 2: Fallback to URL matching
+            if (item.children) {
+                return item.children.some((child) =>
+                    url.startsWith(
+                        new URL(child.path, window.location.origin).pathname,
+                    ),
+                );
+            }
+
+            // Exact match for dashboard, prefix for others
+            const currentPath = url.split("?")[0];
+            const itemPath = new URL(item.path, window.location.origin)
+                .pathname;
+
+            if (item.label === "Dashboard") {
+                return currentPath === itemPath;
+            }
+            return (
+                currentPath === itemPath ||
+                (itemPath !== "/" && currentPath.startsWith(itemPath + "/"))
+            );
+        } catch (e) {
+            return false;
+        }
+    };
 
     const menuItems = [
         {
             label: "Dashboard",
             path: route("dashboard"),
             icon: <LayoutDashboard size={18} />,
+            activeIdentifier: "dashboard",
         },
         {
             label: "Orders",
             path: route("admin.orders.index"),
             icon: <ShoppingCart size={18} />,
+            activeIdentifier: "admin.orders.*",
         },
         {
             label: "Categories",
             path: route("admin.categories.index"),
             icon: <List size={18} />,
+            activeIdentifier: "admin.categories.*",
         },
         {
             label: "Returns",
             path: route("admin.returns.index"),
             icon: <RefreshCw size={18} />,
+            activeIdentifier: "admin.returns.*",
         },
         {
             label: "Leads",
             path: route("admin.leads.index"),
             icon: <Users size={18} />,
             key: "leads",
+            activeIdentifier: "admin.leads.*",
             children: [
                 {
                     label: "All Leads",
@@ -90,12 +121,14 @@ const Sidebar = ({ isCollapsed, isMobileOpen, setIsMobileOpen }) => {
             label: "Customers - B2B",
             path: route("admin.customers.index"),
             icon: <Users size={18} />,
+            activeIdentifier: "admin.customers.*",
         },
         {
             label: "Products",
             path: route("admin.products.index"),
             icon: <Tag size={18} />,
             key: "products",
+            activeIdentifier: "admin.products.*",
             children: [
                 {
                     label: "All Products",
@@ -114,6 +147,7 @@ const Sidebar = ({ isCollapsed, isMobileOpen, setIsMobileOpen }) => {
             path: route("admin.blogs.index"),
             icon: <FileText size={18} />,
             key: "blogs",
+            activeIdentifier: "admin.blogs.*",
             children: [
                 {
                     label: "All Blogs",
@@ -131,17 +165,20 @@ const Sidebar = ({ isCollapsed, isMobileOpen, setIsMobileOpen }) => {
             label: "Support Tickets",
             path: route("admin.support.index"),
             icon: <Headset size={18} />,
+            activeIdentifier: "admin.support.*",
         },
         {
             label: "Announcements",
             path: route("admin.announcements.index"),
             icon: <ImageIcon size={18} />,
+            activeIdentifier: "admin.announcements.*",
         },
         {
             label: "Settings",
             path: route("admin.settings.index"),
             icon: <Settings size={18} />,
             key: "settings",
+            activeIdentifier: "admin.settings.*",
             children: [
                 {
                     label: "Profile Settings",
@@ -167,6 +204,15 @@ const Sidebar = ({ isCollapsed, isMobileOpen, setIsMobileOpen }) => {
         },
     ];
 
+    // Auto-open menus based on active state
+    useEffect(() => {
+        menuItems.forEach((item) => {
+            if (item.key && checkActive(item)) {
+                setOpenMenus((prev) => ({ ...prev, [item.key]: true }));
+            }
+        });
+    }, [url]);
+
     return (
         <div className="flex flex-col h-full bg-[#fcfcfc] border-r border-gray-100">
             {/* Logo Section */}
@@ -176,7 +222,11 @@ const Sidebar = ({ isCollapsed, isMobileOpen, setIsMobileOpen }) => {
                 }`}
             >
                 <img
-                    src={settings?.site_logo ? `/${settings.site_logo}` : "/img/logo.png"}
+                    src={
+                        settings?.site_logo
+                            ? `/${settings.site_logo}`
+                            : "/img/logo.png"
+                    }
                     alt="Logo"
                     className={`object-contain ${
                         isCollapsed ? "h-8 w-8" : "h-9"
@@ -202,36 +252,19 @@ const Sidebar = ({ isCollapsed, isMobileOpen, setIsMobileOpen }) => {
 
                 <div className="space-y-1">
                     {menuItems.map((item) => {
-                        const getPathname = (path) => {
-                            try {
-                                return path.startsWith("http")
-                                    ? new URL(path).pathname
-                                    : path;
-                            } catch (e) {
-                                return path;
-                            }
-                        };
-
-                        const currentPath = url.split("?")[0];
-                        const itemPath = getPathname(item.path);
-                        
-                        // Robust active state calculation
-                        let isActive = false;
-                        if (item.children) {
-                            isActive = item.children.some(child => {
-                                const childPath = getPathname(child.path);
-                                return currentPath === childPath || (childPath !== '/' && currentPath.startsWith(childPath + '/'));
-                            });
-                        } else {
-                            isActive = currentPath === itemPath || (itemPath !== '/' && currentPath.startsWith(itemPath + '/'));
-                            // Special case for dashboard
-                            if (item.label === "Dashboard") isActive = currentPath === itemPath;
-                        }
+                        const isActive = checkActive(item);
 
                         // Child active highlights
                         const isChildActive = (childPath) => {
-                            const p = getPathname(childPath);
-                            return currentPath === p || (p !== '/' && currentPath.startsWith(p + '/'));
+                            try {
+                                return (
+                                    url ===
+                                    new URL(childPath, window.location.origin)
+                                        .pathname
+                                );
+                            } catch (e) {
+                                return false;
+                            }
                         };
 
                         return item.children ? (
@@ -246,20 +279,22 @@ const Sidebar = ({ isCollapsed, isMobileOpen, setIsMobileOpen }) => {
                                 onClick={() => toggleMenu(item.key)}
                             >
                                 {!isCollapsed && (
-                                    <div className="mt-1 space-y-1 ml-4 border-l border-gray-100">
+                                    <div className="mt-1 space-y-1 ml-4 pl-2">
                                         {item.children.map((child) => (
                                             <Link
                                                 key={child.label}
                                                 href={child.path}
-                                                className={`flex items-center gap-3 ml-4 py-2 px-3 rounded-md text-sm transition-all ${
+                                                className={`flex items-center gap-3 py-2 px-3 rounded-md text-sm transition-all ${
                                                     isChildActive(child.path)
-                                                        ? "text-[#FF9F43] font-semibold bg-[#FF9F43]/10"
+                                                        ? "text-[#FF9F43] font-bold bg-[#FF9F43]/10"
                                                         : "text-slate-500 hover:text-[#FF9F43] hover:bg-gray-50"
                                                 }`}
                                             >
                                                 <span
                                                     className={`${
-                                                        isChildActive(child.path)
+                                                        isChildActive(
+                                                            child.path,
+                                                        )
                                                             ? "text-[#FF9F43]"
                                                             : "text-slate-400"
                                                     }`}
@@ -306,10 +341,10 @@ const SidebarItem = ({
             className={`flex items-center group cursor-pointer py-2.5 rounded-lg transition-all duration-200 ${
                 isCollapsed ? "justify-center px-0" : "px-3"
             } ${
-                active && !hasChild
-                    ? "bg-[#FF9F43]/10 text-[#FF9F43]"
+                active
+                    ? "bg-[#FF9F43]/10 text-[#FF9F43] font-semibold"
                     : "text-slate-600 hover:bg-gray-50 hover:text-[#FF9F43]"
-            } ${hasChild && active ? "text-[#FF9F43] font-semibold" : ""}`}
+            }`}
         >
             <div
                 className={`shrink-0 transition-colors ${

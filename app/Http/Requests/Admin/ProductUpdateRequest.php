@@ -11,37 +11,30 @@ class ProductUpdateRequest extends FormRequest
         return true;
     }
 
-    public function rules(): bool|array
+    public function rules(): array
     {
-
         $productId = $this->route('product')->id;
 
         return [
-            'description' => 'required|string',
+            'description' => 'required|string|min:10',
             'list_price' => 'required|numeric|min:0',
             'sku' => 'required|string|max:100|unique:products,sku,'.$productId,
-            'category_id' => 'required|exists:categories,id',
-            'sub_category_id' => 'nullable|exists:sub_categories,id',
+            'part_type_id' => 'required|exists:categories,id',
+            'shop_view_id' => 'required|exists:categories,id',
+            'sorting_id' => 'required|exists:categories,id',
             'stock_oakville' => 'nullable|integer|min:0',
             'stock_mississauga' => 'nullable|integer|min:0',
             'stock_saskatoon' => 'nullable|integer|min:0',
-            'location_id' => 'nullable|string',
+            'location_id' => 'nullable|string|max:100',
             'visibility' => 'required|in:public,private,draft',
+            'position' => 'nullable|string|in:Front,Driver Side,Passenger Side,Rear,Inside',
+            'is_clearance' => 'nullable|boolean',
 
-            // --- Fitments
-            'fitments' => 'nullable|array',
+            // Arrays
             'part_numbers' => 'nullable|array',
-
-            // --- Images
+            'fitments' => 'nullable|array',
             'images' => 'nullable|array',
-            'images.*' => 'image|mimes:jpeg,png,jpg,webp|max:20048',
-        ];
-    }
-
-    public function messages(): array
-    {
-        return [
-            'sku.unique' => 'The provided SKU is already in use, please enter a unique one.',
+            'images.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:5120',
         ];
     }
 }

@@ -13,7 +13,7 @@ class DashboardController extends Controller
     {
         $user = auth()->user();
 
-        if ($user->isAdmin()) {
+        if ($user && $user->isAdmin()) {
             $leads = \App\Models\Lead::latest()->take(10)->get();
             $onlineOrders = \App\Models\Order::with(['user', 'items'])
                 ->latest()
@@ -88,13 +88,13 @@ class DashboardController extends Controller
         }
 
         // Fetch products for different sections
-        $sellingItems = \App\Models\Product::with(['files', 'subCategory', 'fitments', 'category'])
+        $sellingItems = \App\Models\Product::with(['files', 'partType', 'fitments'])
             ->latest()
             ->take(4)
             ->get();
 
-        $mechanicalItems = \App\Models\Product::with(['files', 'subCategory', 'fitments', 'category'])
-            ->whereHas('category', function ($q) {
+        $mechanicalItems = \App\Models\Product::with(['files', 'partType', 'fitments'])
+            ->whereHas('partType', function ($q) {
                 $q->where('name', 'like', '%Mechanical%');
             })
             ->latest()
@@ -105,8 +105,8 @@ class DashboardController extends Controller
             $mechanicalItems = $sellingItems;
         }
 
-        $electricalItems = \App\Models\Product::with(['files', 'subCategory', 'fitments', 'category'])
-            ->whereHas('category', function ($q) {
+        $electricalItems = \App\Models\Product::with(['files', 'partType', 'fitments'])
+            ->whereHas('partType', function ($q) {
                 $q->where('name', 'like', '%Electrical%');
             })
             ->latest()
@@ -117,8 +117,8 @@ class DashboardController extends Controller
             $electricalItems = $sellingItems;
         }
 
-        $accessories = \App\Models\Product::with(['files', 'subCategory', 'fitments', 'category'])
-            ->whereHas('category', function ($q) {
+        $accessories = \App\Models\Product::with(['files', 'partType', 'fitments'])
+            ->whereHas('partType', function ($q) {
                 $q->where('name', 'like', '%Access%');
             })
             ->latest()
@@ -129,17 +129,23 @@ class DashboardController extends Controller
             $accessories = $sellingItems;
         }
 
+        $clearanceItems = \App\Models\Product::with(['files', 'partType', 'fitments'])
+            ->where('is_clearance', true)
+            ->latest()
+            ->take(4)
+            ->get();
+
         // Map helper for consistent discount calculation
         $mapProducts = function ($products) use ($user) {
             return $products->map(function ($product) use ($user) {
-                $specificDiscount = $product->userProductDiscounts()
-                    ->where('user_id', $user->id)
-                    ->first();
+                $specificDiscount = $user
+? $product->userProductDiscounts()->where('user_id', $user->id)->first()
+: null;
 
                 if ($specificDiscount && $specificDiscount->discount_rate > 0) {
                     $product->applied_discount = $specificDiscount->discount_rate;
                     $product->discount_type = 'specific';
-                } elseif ($user->discount_rate > 0) {
+                } elseif ($user && $user->discount_rate > 0) {
                     $product->applied_discount = $user->discount_rate;
                     $product->discount_type = 'global';
                 } else {
@@ -147,7 +153,9 @@ class DashboardController extends Controller
                     $product->discount_type = null;
                 }
 
-                $product->your_price = number_format($product->getPriceForUser($user), 2, '.', '');
+                $product->your_price = $user
+                    ? number_format($product->getPriceForUser($user), 2, '.', '')
+                    : number_format($product->list_price, 2, '.', '');
 
                 return $product;
             });
@@ -157,9 +165,10 @@ class DashboardController extends Controller
         $mechanicalItems = $mapProducts($mechanicalItems);
         $electricalItems = $mapProducts($electricalItems);
         $accessories = $mapProducts($accessories);
+        $clearanceItems = $mapProducts($clearanceItems);
 
         // Fetch Categories for the grid
-        $categories = \App\Models\Category::where('status', 1)
+        $categories = \App\Models\Category::where('status', 'active')
             ->take(4)
             ->get()
             ->map(function ($cat, $index) {
@@ -177,12 +186,13 @@ class DashboardController extends Controller
         // Default user dashboard
         return Inertia::render('User/Dashboard', [
             'stats' => [
-                'activeOrdersCount' => Order::where('user_id', $user->id)->whereIn('status', ['pending', 'processing', 'shipped'])->count(),
-                'savedQuotesCount' => Quote::where('user_id', $user->id)->count(),
+                'activeOrdersCount' => $user ? Order::where('user_id', $user->id)->whereIn('status', ['pending', 'processing', 'shipped'])->count() : 0,
+                'savedQuotesCount' => $user ? Quote::where('user_id', $user->id)->count() : 0,
             ],
             'categories' => $categories,
             'announcement' => Announcement::where('is_active', true)->latest()->first(),
             'sections' => [
+                'clearanceItems' => $clearanceItems,
                 'sellingItems' => $sellingItems,
                 'mechanicalItems' => $mechanicalItems,
                 'electricalItems' => $electricalItems,

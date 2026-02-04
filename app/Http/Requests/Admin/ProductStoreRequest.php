@@ -16,48 +16,35 @@ class ProductStoreRequest extends FormRequest
         return [
             // Basic Information
             'description' => ['required', 'string', 'min:10'],
-            'category_id' => ['required', 'exists:categories,id'],
-            'sub_category_id' => ['required', 'exists:sub_categories,id'],
+            'part_type_id' => ['required', 'exists:categories,id'],
+            'shop_view_id' => ['required', 'exists:categories,id'],
+            'sorting_id' => ['required', 'exists:categories,id'],
 
             // Pricing
             'list_price' => ['required', 'numeric', 'min:0'],
 
-            // Identifiers
+            // Inventory
             'sku' => ['required', 'string', 'unique:products,sku'],
-            'location_id' => ['required', 'string'],
-
-            // Stock Levels
+            'location_id' => ['nullable', 'string'],
             'stock_oakville' => ['nullable', 'integer', 'min:0'],
             'stock_mississauga' => ['nullable', 'integer', 'min:0'],
             'stock_saskatoon' => ['nullable', 'integer', 'min:0'],
-
-            // Visibility
             'visibility' => ['required', 'in:public,private,draft'],
+            'position' => ['nullable', 'string', 'in:Front,Driver Side,Passenger Side,Rear,Inside'],
+            'is_clearance' => ['nullable', 'boolean'],
 
-            // Fitments Validation (Array of Objects)
-            'fitments' => ['required', 'array', 'min:1'],
-            'fitments.*.year_from' => ['required', 'digits:4', 'integer'],
-            'fitments.*.year_to' => ['required', 'digits:4', 'integer'],
-            'fitments.*.make' => ['required', 'string', 'max:100'],
-            'fitments.*.model' => ['required', 'string', 'max:100'],
+            // Fitments & Part Numbers (handled in controller but validated here if needed)
+            'part_numbers' => ['nullable', 'array'],
+            'part_numbers.*' => ['nullable', 'string'],
+            'fitments' => ['nullable', 'array'],
+            'fitments.*.year_from' => ['nullable', 'string'],
+            'fitments.*.year_to' => ['nullable', 'string'],
+            'fitments.*.make' => ['nullable', 'string'],
+            'fitments.*.model' => ['nullable', 'string'],
 
-            // Part Numbers Validation (Array of Strings)
-            'part_numbers' => ['required', 'array', 'min:1'],
-            'part_numbers.*' => ['required', 'string', 'max:50'],
-
-            // Images Validation
+            // Media
             'images' => ['nullable', 'array'],
-            'images.*' => ['image', 'mimes:jpeg,png,jpg,webp', 'max:20048'],
-        ];
-    }
-
-    public function messages(): array
-    {
-        return [
-            'fitments.*.year_from.required' => 'Start year is required for each fitment.',
-            'part_numbers.*.required' => 'Part number field cannot be empty.',
-            'images.*.image' => 'Each file must be an image.',
-            'sku.unique' => 'This SKU is already in use.',
+            'images.*' => ['image', 'mimes:jpeg,png,jpg,gif,webp', 'max:5120'],
         ];
     }
 }

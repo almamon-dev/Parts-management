@@ -14,7 +14,26 @@ const FileUpload = ({
     const [isDragging, setIsDragging] = useState(false);
 
     useEffect(() => {
-        return () => previews.forEach((p) => URL.revokeObjectURL(p.url));
+        if (data[field] && typeof data[field] === "string" && previews.length === 0) {
+            const imageUrl = data[field].startsWith("http") || data[field].startsWith("/") 
+                ? data[field] 
+                : `/${data[field]}`;
+                
+            setPreviews([
+                {
+                    url: imageUrl,
+                    name: "Existing Image",
+                    size: "Saved",
+                    isServerFile: true,
+                },
+            ]);
+        }
+    }, [data[field]]);
+
+    useEffect(() => {
+        return () => previews.forEach((p) => {
+            if (!p.isServerFile) URL.revokeObjectURL(p.url);
+        });
     }, [previews]);
 
     const handleFileChange = (e) => {

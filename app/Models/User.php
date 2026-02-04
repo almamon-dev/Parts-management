@@ -53,6 +53,12 @@ class User extends Authenticatable
             $user->username = "{$firstName}{$id}";
             $user->save();
         });
+
+        static::deleting(function ($user) {
+            if ($user->profile_photo) {
+                \App\Helpers\Helper::deleteFile($user->profile_photo);
+            }
+        });
     }
 
     /**

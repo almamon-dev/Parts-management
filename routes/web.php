@@ -144,9 +144,11 @@ Route::middleware(['auth'])->prefix('admin')->as('admin.')->group(function () {
     Route::resource('blogs', AdminBlogController::class);
 
     // Admin Orders
+    Route::delete('orders/bulk-destroy', [AdminOrderController::class, 'bulkDestroy'])->name('orders.bulk-destroy');
     Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
     Route::get('/orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
     Route::patch('/orders/{order}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.update-status');
+    Route::delete('/orders/{order}', [AdminOrderController::class, 'destroy'])->name('orders.destroy');
 
     // Admin Returns
     Route::get('/returns', [AdminReturnRequestController::class, 'index'])->name('returns.index');
@@ -154,6 +156,7 @@ Route::middleware(['auth'])->prefix('admin')->as('admin.')->group(function () {
     Route::patch('/returns/{returnRequest}/status', [AdminReturnRequestController::class, 'updateStatus'])->name('returns.update-status');
 
     // Admin Lead Management
+    Route::get('leads/search-by-phone', [LeadController::class, 'searchByPhone'])->name('leads.search-by-phone');
     Route::delete('leads/bulk-destroy', [LeadController::class, 'bulkDestroy'])->name('leads.bulk-destroy');
     Route::resource('leads', LeadController::class);
     Route::get('leads/{lead}/invoice', [LeadController::class, 'invoice'])->name('leads.invoice');

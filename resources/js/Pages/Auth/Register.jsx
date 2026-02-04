@@ -334,15 +334,11 @@ export default function Register() {
                                     <option value="" className="bg-zinc-900">
                                         Select type
                                     </option>
-                                    <option value="b2b" className="bg-zinc-900">
-                                        B2B Marketplace
-                                    </option>
-                                    <option
-                                        value="dealer"
-                                        className="bg-zinc-900"
-                                    >
-                                        Dealer
-                                    </option>
+                                    <option value="Bodyshop" className="bg-zinc-900">Bodyshop</option>
+                                    <option value="Towing / Fleet Services" className="bg-zinc-900">Towing / Fleet Services</option>
+                                    <option value="Auto Part Store" className="bg-zinc-900">Auto Part Store</option>
+                                    <option value="Dealership" className="bg-zinc-900">Dealership</option>
+                                    <option value="Mechanic" className="bg-zinc-900">Mechanic</option>
                                 </select>
                                 {errors.account_type && (
                                     <p className="text-red-500 text-xs mt-1">

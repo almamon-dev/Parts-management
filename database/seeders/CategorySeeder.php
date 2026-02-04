@@ -8,39 +8,30 @@ use Illuminate\Support\Str;
 
 class CategorySeeder extends Seeder
 {
+    /**
+     * Run the database seeds.
+     */
     public function run(): void
     {
-        $defaultImage = 'img/Dashboard/56b144518c1fddbb5095d6b2844d7c5de67f040d.png';
-
-        $subcategories = ['OEM Used', 'Aftermarket', 'OEM Take-Off'];
-
-        $categories = [
-            'Body Panel',
-            'Lamps',
-            'Mechanical',
-            'Electrical',
-            'Interior',
-            'Tires / Wheels',
-            'Accessories',
-            'Performance',
-            'Upgrades',
-            'Vehicles',
-            'Fluids / Paint / Oil',
+        $tiers = [
+            1 => [
+                'Body Panel', 'Lamps', 'Mechanical', 'Interior', 'Tires / Wheels',
+                'Accessories', 'Performance', 'Upgrades', 'Vehicles', 'Fluids / Paint / Oil',
+            ],
+            2 => [
+                'OEM Used', 'Aftermarket', 'OEM Take-Off',
+            ],
+            3 => [
+                'Front', 'Driver Side', 'Passenger Side', 'Rear', 'Inside',
+            ],
         ];
 
-        foreach ($categories as $categoryName) {
-            $category = Category::create([
-                'name' => $categoryName,
-                'slug' => Str::slug($categoryName),
-                'image' => $defaultImage,
-                'status' => 'active',
-            ]);
-
-            foreach ($subcategories as $subCategoryName) {
-                $category->subCategories()->create([
-                    'name' => $subCategoryName,
-                    'status' => 'active',
-                ]);
+        foreach ($tiers as $type => $names) {
+            foreach ($names as $name) {
+                Category::updateOrCreate(
+                    ['name' => $name, 'category_type' => $type],
+                    ['slug' => Str::slug($name), 'status' => 'active']
+                );
             }
         }
     }

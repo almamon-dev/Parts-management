@@ -18,7 +18,8 @@ return new class extends Migration
             $table->decimal('subtotal', 12, 2);
             $table->decimal('tax', 12, 2)->default(0);
             $table->decimal('total_amount', 12, 2);
-            $table->enum('status', ['pending', 'processing', 'picked_up', 'delivered', 'cancelled'])->default('pending');
+            $table->enum('status', ['Processing', 'Fulfilled', 'Canceled'])->default('Processing');
+            $table->enum('order_type', ['Pick up', 'Delivery', 'Ship'])->default('Pick up');
             $table->text('shipping_address')->nullable();
             $table->text('notes')->nullable();
             $table->timestamps();

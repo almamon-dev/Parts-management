@@ -1,62 +1,76 @@
-import React from "react";
-import Swal from "sweetalert2";
+import React, { useState } from "react";
 import { router } from "@inertiajs/react";
 import { Trash2 } from "lucide-react";
+import DeleteConfirmationModal from "./DeleteConfirmationModal";
+import toast from "react-hot-toast";
 
 export default function ConfirmBulkDelete({
     selectedIds,
     selectAllGlobal,
     totalCount,
     search,
+    filters = {},
     routeName,
     onSuccess,
-    title = "Are you sure?",
-    confirmButtonText = "Yes, delete selected!",
+    title = "Delete Selected Items",
+    confirmButtonText = "Yes, Delete Selected",
     cancelButtonText = "Cancel",
 }) {
-    const handleBulkDelete = () => {
-        const count = selectAllGlobal ? totalCount : selectedIds.length;
-        const text = `${count} items will be deleted and this action cannot be undone!`;
+    const [isOpen, setIsOpen] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
-        Swal.fire({
-            title,
-            text,
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonColor: "#EF4444",
-            cancelButtonColor: "#94A3B8",
-            confirmButtonText,
-            cancelButtonText,
-            customClass: {
-                popup: "rounded-2xl border-none shadow-xl",
-                confirmButton: "rounded-lg px-5 py-2 font-semibold text-sm",
-                cancelButton: "rounded-lg px-5 py-2 font-semibold text-sm",
+    const handleBulkDelete = () => {
+        setIsDeleting(true);
+        router.post(
+            route(routeName),
+            {
+                _method: "delete",
+                ids: selectedIds,
+                all: selectAllGlobal,
+                search: search,
+                ...filters,
             },
-        }).then((result) => {
-            if (result.isConfirmed) {
-                router.delete(route(routeName), {
-                    data: {
-                        ids: selectedIds,
-                        all: selectAllGlobal,
-                        search: search,
-                    },
-                    preserveScroll: true,
-                    onSuccess: () => {
-                        if (onSuccess) onSuccess();
-                    },
-                });
-            }
-        });
+            {
+                preserveScroll: true,
+                preserveState: false,
+                onSuccess: () => {
+                    setIsOpen(false);
+                    if (onSuccess) onSuccess();
+                },
+                onFinish: () => {
+                    setIsDeleting(false);
+                },
+                onError: (errors) => {
+                    setIsDeleting(false);
+                },
+            },
+        );
     };
 
+    const count = selectAllGlobal ? totalCount : selectedIds.length;
+    const message = `Are you sure you want to delete ${count} selected items? This action is permanent and cannot be undone.`;
+
     return (
-        <button
-            type="button"
-            onClick={handleBulkDelete}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-rose-50 text-rose-600 border border-rose-100 rounded-lg hover:bg-rose-600 hover:text-white transition-all duration-200 font-bold text-[13px] shadow-sm"
-        >
-            <Trash2 size={16} />
-            Delete Selected
-        </button>
+        <>
+            <button
+                type="button"
+                onClick={() => setIsOpen(true)}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-rose-50 text-rose-600 border border-rose-100 rounded-lg hover:bg-rose-600 hover:text-white transition-all duration-200 font-bold text-[13px] shadow-sm"
+            >
+                <Trash2 size={16} />
+                Delete Selected {count > 0 && `(${count})`}
+            </button>
+
+            <DeleteConfirmationModal
+                isOpen={isOpen}
+                onClose={() => !isDeleting && setIsOpen(false)}
+                onConfirm={handleBulkDelete}
+                title={title}
+                message={message}
+                confirmText={confirmButtonText}
+                cancelText={cancelButtonText}
+                isDeleting={isDeleting}
+            />
+        </>
     );
 }

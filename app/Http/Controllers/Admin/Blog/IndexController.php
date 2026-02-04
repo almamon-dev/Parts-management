@@ -96,13 +96,9 @@ class IndexController extends Controller
 
     public function destroy(Blog $blog)
     {
-        // Delete the image
-        if ($blog->image) {
-            Helper::deleteFile($blog->image);
-        }
         $blog->delete();
 
-        return redirect()->back()->with('success', 'Blog deleted');
+        return redirect()->route('admin.blogs.index')->with('success', 'Blog deleted');
     }
 
     public function bulkDestroy(Request $request)
@@ -120,12 +116,9 @@ class IndexController extends Controller
         }
 
         foreach ($blogs as $blog) {
-            if ($blog->image) {
-                Helper::deleteFile($blog->image);
-            }
             $blog->delete();
         }
 
-        return redirect()->back()->with('success', 'Selected blogs deleted');
+        return redirect()->route('admin.blogs.index')->with('success', 'Selected blogs deleted');
     }
 }

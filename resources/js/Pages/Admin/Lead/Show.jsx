@@ -29,12 +29,8 @@ export default function Show({ lead }) {
                         <div>
                             <div className="flex items-center gap-2">
                                 <h1 className="text-lg font-bold text-slate-900">Lead: {lead.shop_name}</h1>
-                                <div className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
-                                    lead.status === 'Quote' ? 'bg-yellow-50 border-yellow-200 text-yellow-700' : 
-                                    lead.status === 'Processing' ? 'bg-red-50 border-red-200 text-red-700' : 
-                                    'bg-green-50 border-green-200 text-green-700'
-                                }`}>
-                                    {lead.status?.toUpperCase() || 'QUOTE'}
+                                <div className="px-2 py-0.5 rounded-full text-[10px] font-bold border bg-slate-50 border-slate-200 text-slate-600">
+                                    {lead.status?.replace(/\s*\(.*?\)\s*/g, '').toUpperCase() || 'QUOTE'}
                                 </div>
                             </div>
                             <p className="text-[11px] text-slate-500 font-medium">Detailed overview of lead requirements.</p>
@@ -150,17 +146,21 @@ export default function Show({ lead }) {
                                                     <div className="flex flex-col gap-1">
                                                         <div className={`px-1.5 py-0.5 rounded text-[9px] font-bold border w-fit ${
                                                             part.payment_status === 'Paid' ? 'bg-green-50 border-green-100 text-green-600' : 
-                                                            part.payment_status === 'Pending' ? 'bg-amber-50 border-amber-100 text-amber-600' : 
+                                                            part.payment_status === 'Due' ? 'bg-amber-50 border-amber-100 text-amber-600' : 
+                                                            part.payment_status === 'Deposit' ? 'bg-blue-50 border-blue-100 text-blue-600' :
+                                                            part.payment_status === 'Refunded' ? 'bg-purple-50 border-purple-100 text-purple-600' :
+                                                            part.payment_status === 'Canceled' ? 'bg-rose-50 border-rose-100 text-rose-600' :
                                                             'bg-slate-50 border-slate-100 text-slate-500'
                                                         }`}>
                                                             Pay: {part.payment_status}
                                                         </div>
                                                         <div className={`px-1.5 py-0.5 rounded text-[9px] font-bold border w-fit ${
-                                                            part.status === 'Received' ? 'bg-blue-50 border-blue-100 text-blue-600' : 
-                                                            part.status === 'Ordered' ? 'bg-indigo-50 border-indigo-100 text-indigo-600' : 
+                                                            ['Delivered', 'Collected'].includes(part.status) ? 'bg-green-50 border-green-100 text-green-600' : 
+                                                            ['Shipped', 'To be Delivered', 'To be Collected'].includes(part.status) ? 'bg-blue-50 border-blue-100 text-blue-600' : 
+                                                            ['Ordered', 'To be Ordered'].includes(part.status) ? 'bg-indigo-50 border-indigo-100 text-indigo-600' : 
                                                             'bg-slate-50 border-slate-100 text-slate-500'
                                                         }`}>
-                                                            Item: {part.status || 'Pending'}
+                                                            Item: {part.status || 'None'}
                                                         </div>
                                                         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">{part.method}</span>
                                                     </div>

@@ -25,7 +25,7 @@ export default function AdminLayout({ children }) {
             <aside
                 onMouseEnter={() => isCollapsed && setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
-                className={`fixed inset-y-0 left-0 z-[60] bg-white/80 backdrop-blur-xl border-r border-slate-200/60 transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1) flex flex-col
+                className={`fixed inset-y-0 left-0 z-[60] bg-white/80 backdrop-blur-xl border-r border-slate-200/60 transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1) flex flex-col print:hidden
                     ${
                         isMobileOpen
                             ? "translate-x-0 w-64 shadow-2xl"
@@ -55,18 +55,18 @@ export default function AdminLayout({ children }) {
 
             {/* Main Content Area */}
             <div
-                className={`flex-1 flex flex-col min-w-0 transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1) ${
+                className={`flex-1 flex flex-col min-w-0 transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1) print:pl-0 ${
                     showFullSidebar ? "lg:pl-64" : "lg:pl-[72px]"
                 }`}
             >
                 {/* Header: Navigation Bar */}
-                <div className="sticky top-0 z-[50]">
+                <div className="sticky top-0 z-[50] print:hidden">
                     <Header onMenuClick={() => setIsMobileOpen(true)} />
                 </div>
 
                 {/* Main Scrollable Content */}
-                <main className="flex-1 overflow-y-auto px-4 py-6 md:px-6 lg:px-8 custom-scrollbar">
-                    <div className="max-w-[1600px] mx-auto">
+                <main className="flex-1 overflow-y-auto px-4 py-6 md:px-6 lg:px-8 custom-scrollbar print:p-0">
+                    <div className="max-w-[1600px] mx-auto print:max-w-none">
                         {children}
                     </div>
                 </main>

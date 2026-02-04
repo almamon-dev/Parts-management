@@ -41,7 +41,7 @@ class IndexController extends Controller
     {
         $user = auth()->user();
         $favourites = Favourite::where('user_id', $user->id)
-            ->with(['product.files', 'product.subCategory', 'product.fitments'])
+            ->with(['product.files', 'product.partType', 'product.shopView', 'product.sorting', 'product.fitments'])
             ->latest()
             ->paginate(12)
             ->through(function ($fav) use ($user) {
@@ -62,6 +62,7 @@ class IndexController extends Controller
                 }
 
                 $product->your_price = number_format($product->getPriceForUser($user), 2, '.', '');
+
                 return $fav;
             });
 

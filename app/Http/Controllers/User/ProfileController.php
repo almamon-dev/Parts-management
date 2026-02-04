@@ -47,7 +47,7 @@ class ProfileController extends Controller
             'company_name' => 'required|string|max:255',
             'position' => 'nullable|string|max:255',
             'address' => 'nullable|string|max:500',
-            'account_type' => 'nullable|string|max:100',
+            'account_type' => ['nullable', 'in:Bodyshop,Towing / Fleet Services,Auto Part Store,Dealership,Mechanic'],
         ]);
 
         // Note: Image shows "Request to Change" button for company info,

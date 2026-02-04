@@ -4,6 +4,8 @@ import { Head, Link, useForm } from "@inertiajs/react";
 import { Input } from "@/Components/ui/admin/input";
 import { Select } from "@/Components/ui/admin/Select";
 import FileUpload from "@/Components/ui/admin/FileUpload";
+import { MAKES as MAKES_LIST } from "@/Constants/makes";
+import { MODELS } from "@/Constants/models";
 import {
     ChevronLeft,
     Save,
@@ -14,55 +16,36 @@ import {
     Tag,
 } from "lucide-react";
 
-const MAKES = [
-    "ACURA", "AUDI", "BMW", "BUICK", "CADILLAC", "CHEVROLET", "CHRYSLER",
-    "DODGE", "EAGLE", "FORD", "FREIGHTLINER", "GMC", "HONDA", "HUMMER",
-    "HYUNDAI", "INFINITI", "ISUZU", "JEEP", "KIA", "LEXUS", "LINCOLN",
-    "MACK", "MAZDA", "MERCEDES", "MERCURY", "MITSUBISHI", "NISSAN",
-    "OLDSMOBILE", "PONTIAC", "RAM", "SAAB", "SATURN", "SCION", "SMART",
-    "STERLING", "SUBARU", "SUZUKI", "TESLA", "TOYOTA", "VOLKSWAGEN",
-    "VOLVO", "VOLVO TRUCK"
-].map(make => ({ value: make, label: make }));
+const MAKES = MAKES_LIST.map((make) => ({ value: make, label: make }));
 
 const YEARS = Array.from({ length: 2026 - 1995 + 1 }, (_, i) => 1995 + i)
     .reverse()
     .map((year) => ({ value: year.toString(), label: year.toString() }));
 
-// Make to Models Mapping
-const MAKE_MODELS = {
-    "ACURA": ["ILX", "MDX", "NSX", "RDX", "RLX", "TLX"],
-    "AUDI": ["A3", "A4", "A5", "A6", "A7", "A8", "Q3", "Q5", "Q7", "Q8", "TT"],
-    "BMW": ["1 Series", "2 Series", "3 Series", "4 Series", "5 Series", "7 Series", "8 Series", "X1", "X2", "X3", "X4", "X5", "X6", "X7", "Z4"],
-    "BUICK": ["Enclave", "Encore", "Envision", "LaCrosse", "Regal"],
-    "CADILLAC": ["ATS", "CT4", "CT5", "CT6", "Escalade", "XT4", "XT5", "XT6"],
-    "CHEVROLET": ["Blazer", "Camaro", "Colorado", "Corvette", "Cruze", "Equinox", "Impala", "Malibu", "Silverado", "Suburban", "Tahoe", "Traverse"],
-    "CHRYSLER": ["200", "300", "Pacifica", "Town & Country"],
-    "DODGE": ["Challenger", "Charger", "Durango", "Grand Caravan", "Journey", "Ram 1500"],
-    "FORD": ["Bronco", "Edge", "Escape", "Expedition", "Explorer", "F-150", "F-250", "Fiesta", "Focus", "Fusion", "Mustang", "Ranger"],
-    "GMC": ["Acadia", "Canyon", "Sierra", "Terrain", "Yukon"],
-    "HONDA": ["Accord", "Civic", "CR-V", "Fit", "HR-V", "Odyssey", "Pilot", "Ridgeline"],
-    "HYUNDAI": ["Accent", "Elantra", "Kona", "Palisade", "Santa Fe", "Sonata", "Tucson"],
-    "JEEP": ["Cherokee", "Compass", "Gladiator", "Grand Cherokee", "Renegade", "Wrangler"],
-    "KIA": ["Forte", "K5", "Optima", "Rio", "Sedona", "Sorento", "Soul", "Sportage", "Telluride"],
-    "LEXUS": ["ES", "GS", "GX", "IS", "LC", "LS", "LX", "NX", "RC", "RX"],
-    "MAZDA": ["CX-3", "CX-5", "CX-9", "Mazda3", "Mazda6", "MX-5"],
-    "MERCEDES": ["A-Class", "C-Class", "E-Class", "G-Class", "GLA", "GLC", "GLE", "GLS", "S-Class"],
-    "NISSAN": ["Altima", "Armada", "Frontier", "Kicks", "Maxima", "Murano", "Pathfinder", "Rogue", "Sentra", "Titan"],
-    "RAM": ["1500", "2500", "3500", "ProMaster"],
-    "SUBARU": ["Ascent", "Crosstrek", "Forester", "Impreza", "Legacy", "Outback", "WRX"],
-    "TESLA": ["Model 3", "Model S", "Model X", "Model Y"],
-    "TOYOTA": ["4Runner", "Camry", "Corolla", "Highlander", "Prius", "RAV4", "Sienna", "Tacoma", "Tundra"],
-    "VOLKSWAGEN": ["Atlas", "Golf", "Jetta", "Passat", "Tiguan"],
-    "VOLVO": ["S60", "S90", "V60", "XC40", "XC60", "XC90"]
-};
+const POSITIONS = [
+    { value: "Front", label: "Front" },
+    { value: "Driver Side", label: "Driver Side" },
+    { value: "Passenger Side", label: "Passenger Side" },
+    { value: "Rear", label: "Rear" },
+    { value: "Inside", label: "Inside" },
+];
 
-// Helper function to get models for a specific make
+const VISIBILITY_OPTIONS = [
+    { value: "public", label: "Public" },
+    { value: "private", label: "Private" },
+    { value: "draft", label: "Draft" },
+];
+
 const getModelsForMake = (make) => {
-    if (!make || !MAKE_MODELS[make]) return [];
-    return MAKE_MODELS[make].map(model => ({ value: model, label: model }));
+    if (!make || !MODELS[make]) return [];
+    return MODELS[make].map((model) => ({ value: model, label: model }));
 };
 
-export default function Create({ categories, subCategories }) {
+export default function Create({
+    categoriesTier1 = [],
+    categoriesTier2 = [],
+    categoriesTier3 = [],
+}) {
     const { data, setData, post, processing, errors, clearErrors, reset } =
         useForm({
             description: "",
@@ -70,20 +53,18 @@ export default function Create({ categories, subCategories }) {
             sku: "",
             location_id: "",
             visibility: "public",
-            category_id: "",
-            sub_category_id: "",
+            part_type_id: "",
+            shop_view_id: "",
+            sorting_id: "",
             stock_oakville: 0,
             stock_mississauga: 0,
             stock_saskatoon: 0,
             part_numbers: [""],
             fitments: [{ year_from: "", year_to: "", make: "", model: "" }],
             images: [],
+            position: "",
+            is_clearance: false,
         });
-
-    // --- Logic ---
-    const filteredSubCategories = subCategories?.filter(
-        (sub) => Number(sub.category_id) === Number(data.category_id)
-    );
 
     const handleInputChange = (field, value) => {
         setData(field, value);
@@ -124,10 +105,12 @@ export default function Create({ categories, subCategories }) {
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-3">
                     <div>
                         <h1 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                            <Plus className="text-[#FF9F43]" size={20} /> 
+                            <Plus className="text-[#FF9F43]" size={20} />
                             <span>Create New Product</span>
                         </h1>
-                        <p className="text-slate-500 text-[12px] mt-0.5">Add a new item to your inventory catalog.</p>
+                        <p className="text-slate-500 text-[12px] mt-0.5">
+                            Add a new item to your inventory catalog.
+                        </p>
                     </div>
                     <Link
                         href={route("admin.products.index")}
@@ -158,7 +141,7 @@ export default function Create({ categories, subCategories }) {
                                 onChange={(e) =>
                                     handleInputChange(
                                         "description",
-                                        e.target.value
+                                        e.target.value,
                                     )
                                 }
                             />
@@ -205,17 +188,49 @@ export default function Create({ categories, subCategories }) {
                                             className="bg-white text-[12px] h-9"
                                             options={YEARS}
                                             value={fit.year_from}
-                                            error={errors[`fitments.${idx}.year_from`]}
-                                            onChange={(e) => updateFitment(idx, "year_from", e.target.value)}
+                                            error={
+                                                errors[
+                                                    `fitments.${idx}.year_from`
+                                                ]
+                                            }
+                                            onChange={(e) =>
+                                                updateFitment(
+                                                    idx,
+                                                    "year_from",
+                                                    e.target.value,
+                                                )
+                                            }
                                         />
                                         <Select
                                             label="Year To"
                                             placeholder="Year"
                                             className="bg-white text-[12px] h-9"
-                                            options={fit.year_from ? YEARS.filter(year => parseInt(year.value) >= parseInt(fit.year_from)) : []}
+                                            options={
+                                                fit.year_from
+                                                    ? YEARS.filter(
+                                                          (year) =>
+                                                              parseInt(
+                                                                  year.value,
+                                                              ) >=
+                                                              parseInt(
+                                                                  fit.year_from,
+                                                              ),
+                                                      )
+                                                    : []
+                                            }
                                             value={fit.year_to}
-                                            error={errors[`fitments.${idx}.year_to`]}
-                                            onChange={(e) => updateFitment(idx, "year_to", e.target.value)}
+                                            error={
+                                                errors[
+                                                    `fitments.${idx}.year_to`
+                                                ]
+                                            }
+                                            onChange={(e) =>
+                                                updateFitment(
+                                                    idx,
+                                                    "year_to",
+                                                    e.target.value,
+                                                )
+                                            }
                                         />
                                         <Select
                                             label="Make"
@@ -223,34 +238,108 @@ export default function Create({ categories, subCategories }) {
                                             className="bg-white text-[12px] h-9"
                                             options={fit.year_to ? MAKES : []}
                                             value={fit.make}
-                                            error={errors[`fitments.${idx}.make`]}
-                                            onChange={(e) => updateFitment(idx, "make", e.target.value)}
+                                            error={
+                                                errors[`fitments.${idx}.make`]
+                                            }
+                                            onChange={(e) =>
+                                                updateFitment(
+                                                    idx,
+                                                    "make",
+                                                    e.target.value,
+                                                )
+                                            }
                                         />
                                         <div className="flex gap-2 items-end">
                                             <Select
                                                 label="Model"
                                                 placeholder="Model"
                                                 className="grow bg-white text-[12px] h-9"
-                                                options={getModelsForMake(fit.make)}
+                                                options={getModelsForMake(
+                                                    fit.make,
+                                                )}
                                                 value={fit.model}
-                                                error={errors[`fitments.${idx}.model`]}
-                                                onChange={(e) => updateFitment(idx, "model", e.target.value)}
+                                                error={
+                                                    errors[
+                                                        `fitments.${idx}.model`
+                                                    ]
+                                                }
+                                                onChange={(e) =>
+                                                    updateFitment(
+                                                        idx,
+                                                        "model",
+                                                        e.target.value,
+                                                    )
+                                                }
                                             />
                                             {data.fitments.length > 1 && (
+                                                <div className="flex gap-1 mb-[1px]">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            const newFitment = {
+                                                                ...fit,
+                                                            };
+                                                            const updated = [
+                                                                ...data.fitments,
+                                                            ];
+                                                            updated.splice(
+                                                                idx + 1,
+                                                                0,
+                                                                newFitment,
+                                                            );
+                                                            setData(
+                                                                "fitments",
+                                                                updated,
+                                                            );
+                                                        }}
+                                                        className="inline-flex items-center justify-center w-8 h-8 text-slate-300 hover:text-[#FF9F43] bg-white border border-slate-100 rounded-lg shadow-sm transition-colors"
+                                                        title="Duplicate"
+                                                    >
+                                                        <Plus size={14} />
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            setData(
+                                                                "fitments",
+                                                                data.fitments.filter(
+                                                                    (_, i) =>
+                                                                        i !==
+                                                                        idx,
+                                                                ),
+                                                            )
+                                                        }
+                                                        className="inline-flex items-center justify-center w-8 h-8 text-slate-300 hover:text-rose-500 bg-white border border-slate-100 rounded-lg shadow-sm transition-colors"
+                                                        title="Delete"
+                                                    >
+                                                        <Trash2 size={14} />
+                                                    </button>
+                                                </div>
+                                            )}
+                                            {data.fitments.length === 1 && (
                                                 <button
                                                     type="button"
-                                                    onClick={() =>
+                                                    onClick={() => {
+                                                        const newFitment = {
+                                                            ...fit,
+                                                        };
+                                                        const updated = [
+                                                            ...data.fitments,
+                                                        ];
+                                                        updated.splice(
+                                                            idx + 1,
+                                                            0,
+                                                            newFitment,
+                                                        );
                                                         setData(
                                                             "fitments",
-                                                            data.fitments.filter(
-                                                                (_, i) =>
-                                                                    i !== idx
-                                                            )
-                                                        )
-                                                    }
-                                                    className="inline-flex items-center justify-center w-8 h-8 text-slate-300 hover:text-rose-500 bg-white border border-slate-100 rounded-lg shadow-sm mb-[1px] transition-colors"
+                                                            updated,
+                                                        );
+                                                    }}
+                                                    className="inline-flex items-center justify-center w-8 h-8 text-slate-300 hover:text-[#FF9F43] bg-white border border-slate-100 rounded-lg shadow-sm mb-[1px] transition-colors"
+                                                    title="Duplicate"
                                                 >
-                                                    <Trash2 size={14} />
+                                                    <Plus size={14} />
                                                 </button>
                                             )}
                                         </div>
@@ -263,20 +352,33 @@ export default function Create({ categories, subCategories }) {
                         <div className="bg-white p-3 rounded-xl border border-slate-200/60 shadow-sm">
                             <h3 className="text-[13px] font-bold text-slate-800 mb-3 flex items-center gap-2 border-b border-slate-50 pb-2">
                                 <Tag size={16} className="text-[#FF9F43]" />
-                                Alternate Part Numbers
+                                Alternate Part Numbers & PP ID
                             </h3>
+                            <div className="mb-4 bg-orange-50/50 p-3 rounded-xl border border-orange-100 flex items-center justify-between">
+                                <span className="text-[12px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-2">
+                                    <Tag size={14} className="text-[#FF9F43]" />
+                                    PP ID:
+                                </span>
+                                <span className="text-[14px] font-black text-[#FF9F43] bg-white px-3 py-1 rounded-lg border border-orange-200">
+                                    Auto-generated
+                                </span>
+                            </div>
                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
                                 {data.part_numbers.map((part, idx) => (
-                                    <div
-                                        key={idx}
-                                        className="relative group"
-                                    >
+                                    <div key={idx} className="relative group">
                                         <Input
                                             placeholder="OEM-PN-..."
                                             className="bg-slate-50 border-slate-100 focus:bg-white text-[12px] h-9"
                                             value={part}
-                                            error={errors[`part_numbers.${idx}`]}
-                                            onChange={(e) => updatePartNumber(idx, e.target.value)}
+                                            error={
+                                                errors[`part_numbers.${idx}`]
+                                            }
+                                            onChange={(e) =>
+                                                updatePartNumber(
+                                                    idx,
+                                                    e.target.value,
+                                                )
+                                            }
                                         />
                                         {data.part_numbers.length > 1 && (
                                             <button
@@ -285,8 +387,8 @@ export default function Create({ categories, subCategories }) {
                                                     setData(
                                                         "part_numbers",
                                                         data.part_numbers.filter(
-                                                            (_, i) => i !== idx
-                                                        )
+                                                            (_, i) => i !== idx,
+                                                        ),
                                                     )
                                                 }
                                                 className="absolute -top-1 -right-1 bg-white text-slate-300 hover:text-rose-500 rounded-md w-5 h-5 border border-slate-100 shadow-sm flex items-center justify-center transition-all opacity-0 group-hover:opacity-100"
@@ -298,7 +400,12 @@ export default function Create({ categories, subCategories }) {
                                 ))}
                                 <button
                                     type="button"
-                                    onClick={() => setData("part_numbers", [...data.part_numbers, ""])}
+                                    onClick={() =>
+                                        setData("part_numbers", [
+                                            ...data.part_numbers,
+                                            "",
+                                        ])
+                                    }
                                     className="h-9 border-2 border-dashed border-slate-200 text-slate-400 rounded-lg flex items-center justify-center hover:border-[#FF9F43]/50 hover:text-[#FF9F43] transition-all bg-slate-50/10"
                                 >
                                     <Plus size={16} />
@@ -309,32 +416,27 @@ export default function Create({ categories, subCategories }) {
 
                     {/* RIGHT COLUMN */}
                     <div className="lg:col-span-4 space-y-4">
-                        {/* Category Grid */}
+                        {/* Part Type Category */}
                         <div className="bg-white p-3 rounded-xl border border-slate-200/60 shadow-sm">
-                            <h3 className="text-[13px] font-bold text-slate-800 mb-3 flex items-center justify-between">
-                                <span>Category</span>
-                                <Link
-                                    href={route("admin.categories.create")}
-                                    className="text-[9px] font-bold text-slate-500 hover:text-[#FF9F43] bg-slate-50 border border-slate-100 px-1.5 py-0.5 rounded"
-                                >
-                                    Add New
-                                </Link>
+                            <h3 className="text-[13px] font-bold text-slate-800 mb-3 flex items-center gap-2">
+                                <Tag size={14} className="text-[#FF9F43]" />
+                                Part Type (Category 1){" "}
+                                <span className="text-rose-500">*</span>
                             </h3>
                             <div className="flex flex-wrap gap-2">
-                                {categories?.map((cat) => (
+                                {categoriesTier1?.map((cat) => (
                                     <button
                                         key={cat.id}
                                         type="button"
-                                        onClick={() => {
-                                            setData((prev) => ({
-                                                ...prev,
-                                                category_id: cat.id,
-                                                sub_category_id: "",
-                                            }));
-                                            clearErrors("category_id");
-                                        }}
+                                        onClick={() =>
+                                            handleInputChange(
+                                                "part_type_id",
+                                                cat.id,
+                                            )
+                                        }
                                         className={`py-1.5 px-3 text-[11px] font-bold rounded-full border transition-all ${
-                                            data.category_id === cat.id
+                                            Number(data.part_type_id) ===
+                                            Number(cat.id)
                                                 ? "bg-[#FF9F43] text-white border-[#FF9F43] shadow-md shadow-orange-100"
                                                 : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
                                         }`}
@@ -343,49 +445,91 @@ export default function Create({ categories, subCategories }) {
                                     </button>
                                 ))}
                             </div>
-                            {errors.category_id && (
+                            {errors.part_type_id && (
                                 <p className="text-rose-500 text-[10px] mt-1.5 italic">
-                                    {errors.category_id}
+                                    {errors.part_type_id}
                                 </p>
                             )}
                         </div>
 
-                        {/* Sub Category Grid */}
-                        {data.category_id && (
-                            <div className="bg-white p-3 rounded-xl border border-slate-200/60 shadow-sm animate-in fade-in slide-in-from-top-2 duration-300">
-                                <h3 className="text-[13px] font-bold text-slate-800 mb-3">Sub Category</h3>
-                                <div className="flex flex-wrap gap-2">
-                                    {filteredSubCategories?.map((sub) => (
-                                        <button
-                                            key={sub.id}
-                                            type="button"
-                                            onClick={() => {
-                                                setData(
-                                                    "sub_category_id",
-                                                    sub.id
-                                                );
-                                                clearErrors("sub_category_id");
-                                            }}
-                                            className={`py-1.5 px-3 text-[11px] font-bold rounded-full border transition-all ${
-                                                data.sub_category_id === sub.id
-                                                    ? "bg-[#FF9F43] text-white border-[#FF9F43] shadow-md shadow-orange-100"
-                                                    : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
-                                            }`}
-                                        >
-                                            {sub.name}
-                                        </button>
-                                    ))}
-                                </div>
-                                {filteredSubCategories.length === 0 && (
-                                    <p className="text-slate-400 text-[10px] italic text-center">No results.</p>
-                                )}
+                        {/* Shop View Category */}
+                        <div className="bg-white p-3 rounded-xl border border-slate-200/60 shadow-sm animate-in fade-in slide-in-from-top-2 duration-300">
+                            <h3 className="text-[13px] font-bold text-slate-800 mb-3 flex items-center gap-2">
+                                <Tag size={14} className="text-[#FF9F43]" />
+                                Shop View (Category 2){" "}
+                                <span className="text-rose-500">*</span>
+                            </h3>
+                            <div className="flex flex-wrap gap-2">
+                                {categoriesTier2?.map((cat) => (
+                                    <button
+                                        key={cat.id}
+                                        type="button"
+                                        onClick={() =>
+                                            handleInputChange(
+                                                "shop_view_id",
+                                                cat.id,
+                                            )
+                                        }
+                                        className={`py-1.5 px-3 text-[11px] font-bold rounded-full border transition-all ${
+                                            Number(data.shop_view_id) ===
+                                            Number(cat.id)
+                                                ? "bg-[#FF9F43] text-white border-[#FF9F43] shadow-md shadow-orange-100"
+                                                : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                                        }`}
+                                    >
+                                        {cat.name}
+                                    </button>
+                                ))}
                             </div>
-                        )}
+                            {errors.shop_view_id && (
+                                <p className="text-rose-500 text-[10px] mt-1.5 italic">
+                                    {errors.shop_view_id}
+                                </p>
+                            )}
+                        </div>
+
+                        {/* Sorting Category */}
+                        <div className="bg-white p-3 rounded-xl border border-slate-200/60 shadow-sm animate-in fade-in slide-in-from-top-2 duration-300">
+                            <h3 className="text-[13px] font-bold text-slate-800 mb-3 flex items-center gap-2">
+                                <Tag size={14} className="text-[#FF9F43]" />
+                                Sorting (Category 3){" "}
+                                <span className="text-rose-500">*</span>
+                            </h3>
+                            <div className="flex flex-wrap gap-2">
+                                {categoriesTier3?.map((cat) => (
+                                    <button
+                                        key={cat.id}
+                                        type="button"
+                                        onClick={() =>
+                                            handleInputChange(
+                                                "sorting_id",
+                                                cat.id,
+                                            )
+                                        }
+                                        className={`py-1.5 px-3 text-[11px] font-bold rounded-full border transition-all ${
+                                            Number(data.sorting_id) ===
+                                            Number(cat.id)
+                                                ? "bg-[#FF9F43] text-white border-[#FF9F43] shadow-md shadow-orange-100"
+                                                : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                                        }`}
+                                    >
+                                        {cat.name}
+                                    </button>
+                                ))}
+                            </div>
+                            {errors.sorting_id && (
+                                <p className="text-rose-500 text-[10px] mt-1.5 italic">
+                                    {errors.sorting_id}
+                                </p>
+                            )}
+                        </div>
 
                         {/* Inventory & Specs */}
                         <div className="bg-white p-3 rounded-xl border border-slate-200/60 shadow-sm space-y-3">
                             <div className="space-y-2 pb-2 border-b border-slate-50">
-                                <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Pricing (USD)</h4>
+                                <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                    Pricing (USD)
+                                </h4>
                                 <div className="grid grid-cols-1 gap-2">
                                     <Input
                                         label="List Price"
@@ -394,55 +538,149 @@ export default function Create({ categories, subCategories }) {
                                         className="text-[12px] h-9"
                                         value={data.list_price}
                                         error={errors.list_price}
-                                        onChange={(e) => handleInputChange("list_price", e.target.value)}
+                                        onChange={(e) =>
+                                            handleInputChange(
+                                                "list_price",
+                                                e.target.value,
+                                            )
+                                        }
                                     />
                                 </div>
                             </div>
 
                             <div className="space-y-2 pb-2 border-b border-slate-50">
-                                <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Inventory Status</h4>
+                                <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                    Inventory Status
+                                </h4>
                                 <div className="grid grid-cols-3 gap-2">
                                     <Input
                                         label="OKV"
                                         type="number"
                                         className="text-[12px] h-9"
                                         value={data.stock_oakville}
-                                        onChange={(e) => handleInputChange("stock_oakville", e.target.value)}
+                                        onChange={(e) =>
+                                            handleInputChange(
+                                                "stock_oakville",
+                                                e.target.value,
+                                            )
+                                        }
                                     />
                                     <Input
                                         label="MSA"
                                         type="number"
                                         className="text-[12px] h-9"
                                         value={data.stock_mississauga}
-                                        onChange={(e) => handleInputChange("stock_mississauga", e.target.value)}
+                                        onChange={(e) =>
+                                            handleInputChange(
+                                                "stock_mississauga",
+                                                e.target.value,
+                                            )
+                                        }
                                     />
                                     <Input
                                         label="SKT"
                                         type="number"
                                         className="text-[12px] h-9"
                                         value={data.stock_saskatoon}
-                                        onChange={(e) => handleInputChange("stock_saskatoon", e.target.value)}
+                                        onChange={(e) =>
+                                            handleInputChange(
+                                                "stock_saskatoon",
+                                                e.target.value,
+                                            )
+                                        }
                                     />
                                 </div>
                             </div>
 
+                            <div className="grid grid-cols-2 gap-2 pt-1 border-b border-slate-50 pb-3">
+                                <Select
+                                    label="Visibility"
+                                    placeholder="Select visibility"
+                                    className="bg-white text-[12px] h-9"
+                                    options={VISIBILITY_OPTIONS}
+                                    value={data.visibility}
+                                    error={errors.visibility}
+                                    onChange={(e) =>
+                                        handleInputChange(
+                                            "visibility",
+                                            e.target.value,
+                                        )
+                                    }
+                                />
+                                <Select
+                                    label="Position"
+                                    placeholder="Select position"
+                                    className="bg-white text-[12px] h-9"
+                                    options={POSITIONS}
+                                    value={data.position}
+                                    error={errors.position}
+                                    onChange={(e) =>
+                                        handleInputChange(
+                                            "position",
+                                            e.target.value,
+                                        )
+                                    }
+                                />
+                            </div>
+
                             <div className="grid grid-cols-2 gap-2 pt-1">
                                 <Input
-                                    label="SKU ID"
+                                    label="SKU"
                                     placeholder="SKU-..."
                                     className="text-[12px] h-9"
                                     value={data.sku}
                                     error={errors.sku}
-                                    onChange={(e) => handleInputChange("sku", e.target.value)}
+                                    onChange={(e) =>
+                                        handleInputChange("sku", e.target.value)
+                                    }
                                 />
                                 <Input
-                                    label="Location"
+                                    label="LOC"
                                     placeholder="BIN-..."
                                     className="text-[12px] h-9"
                                     value={data.location_id}
                                     error={errors.location_id}
-                                    onChange={(e) => handleInputChange("location_id", e.target.value)}
+                                    onChange={(e) =>
+                                        handleInputChange(
+                                            "location_id",
+                                            e.target.value,
+                                        )
+                                    }
                                 />
+                            </div>
+
+                            <div className="pt-2">
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        setData(
+                                            "is_clearance",
+                                            !data.is_clearance,
+                                        )
+                                    }
+                                    className={`w-full py-2 px-3 rounded-lg border text-[12px] font-bold flex items-center justify-center gap-2 transition-all ${
+                                        data.is_clearance
+                                            ? "bg-rose-50 border-rose-200 text-rose-600 shadow-sm"
+                                            : "bg-slate-50 border-slate-100 text-slate-500 hover:bg-slate-100"
+                                    }`}
+                                >
+                                    <Tag
+                                        size={14}
+                                        className={
+                                            data.is_clearance
+                                                ? "text-rose-500"
+                                                : "text-slate-400"
+                                        }
+                                    />
+                                    {data.is_clearance
+                                        ? "Listed in Clearance Sale"
+                                        : "Add to Clearance Sale"}
+                                </button>
+                                {errors.is_clearance && (
+                                    <p className="text-rose-500 text-[10px] mt-1">
+                                        {errors.is_clearance}
+                                    </p>
+                                )}
                             </div>
                         </div>
 

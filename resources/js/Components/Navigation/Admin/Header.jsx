@@ -42,9 +42,6 @@ const Header = ({ onMenuClick }) => {
                     <h1 className="text-lg md:text-xl lg:text-2xl font-bold text-slate-900 truncate">
                         Welcome, {user.first_name} {user.last_name}
                     </h1>
-                    <p className="hidden sm:block text-xs md:text-sm text-slate-400 mt-0.5 md:mt-1 truncate">
-                        Tracking auto parts orders today.
-                    </p>
                 </div>
             </div>
 

@@ -26,6 +26,13 @@ class CustomerController extends Controller
                 'email',
                 'phone_number',
                 'company_name',
+                'position',
+                'account_type',
+                'store_hours',
+                'marketing_emails',
+                'order_confirmation',
+                'order_cancellation',
+                'monthly_statement',
                 'discount_rate',
                 'total_purchases',
                 'total_returns',
@@ -185,10 +192,10 @@ class CustomerController extends Controller
         $query->when($request->model, fn ($q, $model) => $q->whereHas('fitments', fn ($f) => $f->where('model', $model)));
 
         // Category & Location
-        $query->when($request->category, fn ($q, $cat) => $q->whereHas('category', fn ($c) => $c->where('name', $cat)));
+        $query->when($request->category, fn ($q, $cat) => $q->whereHas('partType', fn ($c) => $c->where('name', $cat)));
         $query->when($request->location, fn ($q, $loc) => $q->where('location_id', $loc));
 
-        $products = $query->with(['category:id,name', 'subCategory:id,name', 'partsNumbers', 'files', 'fitments'])
+        $products = $query->with(['partType:id,name', 'shopView:id,name', 'sorting:id,name', 'partsNumbers', 'files', 'fitments'])
             ->latest()
             ->get();
 

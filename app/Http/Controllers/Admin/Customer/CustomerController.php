@@ -21,6 +21,7 @@ class CustomerController extends Controller
             ->where('user_type', 'user')
             ->select([
                 'id',
+                'customer_number',
                 'first_name',
                 'last_name',
                 'email',
@@ -48,7 +49,8 @@ class CustomerController extends Controller
                     ->orWhere('last_name', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%")
                     ->orWhere('company_name', 'like', "%{$search}%")
-                    ->orWhere('phone_number', 'like', "%{$search}%");
+                    ->orWhere('phone_number', 'like', "%{$search}%")
+                    ->orWhere('customer_number', 'like', "%{$search}%");
             });
         }
 

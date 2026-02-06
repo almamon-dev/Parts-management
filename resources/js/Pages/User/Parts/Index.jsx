@@ -13,14 +13,12 @@ import {
     Info,
     Tag,
 } from "lucide-react";
-
 import { MAKES } from "@/Constants/makes";
 import { MODELS } from "@/Constants/models";
 
 const YEARS = Array.from({ length: 2026 - 1995 + 1 }, (_, i) =>
     (2026 - i).toString(),
 );
-
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -58,7 +56,7 @@ const SearchInput = memo(({ initialValue, onSearch, isLoading }) => {
                 type="text"
                 value={localValue}
                 onChange={handleChange}
-                placeholder="Search description, SKU or part number..."
+                placeholder="Search description or SKU..."
                 className="w-full h-12 pl-12 pr-12 rounded-2xl border border-slate-200 shadow-sm focus:ring-4 focus:ring-[#A80000]/10 focus:border-[#A80000] bg-white outline-none transition-all text-sm font-medium text-slate-700 placeholder:text-slate-400"
             />
             {localValue && !isLoading && (
@@ -152,6 +150,166 @@ const FilterDropdown = memo(
     },
 );
 
+const ProductCard = memo(
+    ({
+        product,
+        quantity,
+        onToggleFavorite,
+        onQuantityChange,
+        onAddToCart,
+        onImageClick,
+    }) => {
+        const firstImage = product.files?.[0] || null;
+
+        return (
+            <div className="bg-white rounded-3xl border border-slate-100 p-4 shadow-sm hover:shadow-md transition-all group relative animate-in fade-in duration-500">
+                <div className="flex gap-4">
+                    {/* Image & Tags */}
+                    <div className="relative shrink-0">
+                        <div
+                            onClick={() => onImageClick(product)}
+                            className="w-24 h-24 rounded-2xl overflow-hidden bg-slate-50 border border-slate-100 flex items-center justify-center cursor-pointer shadow-sm active:scale-95 transition-all"
+                        >
+                            {firstImage ? (
+                                <img
+                                    src={`/${firstImage.file_path}`}
+                                    alt={product.description}
+                                    className="w-full h-full object-contain p-2"
+                                />
+                            ) : (
+                                <ImageOff className="w-8 h-8 text-slate-200" />
+                            )}
+                        </div>
+                        <div className="absolute -top-2 -right-2">
+                            <button
+                                onClick={() => onToggleFavorite(product.id)}
+                                className={cn(
+                                    "w-8 h-8 rounded-full shadow-lg flex items-center justify-center transition-all active:scale-90",
+                                    product.is_favorite
+                                        ? "bg-amber-50"
+                                        : "bg-white",
+                                )}
+                            >
+                                <Star
+                                    size={14}
+                                    className={cn(
+                                        product.is_favorite
+                                            ? "fill-amber-400 text-amber-400"
+                                            : "text-slate-300",
+                                    )}
+                                />
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Basic Info */}
+                    <div className="flex-1 min-w-0">
+                        <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
+                            <span
+                                className={cn(
+                                    "text-[7px] font-black py-0.5 px-2 rounded-full uppercase tracking-widest text-white",
+                                    product.shop_view?.name?.includes("OEM")
+                                        ? "bg-[#2563EB]"
+                                        : "bg-[#0891B2]",
+                                )}
+                            >
+                                {product.shop_view?.name || "STOCK"}
+                            </span>
+                            <span className="text-[8px] font-black text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded uppercase">
+                                {product.part_type?.name}
+                            </span>
+                        </div>
+                        <h4 className="font-bold text-slate-800 text-sm leading-tight tracking-tight mb-2 line-clamp-2 uppercase">
+                            {product.description}
+                        </h4>
+                        <div className="text-[10px] font-mono font-bold text-slate-400 flex items-center gap-1">
+                            SKU:{" "}
+                            <span className="text-slate-600">
+                                {product.sku || "N/A"}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Fitment Scroll */}
+                <div className="mt-4 pt-4 border-t border-slate-50 overflow-x-auto whitespace-nowrap scrollbar-hide flex gap-3 text-[10px] font-bold text-slate-500 uppercase tracking-tight">
+                    {product.fitments?.map((fit, fIdx) => (
+                        <div
+                            key={fIdx}
+                            className="flex items-center gap-1.5 shrink-0"
+                        >
+                            <span className="text-slate-900 font-black">
+                                {fit.year_from}-{fit.year_to}
+                            </span>
+                            <span>
+                                {fit.make} {fit.model}
+                            </span>
+                            {fIdx < product.fitments.length - 1 && (
+                                <span className="text-slate-200 ml-1">|</span>
+                            )}
+                        </div>
+                    ))}
+                    {(!product.fitments || product.fitments.length === 0) && (
+                        <span className="text-slate-400 italic">
+                            Universal Fit
+                        </span>
+                    )}
+                </div>
+
+                {/* Prices & Actions */}
+                <div className="mt-4 pt-4 border-t border-slate-50 flex items-center justify-between">
+                    <div className="flex flex-col">
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">
+                            List/Your
+                        </span>
+                        <div className="flex items-center gap-1.5">
+                            <span className="text-xs font-bold text-slate-900">
+                                ${product.list_price}
+                            </span>
+                            <span className="text-sm font-black text-slate-900 tracking-tight">
+                                ${product.your_price || product.list_price}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        <div className="flex items-center bg-slate-50 border border-slate-100 rounded-xl p-1">
+                            <button
+                                onClick={() => onQuantityChange(product.id, -1)}
+                                className="w-8 h-8 flex items-center justify-center bg-white rounded-lg border border-slate-100 shadow-sm text-slate-400 disabled:opacity-50"
+                                disabled={quantity <= 1}
+                            >
+                                <Minus size={12} />
+                            </button>
+                            <span className="w-8 text-center text-xs font-black text-slate-700">
+                                {quantity}
+                            </span>
+                            <button
+                                onClick={() => onQuantityChange(product.id, 1)}
+                                className="w-8 h-8 flex items-center justify-center bg-white rounded-lg border border-slate-100 shadow-sm text-slate-400"
+                            >
+                                <Plus size={12} />
+                            </button>
+                        </div>
+                        <button
+                            onClick={() => onAddToCart(product.id)}
+                            className={cn(
+                                "h-10 px-4 rounded-xl text-white shadow-xl flex items-center justify-center gap-2 font-bold text-xs uppercase transition-all active:scale-95 whitespace-nowrap min-w-[100px]",
+                                product.in_cart
+                                    ? "bg-emerald-500"
+                                    : "bg-[#A80000]",
+                            )}
+                        >
+                            <ShoppingCart size={14} />
+                            {product.in_cart ? "In Cart" : "Buy Now"}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    },
+);
+
 const ProductRow = memo(
     ({
         product,
@@ -164,7 +322,7 @@ const ProductRow = memo(
         const firstImage = product.files?.[0] || null;
 
         return (
-            <tr className="transition-all group odd:bg-white even:bg-slate-50/30 h-[100px] border-b border-slate-100/60 hover:bg-white">
+            <tr className="transition-all group odd:bg-white even:bg-slate-50/30 border-b border-slate-100/60 hover:bg-white">
                 <td className="py-3 pl-4">
                     <div className="flex gap-4 items-center text-center">
                         {/* Shop View Tag */}
@@ -224,29 +382,40 @@ const ProductRow = memo(
                 </td>
                 <td className="px-6 py-3">
                     <div className="flex flex-col gap-1.5">
+                        <h4 className="font-bold text-slate-800 text-[14px] leading-tight tracking-tight whitespace-normal uppercase">
+                            {product.description}
+                        </h4>
                         <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-black text-[#A80000] bg-red-50 px-1.5 py-0.5 rounded uppercase">
+                            <span className="text-[10px] font-black text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded uppercase tracking-wider">
                                 {product.part_type?.name}
                             </span>
-                            <h4 className="font-bold text-slate-800 text-[14px] line-clamp-1 leading-tight tracking-tight">
-                                {product.description}
-                            </h4>
                         </div>
 
-                        <div className="flex items-center gap-1.5">
-                            <div className="inline-flex items-center h-5 bg-slate-50 border border-slate-200/60 rounded px-2 gap-2 group-hover:border-[#A80000]/30 transition-colors">
-                                <span className="text-[9px] font-black text-[#A80000] whitespace-nowrap tracking-tighter">
-                                    {product.fitments?.[0]
-                                        ? `${product.fitments[0].year_from} — ${product.fitments[0].year_to}`
-                                        : "N/A YEAR"}
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-[11px] font-bold text-slate-500 uppercase tracking-tight">
+                            {product.fitments?.map((fit, fIdx) => (
+                                <div
+                                    key={fIdx}
+                                    className="flex items-center gap-1.5"
+                                >
+                                    <span className="text-slate-900 font-black">
+                                        {fit.year_from}-{fit.year_to}
+                                    </span>
+                                    <span>
+                                        {fit.make} {fit.model}
+                                    </span>
+                                    {fIdx < product.fitments.length - 1 && (
+                                        <span className="text-slate-200">
+                                            |
+                                        </span>
+                                    )}
+                                </div>
+                            ))}
+                            {(!product.fitments ||
+                                product.fitments.length === 0) && (
+                                <span className="text-slate-400 italic">
+                                    Universal Fit
                                 </span>
-                                <div className="w-px h-2.5 bg-slate-200" />
-                                <span className="text-[9px] font-black text-slate-500 uppercase truncate max-w-[200px]">
-                                    {product.fitments?.[0]
-                                        ? `${product.fitments[0].make} ${product.fitments[0].model}`
-                                        : "Universal Fit"}
-                                </span>
-                            </div>
+                            )}
                         </div>
                     </div>
                 </td>
@@ -256,28 +425,9 @@ const ProductRow = memo(
                 </td>
                 <td className="px-2 py-3 text-center whitespace-nowrap">
                     <div className="flex flex-col items-center">
-                        <span
-                            className={cn(
-                                "text-[12px] font-bold tracking-tighter",
-                                product.applied_discount > 0
-                                    ? "text-slate-400 line-through text-[10px]"
-                                    : "text-slate-500",
-                            )}
-                        >
+                        <span className="text-[16px] font-bold tracking-tighter text-slate-900">
                             ${product.list_price || "0.00"}
                         </span>
-                        {product.applied_discount > 0 && (
-                            <span
-                                className={cn(
-                                    "text-[9px] font-black px-1.5 py-0.5 rounded-full mt-0.5",
-                                    product.discount_type === "specific"
-                                        ? "bg-emerald-100 text-emerald-700"
-                                        : "bg-amber-100 text-amber-700",
-                                )}
-                            >
-                                {product.applied_discount}% OFF
-                            </span>
-                        )}
                     </div>
                 </td>
                 <td className="px-2 py-3 text-center text-[16px] font-black tracking-tight whitespace-nowrap text-slate-900">
@@ -306,7 +456,7 @@ const ProductRow = memo(
                         <button
                             onClick={() => onAddToCart(product.id)}
                             className={cn(
-                                "h-11 px-5 rounded-xl text-white shadow-lg transition-all active:scale-90 flex items-center justify-center gap-2 font-bold text-sm",
+                                "h-11 px-5 rounded-xl text-white shadow-lg transition-all active:scale-90 flex items-center justify-center gap-2 font-bold text-sm whitespace-nowrap min-w-[120px]",
                                 product.in_cart
                                     ? "bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/20"
                                     : "bg-[#A80000] hover:bg-[#8B0000] shadow-[#A80000]/20",
@@ -318,13 +468,27 @@ const ProductRow = memo(
                                     product.in_cart ? "fill-white" : "fill-none"
                                 }
                             />
-                            {product.in_cart ? "In Cart" : "Buy"}
+                            {product.in_cart ? "In Cart" : "Buy Now"}
                         </button>
                     </div>
                 </td>
             </tr>
         );
     },
+);
+
+const EmptyState = ({ icon: Icon, title, message }) => (
+    <div className="max-w-md mx-auto space-y-4 py-20 px-6 text-center">
+        <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center text-[#A80000] mx-auto opacity-80 backdrop-blur-sm">
+            <Icon size={36} />
+        </div>
+        <h3 className="text-2xl font-black text-slate-900 tracking-tight">
+            {title}
+        </h3>
+        <p className="text-slate-400 text-base font-medium leading-relaxed">
+            {message}
+        </p>
+    </div>
 );
 
 export default function Index() {
@@ -354,13 +518,23 @@ export default function Index() {
         setIsModalOpen(false);
     }, []);
 
+    // Sync selected productive with updated products list to ensure favorite status is reflected
+    useEffect(() => {
+        if (selectedProduct && products) {
+            const updated = products.find((p) => p.id === selectedProduct.id);
+            if (updated) {
+                setSelectedProduct(updated);
+            }
+        }
+    }, [products, selectedProduct?.id]);
+
     const isSearchActive = useMemo(() => {
         return !!(
             filters.search ||
-            filters.category ||
-            filters.shop_view ||
-            filters.sorting ||
-            (filters.year_from && filters.make && filters.model)
+            (filters.year_from &&
+                filters.make &&
+                filters.model &&
+                filters.category)
         );
     }, [filters]);
 
@@ -391,18 +565,35 @@ export default function Index() {
             if (filters[key] === value) return;
             setIsLoading(true);
             setLoadingType("filter");
-            router.get(
-                route("parts.index"),
-                { ...filters, [key]: value },
-                {
-                    preserveState: true,
-                    preserveScroll: true,
-                    onFinish: () => {
-                        setIsLoading(false);
-                        setLoadingType(null);
-                    },
+
+            let newParams = { ...filters, [key]: value };
+
+            // Requirement: whenever customer chooses a new Year, Make or Model, the screen should reset
+            if (["year_from", "make", "model"].includes(key)) {
+                // If we're setting a vehicle param, clear the other non-vehicle filters
+                newParams = {
+                    year_from: newParams.year_from,
+                    make: newParams.make,
+                    model: newParams.model,
+                };
+
+                // Specific reset logic for vehicle hierarchy
+                if (key === "year_from") {
+                    delete newParams.make;
+                    delete newParams.model;
+                } else if (key === "make") {
+                    delete newParams.model;
+                }
+            }
+
+            router.get(route("parts.index"), newParams, {
+                preserveState: true,
+                preserveScroll: true,
+                onFinish: () => {
+                    setIsLoading(false);
+                    setLoadingType(null);
                 },
-            );
+            });
         },
         [filters],
     );
@@ -457,143 +648,141 @@ export default function Index() {
             <Head title="Shop Parts" />
             <div className="p-4 md:p-8 bg-[#F8FAFC] min-h-screen font-sans">
                 <div className="max-w-9xl mx-auto">
-                    <div className="mb-8 text-center md:text-left">
-                        <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight">
+                    <div className="mb-6 md:mb-10 text-center md:text-left">
+                        <h1 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tight leading-tight">
                             Shop Parts
                         </h1>
-                        <p className="text-slate-500 mt-2 text-sm md:text-base font-medium">
-                            Independent Tiered Inventory Catalog
+                        <p className="text-slate-500 mt-2 md:mt-3 text-sm md:text-lg font-medium max-w-2xl mx-auto md:mx-0">
+                            Browse and order thousands of high-quality auto
+                            parts for your vehicle.
                         </p>
                     </div>
 
                     {/* Filter Bar */}
-                    <div className="flex flex-col xl:flex-row gap-4 mb-8">
-                        <SearchInput
-                            initialValue={filters.search}
-                            onSearch={debouncedSearch}
-                            isLoading={isLoading && loadingType === "search"}
-                        />
-                        <div className="flex flex-wrap items-center gap-3">
-                            <div className="flex flex-wrap gap-2 md:gap-3">
-                                <FilterDropdown
-                                    label="Part Type"
-                                    filterKey="category"
-                                    icon={Tag}
-                                    options={filterOptions?.part_types}
-                                    currentValue={filters.category}
-                                    onFilter={applyFilter}
-                                />
-                                <FilterDropdown
-                                    label="Shop View"
-                                    filterKey="shop_view"
-                                    icon={Tag}
-                                    options={filterOptions?.shop_views}
-                                    currentValue={filters.shop_view}
-                                    onFilter={applyFilter}
-                                />
-                                <FilterDropdown
-                                    label="Sorting"
-                                    filterKey="sorting"
-                                    icon={Tag}
-                                    options={filterOptions?.sortings}
-                                    currentValue={filters.sorting}
-                                    onFilter={applyFilter}
-                                />
-                                <FilterDropdown
-                                    label="Year"
-                                    filterKey="year_from"
-                                    options={YEARS}
-                                    currentValue={filters.year_from}
-                                    onFilter={applyFilter}
-                                />
-                                <FilterDropdown
-                                    label="Make"
-                                    filterKey="make"
-                                    options={MAKES}
-                                    currentValue={filters.make}
-                                    onFilter={applyFilter}
-                                    isDisabled={!filters.year_from}
-                                />
-                                <FilterDropdown
-                                    label="Model"
-                                    filterKey="model"
-                                    options={staticModels}
-                                    currentValue={filters.model}
-                                    onFilter={applyFilter}
-                                    isDisabled={!filters.make}
+                    <div className="sticky top-0 z-40 -mx-4 px-4 py-4 mb-8 bg-[#F8FAFC]/80 backdrop-blur-xl xl:static xl:bg-transparent xl:backdrop-blur-none xl:p-0 xl:mb-12">
+                        <div className="flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-4 md:gap-6">
+                            <div className="w-full xl:w-auto">
+                                <div className="flex flex-wrap gap-2 md:gap-3 justify-center md:justify-start">
+                                    <div className="grid grid-cols-2 md:contents gap-2 w-full">
+                                        <FilterDropdown
+                                            label="Year"
+                                            filterKey="year_from"
+                                            options={YEARS}
+                                            currentValue={filters.year_from}
+                                            onFilter={applyFilter}
+                                        />
+                                        <FilterDropdown
+                                            label="Make"
+                                            filterKey="make"
+                                            options={MAKES}
+                                            currentValue={filters.make}
+                                            onFilter={applyFilter}
+                                            isDisabled={!filters.year_from}
+                                        />
+                                    </div>
+                                    <div className="grid grid-cols-1 md:contents gap-2 w-full">
+                                        <FilterDropdown
+                                            label="Model"
+                                            filterKey="model"
+                                            options={staticModels}
+                                            currentValue={filters.model}
+                                            onFilter={applyFilter}
+                                            isDisabled={!filters.make}
+                                        />
+                                        <FilterDropdown
+                                            label="Category"
+                                            filterKey="category"
+                                            options={filterOptions?.part_types}
+                                            currentValue={filters.category}
+                                            onFilter={applyFilter}
+                                            isDisabled={
+                                                !(
+                                                    filters.year_from &&
+                                                    filters.make &&
+                                                    filters.model
+                                                )
+                                            }
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="w-full xl:max-w-md shrink-0">
+                                <SearchInput
+                                    initialValue={filters.search}
+                                    onSearch={debouncedSearch}
+                                    isLoading={
+                                        isLoading && loadingType === "search"
+                                    }
                                 />
                             </div>
-                            {isSearchActive && (
-                                <button
-                                    onClick={clearAllFilters}
-                                    className="h-12 px-4 rounded-2xl bg-white border border-slate-200 text-[11px] font-black text-[#A80000] hover:bg-red-50 transition-all shadow-sm flex items-center gap-2 uppercase"
-                                >
-                                    <XCircle size={14} /> Clear All
-                                </button>
-                            )}
                         </div>
                     </div>
 
-                    {/* Inventory Table */}
-                    <div className="bg-white rounded-3xl shadow-2xl shadow-slate-200/40 border border-slate-200/60 overflow-hidden min-h-[500px] relative">
+                    {/* Main Results View */}
+                    <div
+                        className={cn(
+                            "relative bg-white rounded-[24px] shadow-sm border border-slate-100 overflow-hidden",
+                            !isSearchActive &&
+                                "bg-slate-50/20 shadow-none border-dashed border-slate-200",
+                        )}
+                    >
                         {isLoading && (
                             <div className="absolute top-0 left-0 right-0 h-1 bg-[#A80000]/10 overflow-hidden z-20">
                                 <div className="h-full bg-[#A80000] animate-infinite-loading w-1/3 rounded-full" />
                             </div>
                         )}
 
-                        <div className="overflow-x-auto overflow-y-visible">
-                            <table className="w-full text-left min-w-[1100px] border-collapse">
+                        {/* DESKTOP TABLE VIEW */}
+                        <div className="hidden xl:block overflow-x-auto">
+                            <table className="w-full text-left min-w-[1240px] border-collapse bg-white">
                                 <thead>
-                                    <tr className="bg-slate-50/80 text-[10px] md:text-[11px] font-black tracking-widest text-slate-400 border-b border-slate-100 uppercase">
-                                        <th className="px-6 py-5 w-[260px]">
-                                            Specifications
+                                    <tr className="bg-white text-[11px] font-bold tracking-tight text-slate-400 border-b border-slate-50 uppercase leading-none">
+                                        <th className="px-8 py-6 w-[280px]">
+                                            Item View
                                         </th>
-                                        <th className="px-6 py-5">
-                                            Item Description & Fitment
+                                        <th className="px-8 py-6">
+                                            Product Description
                                         </th>
-                                        <th className="px-4 py-5 text-center w-[120px]">
+                                        <th className="px-4 py-6 text-center w-[120px]">
                                             SKU
                                         </th>
-                                        <th className="px-4 py-5 text-center w-[120px]">
+                                        <th className="px-4 py-6 text-center w-[120px]">
                                             List Price
                                         </th>
-                                        <th className="px-4 py-5 text-center w-[140px]">
+                                        <th className="px-4 py-6 text-center w-[120px]">
                                             Your Price
                                         </th>
-                                        <th className="px-6 py-5 w-[200px] text-right">
+                                        <th className="px-8 py-6 w-[250px] text-right">
                                             Actions
                                         </th>
                                     </tr>
                                 </thead>
                                 <tbody
                                     className={cn(
-                                        "divide-y divide-slate-50 transition-all duration-300",
-                                        isLoading &&
-                                            "opacity-40 grayscale-[0.5]",
+                                        "divide-y divide-slate-50/50",
+                                        isLoading && "opacity-40",
                                     )}
                                 >
                                     {!isSearchActive ? (
                                         <tr>
-                                            <td
-                                                colSpan="6"
-                                                className="py-32 px-6 text-center"
-                                            >
-                                                <div className="max-w-md mx-auto space-y-4">
-                                                    <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center text-[#A80000] mx-auto animate-pulse">
-                                                        <Info size={40} />
-                                                    </div>
-                                                    <h3 className="text-xl font-black text-slate-900 tracking-tight">
-                                                        Begin Your Search
-                                                    </h3>
-                                                    <p className="text-slate-400 text-sm font-medium leading-relaxed">
-                                                        Select a category or
-                                                        enter vehicle details
-                                                        above to browse our
-                                                        independent tiered
-                                                        inventory system.
-                                                    </p>
-                                                </div>
+                                            <td colSpan="6">
+                                                <EmptyState
+                                                    icon={Info}
+                                                    title="Search for Parts"
+                                                    message={
+                                                        <>
+                                                            Please enter a
+                                                            search term or
+                                                            select{" "}
+                                                            <strong>
+                                                                Year, Make,
+                                                                Model & Category
+                                                            </strong>{" "}
+                                                            to view specific
+                                                            products.
+                                                        </>
+                                                    }
+                                                />
                                             </td>
                                         </tr>
                                     ) : products.length > 0 ? (
@@ -616,30 +805,62 @@ export default function Index() {
                                         ))
                                     ) : (
                                         <tr>
-                                            <td
-                                                colSpan="6"
-                                                className="py-32 px-6 text-center"
-                                            >
-                                                <div className="max-w-md mx-auto space-y-4">
-                                                    <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center text-slate-300 mx-auto">
-                                                        <Search size={40} />
-                                                    </div>
-                                                    <h3 className="text-xl font-black text-slate-900 tracking-tight">
-                                                        No Results Found
-                                                    </h3>
-                                                    <p className="text-slate-400 text-sm font-medium leading-relaxed">
-                                                        We couldn't find any
-                                                        products matching your
-                                                        current filters. Try
-                                                        broadening your search
-                                                        or clearing filters.
-                                                    </p>
-                                                </div>
+                                            <td colSpan="6">
+                                                <EmptyState
+                                                    icon={Search}
+                                                    title="No Results Found"
+                                                    message="We couldn't find any products matching your current filters."
+                                                />
                                             </td>
                                         </tr>
                                     )}
                                 </tbody>
                             </table>
+                        </div>
+
+                        {/* MOBILE CARD VIEW */}
+                        <div className="xl:hidden p-4">
+                            {!isSearchActive ? (
+                                <EmptyState
+                                    icon={Info}
+                                    title="Search for Parts"
+                                    message={
+                                        <>
+                                            Please enter a search term or select{" "}
+                                            <strong>
+                                                Year, Make, Model & Category
+                                            </strong>{" "}
+                                            to view products.
+                                        </>
+                                    }
+                                />
+                            ) : products.length > 0 ? (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    {products.map((product) => (
+                                        <ProductCard
+                                            key={product.id}
+                                            product={product}
+                                            quantity={
+                                                quantities[product.id] || 1
+                                            }
+                                            onToggleFavorite={
+                                                handleToggleFavorite
+                                            }
+                                            onQuantityChange={
+                                                handleQuantityChange
+                                            }
+                                            onAddToCart={handleAddToCart}
+                                            onImageClick={handleOpenModal}
+                                        />
+                                    ))}
+                                </div>
+                            ) : (
+                                <EmptyState
+                                    icon={Search}
+                                    title="No Results Found"
+                                    message="Try broadening your search."
+                                />
+                            )}
                         </div>
                     </div>
                 </div>

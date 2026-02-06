@@ -22,6 +22,7 @@ class DashboardController extends Controller
                 ->map(function ($order) {
                     return [
                         'id' => $order->id,
+                        'order_number' => $order->order_number,
                         'customer' => $order->user ? $order->user->name : 'N/A',
                         'type' => 'Delivery', // Mocked as delivery/pickup info isn't in Order model yet
                         'items' => $order->items->count(),
@@ -37,6 +38,7 @@ class DashboardController extends Controller
                 ->map(function ($req) {
                     return [
                         'id' => $req->id,
+                        'return_number' => $req->return_number,
                         'customer' => $req->user ? $req->user->name : 'N/A',
                         'type' => 'Delivery',
                         'items' => $req->order && $req->order->items ? $req->order->items->count() : 0,

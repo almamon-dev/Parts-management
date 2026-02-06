@@ -15,6 +15,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->string('order_number')->unique();
+            $table->string('invoice_number')->unique()->nullable();
+            $table->string('po_number')->nullable();
             $table->decimal('subtotal', 12, 2);
             $table->decimal('tax', 12, 2)->default(0);
             $table->decimal('total_amount', 12, 2);

@@ -16,7 +16,6 @@ import {
     MapPin,
     CreditCard,
     Printer,
-    Navigation,
     Home,
     Ship as ShipIcon,
     X,

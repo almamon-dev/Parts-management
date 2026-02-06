@@ -13,7 +13,7 @@ class ActiveOrderController extends Controller
     {
         $activeOrders = Order::with(['items.product.files', 'items.product.fitments'])
             ->where('user_id', Auth::id())
-            ->whereIn('status', ['pending', 'processing', 'picked_up'])
+            ->whereIn('status', ['pending', 'processing', 'Processing', 'picked_up'])
             ->latest()
             ->get();
 

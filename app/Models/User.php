@@ -12,7 +12,7 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     protected $fillable = [
-        'username', 'user_type', 'first_name', 'last_name', 'email', 'password', 'position', 'phone_number',
+        'username', 'customer_number', 'user_type', 'first_name', 'last_name', 'email', 'password', 'position', 'phone_number',
         'profile_photo', 'company_name', 'address', 'company_phone', 'account_type',
         'store_hours', 'marketing_emails', 'order_confirmation',
         'order_cancellation', 'monthly_statement', 'is_verified', 'email_verified_at', 'reset_password_token', 'reset_password_token_expire_at',
@@ -42,16 +42,24 @@ class User extends Authenticatable
         return trim($this->user_type) === 'admin';
     }
 
-    // Generate unique short username from first name and id
     protected static function booted()
     {
-        static::created(function ($user) {
-            $firstName = strtolower(str_replace(' ', '', $user->first_name));
-            $id = str_pad($user->id, 3, '0', STR_PAD_LEFT);
+        static::creating(function ($user) {
+            if (! $user->customer_number) {
+                // Get the last customer number from DB
+                $lastUser = static::whereNotNull('customer_number')
+                    ->where('customer_number', 'LIKE', 'CT%')
+                    ->orderBy('id', 'desc')
+                    ->first();
 
-            // Shorter format: name + 001 (e.g., john123)
-            $user->username = "{$firstName}{$id}";
-            $user->save();
+                $nextNumber = $lastUser ? (intval(substr($lastUser->customer_number, 2)) + 1) : 5101;
+                $user->customer_number = 'CT'.$nextNumber;
+            }
+
+            // Also set username to customer_number as per request
+            if (! $user->username) {
+                $user->username = $user->customer_number;
+            }
         });
 
         static::deleting(function ($user) {
@@ -87,5 +95,10 @@ class User extends Authenticatable
     public function productDiscounts()
     {
         return $this->hasMany(UserProductDiscount::class);
+    }
+
+    public function userAddresses()
+    {
+        return $this->hasMany(UserAddress::class);
     }
 }

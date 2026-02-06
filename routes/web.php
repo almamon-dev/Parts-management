@@ -96,6 +96,7 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('carts', UserCartController::class);
 
     // Checkout & Payments
+    Route::get('/checkout', [PaymentController::class, 'checkoutPage'])->name('checkout.index');
     Route::post('/checkout', [PaymentController::class, 'checkout'])->name('checkout.process');
     Route::get('/payment/success/{order_number}', [PaymentController::class, 'success'])->name('payment.success');
     Route::get('/payment/cancel', [PaymentController::class, 'cancel'])->name('payment.cancel');
@@ -167,7 +168,7 @@ Route::middleware(['auth'])->prefix('admin')->as('admin.')->group(function () {
         Route::post('/global-discount', [CustomerController::class, 'applyGlobalDiscount'])->name('global-discount');
         Route::get('/search-products', [CustomerController::class, 'searchProducts'])->name('search-products');
         Route::delete('/bulk-destroy', [CustomerController::class, 'bulkDestroy'])->name('bulk-destroy');
-        
+
         Route::get('/{customer}', [CustomerController::class, 'show'])->name('show');
         Route::patch('/{customer}/discount', [CustomerController::class, 'updateDiscount'])->name('update-discount');
         Route::delete('/{customer}/product-discount/{product_id}', [CustomerController::class, 'removeProductDiscount'])->name('remove-product-discount');

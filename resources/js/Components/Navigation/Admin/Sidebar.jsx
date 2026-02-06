@@ -7,7 +7,6 @@ import {
     Users,
     Tag,
     FileText,
-    BarChart2,
     ChevronRight,
     Settings,
     PlusCircle,

@@ -12,24 +12,36 @@ class IndexController extends Controller
 {
     public function Index(Request $request)
     {
-
         if (! $request->has('token')) {
             return redirect()->route('parts.index')->with('error', 'Invalid access attempt.');
         }
 
-        $cartItems = Cart::where('user_id', auth()->id())
-            ->with(['product' => function ($q) {
-                $q->with(['files', 'fitments', 'partsNumbers', 'category'])
-                    ->withExists(['quoteItems as is_quoted' => function ($q) {
-                        $q->whereHas('quote', function ($q) {
-                            $q->where('user_id', auth()->id())->where('status', 'active');
+        $cartData = self::getCartData(auth()->id());
+
+        return Inertia::render('User/Cart/AddToCart', [
+            'cartItems' => $cartData['items'],
+            'subtotal' => $cartData['subtotal'],
+            'total' => $cartData['total'],
+            'accessToken' => $request->token,
+        ]);
+    }
+
+    public static function getCartData($userId)
+    {
+        $user = \App\Models\User::find($userId);
+        $cartItems = Cart::where('user_id', $userId)
+            ->with(['product' => function ($q) use ($userId) {
+                $q->with(['files', 'fitments', 'partsNumbers', 'partType'])
+                    ->withExists(['quoteItems as is_quoted' => function ($q) use ($userId) {
+                        $q->whereHas('quote', function ($q) use ($userId) {
+                            $q->where('user_id', $userId)->where('status', 'active');
                         });
                     }]);
             }])
             ->get()
-            ->map(function ($item) {
+            ->map(function ($item) use ($user) {
                 $firstFile = $item->product->files->first();
-                $price = $item->product->getPriceForUser(auth()->user());
+                $price = $item->product->getPriceForUser($user);
 
                 return [
                     'id' => $item->id,
@@ -41,7 +53,7 @@ class IndexController extends Controller
                     'buy_price' => $price,
                     'quantity' => $item->quantity,
                     'image' => Helper::generateURL($firstFile?->file_path),
-                    'product' => $item->product, // Pass full object with is_quoted
+                    'product' => $item->product,
                 ];
             });
 
@@ -49,12 +61,11 @@ class IndexController extends Controller
             return $item['buy_price'] * $item['quantity'];
         });
 
-        return Inertia::render('User/Cart/AddToCart', [
-            'cartItems' => $cartItems,
+        return [
+            'items' => $cartItems,
             'subtotal' => number_format($subtotal, 2, '.', ''),
             'total' => number_format($subtotal, 2, '.', ''),
-            'accessToken' => $request->token,
-        ]);
+        ];
     }
 
     public function update(Request $request, $id)

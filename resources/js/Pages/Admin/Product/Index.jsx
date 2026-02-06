@@ -468,7 +468,6 @@ export default function Index({
                                         />
                                     </th>
                                     <th className="py-3 px-4">Product Info</th>
-                                    <th className="py-3 px-4">PP ID</th>
                                     <th className="py-3 px-4">Stock</th>
                                     <th className="py-3 px-4">SKU</th>
                                     <th className="py-3 px-4">LOC</th>
@@ -565,9 +564,7 @@ export default function Index({
                                                         </div>
                                                     </div>
                                                 </td>
-                                                <td className="py-4 px-4 font-bold text-[#FF9F43] text-[12px]">
-                                                    {item.pp_id || "—"}
-                                                </td>
+
                                                 <td className="py-4 px-4">
                                                     {totalStock === 0 ? (
                                                         <span className="text-rose-500 text-[10px] font-bold uppercase tracking-tight">

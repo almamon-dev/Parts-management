@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { router } from "@inertiajs/react";
 import { Trash2 } from "lucide-react";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
-import toast from "react-hot-toast";
 
 export default function ConfirmBulkDelete({
     selectedIds,

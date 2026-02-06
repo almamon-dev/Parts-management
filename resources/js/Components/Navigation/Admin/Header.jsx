@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { router, usePage, Link } from "@inertiajs/react";
-import { Search, Bell, ChevronDown, Menu, User, LogOut } from "lucide-react";
+import { Search, ChevronDown, Menu, User, LogOut } from "lucide-react";
 
 const Header = ({ onMenuClick }) => {
     const { auth } = usePage().props;
@@ -77,7 +77,7 @@ const Header = ({ onMenuClick }) => {
                                 {user.first_name} {user.last_name}
                             </p>
                             <p className="text-[11px] text-[#FF9F43] font-bold uppercase tracking-wider truncate max-w-[120px]">
-                                {user.user_type || 'Admin'}
+                                {user.user_type || "Admin"}
                             </p>
                         </div>
 
@@ -102,7 +102,7 @@ const Header = ({ onMenuClick }) => {
                                 </p>
                             </div>
 
-                            <Link 
+                            <Link
                                 href="/profile-settings"
                                 className="w-full flex items-center gap-3 px-5 py-3.5 text-sm text-slate-700 hover:bg-gray-50 transition"
                                 onClick={() => setOpen(false)}

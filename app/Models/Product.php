@@ -21,6 +21,14 @@ class Product extends Model
 
     protected static function booted()
     {
+        static::creating(function ($product) {
+            if (! $product->pp_id) {
+                $last = static::orderBy('id', 'desc')->first();
+                $nextNumber = $last ? intval(substr($last->pp_id, 2)) + 1 : 110001;
+                $product->pp_id = 'PP'.$nextNumber;
+            }
+        });
+
         static::deleting(function ($product) {
             foreach ($product->files as $file) {
                 \App\Helpers\Helper::deleteFile($file->file_path);

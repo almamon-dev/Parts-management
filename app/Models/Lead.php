@@ -38,10 +38,10 @@ class Lead extends Model
         parent::boot();
 
         static::creating(function ($lead) {
-            if (! $lead->lead_number) {
-                $latest = static::latest('id')->first();
-                $number = $latest ? $latest->id + 1 : 1;
-                $lead->lead_number = 'INV'.str_pad($number, 5, '0', STR_PAD_LEFT);
+            if (!$lead->lead_number) {
+                $last = static::orderBy('id', 'desc')->first();
+                $nextNumber = $last ? intval(substr($last->lead_number, 3)) + 1 : 10001;
+                $lead->lead_number = 'LD-' . $nextNumber;
             }
         });
     }

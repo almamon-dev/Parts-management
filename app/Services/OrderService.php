@@ -34,16 +34,15 @@ class OrderService
             $tax = 0;
             $totalAmount = $subtotal + $tax;
 
-            $orderNumber = 'ORD-'.strtoupper(Str::random(8));
-
             $order = Order::create([
                 'user_id' => $user->id,
-                'order_number' => $orderNumber,
+                'po_number' => $data['po_number'] ?? null,
                 'subtotal' => $subtotal,
                 'tax' => $tax,
                 'total_amount' => $totalAmount,
-                'status' => 'pending',
-                'shipping_address' => $user->address ?? 'N/A',
+                'status' => 'Processing',
+                'order_type' => $data['order_type'] ?? 'Pick up',
+                'shipping_address' => $data['shipping_address'] ?? ($user->address ?? 'N/A'),
                 'notes' => $data['notes'] ?? null,
             ]);
 

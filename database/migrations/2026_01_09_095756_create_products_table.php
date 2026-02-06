@@ -14,6 +14,7 @@ return new class extends Migration
 
         Schema::create('products', function (Blueprint $table) {
             $table->id();
+            $table->string('pp_id')->unique()->nullable();
             $table->foreignId('part_type_id')->constrained('categories')->cascadeOnDelete();
             $table->foreignId('shop_view_id')->nullable()->constrained('categories')->nullOnDelete();
             $table->foreignId('sorting_id')->nullable()->constrained('categories')->nullOnDelete();
@@ -29,6 +30,8 @@ return new class extends Migration
 
             $table->string('sku')->unique()->index();
             $table->string('location_id')->nullable();
+            $table->string('position')->nullable();
+            $table->boolean('is_clearance')->default(false);
 
             $table->enum('visibility', ['private', 'public', 'draft'])
                 ->default('public')

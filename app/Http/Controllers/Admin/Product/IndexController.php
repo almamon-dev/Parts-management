@@ -185,9 +185,11 @@ class IndexController extends Controller
                     $upload = Helper::uploadFile('products', $image, true);
                     if ($upload) {
                         $product->files()->create([
+                            'file_name' => $image->getClientOriginalName(),
                             'file_path' => $upload['original'],
                             'file_type' => $image->getMimeType(),
                             'thumbnail_path' => $upload['thumbnail'] ?? $upload['original'],
+                            'file_size' => $image->getSize(),
                         ]);
                     }
                 }

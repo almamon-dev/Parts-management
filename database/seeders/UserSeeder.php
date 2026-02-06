@@ -43,7 +43,6 @@ class UserSeeder extends Seeder
             [
                 'first_name' => 'Ahmed',
                 'last_name' => 'Rahman',
-                'username' => 'ahmed_auto',
                 'email' => 'ahmed@autoparts.com',
                 'company_name' => 'Ahmed Auto Parts',
                 'company_phone' => '01711111111',
@@ -56,7 +55,6 @@ class UserSeeder extends Seeder
             [
                 'first_name' => 'Fatima',
                 'last_name' => 'Begum',
-                'username' => 'fatima_motors',
                 'email' => 'fatima@motors.com',
                 'company_name' => 'Fatima Motors',
                 'company_phone' => '01722222222',
@@ -69,7 +67,6 @@ class UserSeeder extends Seeder
             [
                 'first_name' => 'Karim',
                 'last_name' => 'Hossain',
-                'username' => 'karim_garage',
                 'email' => 'karim@garage.com',
                 'company_name' => 'Karim Auto Garage',
                 'company_phone' => '01733333333',
@@ -82,7 +79,6 @@ class UserSeeder extends Seeder
             [
                 'first_name' => 'Nadia',
                 'last_name' => 'Khan',
-                'username' => 'nadia_parts',
                 'email' => 'nadia@parts.com',
                 'company_name' => 'Nadia Car Parts',
                 'company_phone' => '01744444444',
@@ -95,7 +91,6 @@ class UserSeeder extends Seeder
             [
                 'first_name' => 'Rahim',
                 'last_name' => 'Uddin',
-                'username' => 'rahim_auto',
                 'email' => 'rahim@auto.com',
                 'company_name' => 'Rahim Auto Service',
                 'company_phone' => '01755555555',
@@ -111,7 +106,6 @@ class UserSeeder extends Seeder
             User::create([
                 'first_name' => $userData['first_name'],
                 'last_name' => $userData['last_name'],
-                'username' => $userData['username'],
                 'email' => $userData['email'],
                 'password' => Hash::make('12345678'),
                 'user_type' => 'user',

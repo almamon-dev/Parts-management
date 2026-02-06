@@ -3,7 +3,6 @@ import { router, usePage, Link } from "@inertiajs/react";
 import {
     Search,
     ShoppingCart,
-    Bell,
     ChevronDown,
     Menu,
     User,

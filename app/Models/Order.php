@@ -12,6 +12,8 @@ class Order extends Model
     protected $fillable = [
         'user_id',
         'order_number',
+        'invoice_number',
+        'po_number',
         'subtotal',
         'tax',
         'total_amount',
@@ -26,15 +28,18 @@ class Order extends Model
         parent::boot();
 
         static::creating(function ($order) {
-            if (! $order->order_number) {
+            // Generate Order Number
+            if (!$order->order_number) {
                 $lastOrder = static::orderBy('id', 'desc')->first();
-                if (! $lastOrder) {
-                    $order->order_number = 'OR21000';
-                } else {
-                    // Extract numeric part from last order number (e.g., OR21000 -> 21000)
-                    $lastNumber = intval(substr($lastOrder->order_number, 2));
-                    $order->order_number = 'OR'.($lastNumber + 1);
-                }
+                $nextOrderNumber = $lastOrder ? intval(substr($lastOrder->order_number, 2)) + 1 : 21001;
+                $order->order_number = 'OR' . $nextOrderNumber;
+            }
+
+            // Generate Invoice Number
+            if (!$order->invoice_number) {
+                $lastInvoice = static::whereNotNull('invoice_number')->orderBy('id', 'desc')->first();
+                $nextInvoiceNumber = $lastInvoice ? intval(substr($lastInvoice->invoice_number, 3)) + 1 : 100001;
+                $order->invoice_number = 'INV' . $nextInvoiceNumber;
             }
         });
     }

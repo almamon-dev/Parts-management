@@ -14,7 +14,7 @@ export default function UserLayout({ children }) {
     // Close mobile menu on page change
     useEffect(() => {
         setIsMobileOpen(false);
-    }, [url.split('?')[0]]);
+    }, [url.split("?")[0]]);
 
     return (
         <div className="flex h-screen bg-[#F9F9F9] font-sans overflow-hidden">
@@ -26,9 +26,9 @@ export default function UserLayout({ children }) {
                 />
             )}
 
-            {/* Sidebar Section - Synchronized with Sidebar.jsx width (280px) */}
+            {/* Sidebar Section - Synchronized with Sidebar.jsx width (240px) */}
             <aside
-                className={`fixed inset-y-0 left-0 z-[60] transition-all duration-300 ease-in-out flex flex-col w-[280px] bg-white border-r border-slate-100
+                className={`fixed inset-y-0 left-0 z-[60] transition-all duration-300 ease-in-out flex flex-col w-[240px] bg-white border-r border-slate-100
                     ${
                         isMobileOpen
                             ? "translate-x-0 shadow-2xl"
@@ -42,7 +42,6 @@ export default function UserLayout({ children }) {
                 >
                     <X size={20} />
                 </button>
-
                 {/* Sidebar Navigation Items */}
                 <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
                     <Sidebar isCollapsed={false} />
@@ -50,12 +49,12 @@ export default function UserLayout({ children }) {
             </aside>
 
             {/* Main Content Area - Matching sidebar width padding */}
-            <div className="flex-1 flex flex-col min-w-0 lg:pl-[280px] overflow-hidden">
+            <div className="flex-1 flex flex-col min-w-0 lg:pl-[240px] overflow-hidden">
                 <div className="sticky top-0 z-[50] flex items-center bg-white w-full shrink-0 border-b border-slate-100">
                     <div className="flex-1">
                         {/* Unified onMenuClick handler */}
-                        <Header 
-                            onMenuClick={() => setIsMobileOpen(true)} 
+                        <Header
+                            onMenuClick={() => setIsMobileOpen(true)}
                             onCartClick={() => setIsCartOpen(true)}
                         />
                     </div>
@@ -63,12 +62,12 @@ export default function UserLayout({ children }) {
 
                 <main className="flex-1 p-0 overflow-y-auto custom-scrollbar">
                     <motion.div
-                        key={url.split('?')[0]}
+                        key={url.split("?")[0]}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ 
-                            duration: 0.3, 
-                            ease: [0.22, 1, 0.36, 1] 
+                        transition={{
+                            duration: 0.3,
+                            ease: [0.22, 1, 0.36, 1],
                         }}
                         className="w-full min-w-0"
                     >
@@ -78,7 +77,10 @@ export default function UserLayout({ children }) {
             </div>
 
             {/* Global Shopping Cart Drawer */}
-            <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+            <CartDrawer
+                isOpen={isCartOpen}
+                onClose={() => setIsCartOpen(false)}
+            />
         </div>
     );
 }

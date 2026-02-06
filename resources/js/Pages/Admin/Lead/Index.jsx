@@ -636,7 +636,7 @@ export default function Index({
                                     </th>
 
                                     <th className="py-4 px-4 text-slate-800 hidden xl:table-cell">
-                                        Suppliers
+                                        Vendor
                                     </th>
 
                                     <th

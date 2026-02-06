@@ -20,7 +20,7 @@ public function index()
             'returnRequests'
         ])
         ->where('user_id', Auth::id())
-        ->whereIn('status', ['delivered', 'cancelled'])
+        ->whereIn('status', ['delivered', 'cancelled', 'collected'])
         ->latest()
         ->get();
 
@@ -35,7 +35,7 @@ public function index()
     public function reOrder(Order $order)
     {
         // 1. Authorization check
-        if ($order->user_id !== auth()->id()) {
+        if ($order->user_id !== Auth::id()) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -44,7 +44,7 @@ public function index()
                 foreach ($order->items as $item) {
                     // 2. Optimized: Find existing or create new, then increment
                     $cartItem = Cart::firstOrNew([
-                        'user_id' => auth()->id(),
+                        'user_id' => Auth::id(),
                         'product_id' => $item->product_id,
                     ]);
 

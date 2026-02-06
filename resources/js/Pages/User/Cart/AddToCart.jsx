@@ -1,6 +1,14 @@
 import UserLayout from "@/Layouts/UserLayout";
 import { Head, usePage, router, Link } from "@inertiajs/react";
-import { Plus, Minus, ShoppingBag, ImageOff, ChevronLeft, Eye, Bookmark } from "lucide-react";
+import {
+    Plus,
+    Minus,
+    ShoppingBag,
+    ImageOff,
+    ChevronLeft,
+    Eye,
+    Bookmark,
+} from "lucide-react";
 import ConfirmDelete from "@/Components/ui/ConfirmDelete";
 import ConfirmCheckout from "@/Components/ui/ConfirmCheckout";
 import ProductDetailsModal from "@/Components/ui/user/ProductDetailsModal";
@@ -9,7 +17,11 @@ import { toast } from "react-hot-toast";
 
 export default function AddToCart() {
     const { auth, cart } = usePage().props;
-    const { items: cartItems, subtotal, total } = cart || { items: [], subtotal: 0, total: 0 };
+    const {
+        items: cartItems,
+        subtotal,
+        total,
+    } = cart || { items: [], subtotal: 0, total: 0 };
 
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -27,7 +39,7 @@ export default function AddToCart() {
         router.post(
             route("parts.favourite"),
             { product_id: productId },
-            { preserveScroll: true }
+            { preserveScroll: true },
         );
     };
 
@@ -46,9 +58,13 @@ export default function AddToCart() {
     };
 
     const handleSaveQuote = () => {
-        router.post(route("quotes.store-from-cart"), {}, {
-            onSuccess: () => toast.success("Cart saved as a quote!"),
-        });
+        router.post(
+            route("quotes.store-from-cart"),
+            {},
+            {
+                onSuccess: () => toast.success("Cart saved as a quote!"),
+            },
+        );
     };
 
     return (
@@ -102,7 +118,8 @@ export default function AddToCart() {
                                             <div className="flex justify-between items-start mb-1">
                                                 <div>
                                                     <span className="text-[9px] font-bold text-red-600 uppercase tracking-widest">
-                                                        {item.sku || "PRODUCT-SKU"}
+                                                        {item.sku ||
+                                                            "PRODUCT-SKU"}
                                                     </span>
                                                     <h3 className="font-bold text-base text-slate-900 leading-tight group-hover:text-red-600 transition-colors">
                                                         {item.name}
@@ -117,11 +134,16 @@ export default function AddToCart() {
                                                         id={item.id}
                                                         routeName="carts.destroy"
                                                     />
-                                                    <button 
-                                                        onClick={() => handleOpenModal(item.product)}
+                                                    <button
+                                                        onClick={() =>
+                                                            handleOpenModal(
+                                                                item.product,
+                                                            )
+                                                        }
                                                         className="hidden sm:flex items-center gap-1 text-[10px] font-bold text-slate-400 hover:text-red-600 transition-colors uppercase tracking-widest"
                                                     >
-                                                        <Eye size={12} /> View Details
+                                                        <Eye size={12} /> View
+                                                        Details
                                                     </button>
                                                 </div>
                                             </div>
@@ -131,9 +153,18 @@ export default function AddToCart() {
                                                     {/* Quantity Selector */}
                                                     <div className="flex items-center bg-slate-50 rounded-lg p-0.5 border border-slate-100">
                                                         <button
-                                                            onClick={() => handleUpdateQuantity(item.id, item.quantity, -1)}
+                                                            onClick={() =>
+                                                                handleUpdateQuantity(
+                                                                    item.id,
+                                                                    item.quantity,
+                                                                    -1,
+                                                                )
+                                                            }
                                                             className="w-7 h-7 flex items-center justify-center text-slate-500 hover:bg-white hover:shadow-sm rounded-md transition-all disabled:opacity-30"
-                                                            disabled={item.quantity <= 1}
+                                                            disabled={
+                                                                item.quantity <=
+                                                                1
+                                                            }
                                                         >
                                                             <Minus size={12} />
                                                         </button>
@@ -141,19 +172,30 @@ export default function AddToCart() {
                                                             {item.quantity}
                                                         </span>
                                                         <button
-                                                            onClick={() => handleUpdateQuantity(item.id, item.quantity, 1)}
+                                                            onClick={() =>
+                                                                handleUpdateQuantity(
+                                                                    item.id,
+                                                                    item.quantity,
+                                                                    1,
+                                                                )
+                                                            }
                                                             className="w-7 h-7 flex items-center justify-center text-slate-500 hover:bg-white hover:shadow-sm rounded-md transition-all"
                                                         >
                                                             <Plus size={12} />
                                                         </button>
                                                     </div>
-                                                    
+
                                                     {/* Mobile Details button */}
-                                                    <button 
-                                                        onClick={() => handleOpenModal(item.product)}
+                                                    <button
+                                                        onClick={() =>
+                                                            handleOpenModal(
+                                                                item.product,
+                                                            )
+                                                        }
                                                         className="sm:hidden flex items-center gap-1 text-[10px] font-bold text-slate-400 hover:text-red-600 transition-colors uppercase tracking-widest"
                                                     >
-                                                        <Eye size={12} /> Details
+                                                        <Eye size={12} />{" "}
+                                                        Details
                                                     </button>
                                                 </div>
 
@@ -162,7 +204,16 @@ export default function AddToCart() {
                                                         Subtotal
                                                     </p>
                                                     <div className="text-lg font-bold text-slate-900 leading-none lg:text-xl">
-                                                        ${(item.buy_price * item.quantity).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                                        $
+                                                        {(
+                                                            item.buy_price *
+                                                            item.quantity
+                                                        ).toLocaleString(
+                                                            undefined,
+                                                            {
+                                                                minimumFractionDigits: 2,
+                                                            },
+                                                        )}
                                                     </div>
                                                 </div>
                                             </div>
@@ -199,7 +250,12 @@ export default function AddToCart() {
                                         <div className="flex justify-between text-slate-500 font-medium text-sm">
                                             <span>Subtotal</span>
                                             <span className="text-slate-900 font-bold">
-                                                ${parseFloat(subtotal || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                                $
+                                                {parseFloat(
+                                                    subtotal || 0,
+                                                ).toLocaleString(undefined, {
+                                                    minimumFractionDigits: 2,
+                                                })}
                                             </span>
                                         </div>
                                         <div className="flex justify-between text-slate-500 font-medium">
@@ -214,24 +270,49 @@ export default function AddToCart() {
                                                 Total Amount
                                             </span>
                                             <span className="text-2xl font-black text-red-600 leading-none lg:text-2xl">
-                                                ${parseFloat(total || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                                $
+                                                {parseFloat(
+                                                    total || 0,
+                                                ).toLocaleString(undefined, {
+                                                    minimumFractionDigits: 2,
+                                                })}
                                             </span>
                                         </div>
                                     </div>
 
                                     {/* Action Buttons Stack */}
                                     <div className="flex flex-col gap-3">
-                                        <ConfirmCheckout
-                                            variant="checkout"
-                                            routeName="checkout.process"
-                                            cartItems={cartItems}
-                                            title="Confirm Your Order"
-                                            text="Are you sure you want to proceed to checkout?"
-                                            confirmButtonText="Yes, Checkout Now"
-                                            buttonText="Proceed to Checkout"
-                                        />
+                                        <Link
+                                            href={route("checkout.index")}
+                                            className="group w-full flex items-center justify-between gap-3 px-5 py-3 bg-red-700 text-white rounded-full font-bold hover:bg-red-800 shadow-lg shadow-red-200 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            <span className="flex-1 text-center whitespace-nowrap">
+                                                Proceed to Checkout
+                                            </span>
+                                            <span className="flex items-center justify-center w-8 h-8 bg-white/20 rounded-full group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform">
+                                                <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    width="16"
+                                                    height="16"
+                                                    viewBox="0 0 24 24"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    strokeWidth="2.5"
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                >
+                                                    <line
+                                                        x1="7"
+                                                        y1="17"
+                                                        x2="17"
+                                                        y2="7"
+                                                    ></line>
+                                                    <polyline points="7 7 17 7 17 17"></polyline>
+                                                </svg>
+                                            </span>
+                                        </Link>
 
-                                        <button 
+                                        <button
                                             onClick={handleSaveQuote}
                                             className="group w-full flex items-center justify-between gap-3 px-5 py-3 border-2 border-slate-200 text-slate-700 rounded-full font-bold hover:bg-slate-50 hover:border-red-500 hover:text-red-500 transition-all active:scale-[0.98] lg:border-red-500 lg:text-red-600 lg:hover:bg-red-50"
                                         >
@@ -239,7 +320,10 @@ export default function AddToCart() {
                                                 Save Quote
                                             </span>
                                             <span className="flex items-center justify-center w-8 h-8 bg-slate-100 rounded-full lg:bg-red-100 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform">
-                                                <Bookmark size={14} className="lg:size-16-none" />
+                                                <Bookmark
+                                                    size={14}
+                                                    className="lg:size-16-none"
+                                                />
                                             </span>
                                         </button>
                                     </div>
@@ -265,7 +349,7 @@ export default function AddToCart() {
                     )}
                 </div>
             </div>
-            <ProductDetailsModal 
+            <ProductDetailsModal
                 product={selectedProduct}
                 isOpen={isModalOpen}
                 onClose={handleCloseModal}
@@ -275,4 +359,4 @@ export default function AddToCart() {
     );
 }
 
-AddToCart.layout = page => <UserLayout children={page} />;
+AddToCart.layout = (page) => <UserLayout children={page} />;

@@ -3,10 +3,13 @@
 namespace App\Http\Controllers\User\Booking;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\User\Cart\IndexController as UserCartController;
 use App\Models\Order;
 use App\Models\Setting;
 use App\Services\OrderService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Stripe\StripeClient;
 use Stripe\Webhook;
@@ -31,14 +34,81 @@ class PaymentController extends Controller
         return new StripeClient($secretKey);
     }
 
+    public function checkoutPage(Request $request)
+    {
+        $user = $request->user();
+        $cart = UserCartController::getCartData($user->id);
+
+        if (empty($cart['items'])) {
+            return redirect()->route('carts.index')->with('warning', 'Your cart is empty.');
+        }
+
+        $userAddresses = $user->userAddresses()->latest()->get();
+
+        return Inertia::render('User/Cart/Checkout', [
+            'cart' => $cart,
+            'userAddresses' => $userAddresses,
+            'user' => $user,
+        ]);
+    }
+
     public function checkout(Request $request)
     {
+        // Validate request
+        $request->validate([
+            'payment_method' => 'required|in:credit_card,debit_card',
+            'delivery_type' => 'required|in:brampton_pickup,deliver,ship',
+            'order_type' => 'required|in:Pick up,Delivery,Ship',
+            'shipping_address' => 'required|string',
+            'notes' => 'nullable|string|max:100',
+            'po_number' => 'nullable|string|max:15',
+            'shop_name' => 'nullable|required_if:delivery_type,deliver,ship|string|max:255',
+            'manager_name' => 'nullable|required_if:delivery_type,deliver,ship|string|max:255',
+            'contact_number' => 'nullable|required_if:delivery_type,deliver,ship|string|max:20',
+            'street_address' => 'nullable|required_if:delivery_type,deliver,ship|string|max:500',
+            'city' => 'nullable|required_if:delivery_type,deliver,ship|string|max:100',
+            'province' => 'nullable|required_if:delivery_type,deliver,ship|string|max:50',
+            'post_code' => 'nullable|required_if:delivery_type,deliver,ship|string|max:10',
+            'address_type' => 'nullable|in:Business,Residential',
+            'save_to_address_book' => 'nullable|boolean',
+        ], [
+            'payment_method.required' => 'Please select a payment method',
+            'payment_method.in' => 'Invalid payment method selected',
+            'delivery_type.required' => 'Please select a delivery method',
+            'delivery_type.in' => 'Invalid delivery method selected',
+            'shipping_address.required' => 'Shipping address is required',
+            'shop_name.required_if' => 'Company name is required for delivery/shipping',
+            'manager_name.required_if' => 'Contact person is required for delivery/shipping',
+            'contact_number.required_if' => 'Phone number is required for delivery/shipping',
+            'street_address.required_if' => 'Street address is required for delivery/shipping',
+            'city.required_if' => 'City is required for delivery/shipping',
+            'province.required_if' => 'Province is required for delivery/shipping',
+            'post_code.required_if' => 'Postal code is required for delivery/shipping',
+            'po_number.max' => 'PO number cannot exceed 15 characters',
+            'notes.max' => 'Comments cannot exceed 100 characters',
+        ]);
+
         try {
+            // Optional: Save address to address book if requested
+            if ($request->boolean('save_to_address_book')) {
+                $request->user()->userAddresses()->create($request->only([
+                    'shop_name', 'manager_name', 'contact_number', 'street_address', 'city', 'province', 'post_code',
+                ]));
+            }
+
             // Create order first
             $order = $this->orderService->createOrderFromCart($request->user(), $request->all());
 
+            if (! $order) {
+                return back()->withErrors(['error' => 'Failed to create order. Please try again.']);
+            }
+
             // Load items and products for Stripe
             $order->load('items.product');
+
+            if ($order->items->isEmpty()) {
+                return back()->withErrors(['error' => 'Your cart is empty. Please add items before checkout.']);
+            }
 
             $stripe = $this->getStripeClient();
 
@@ -62,7 +132,7 @@ class PaymentController extends Controller
                 'mode' => 'payment',
                 'success_url' => route('payment.success', ['order_number' => $order->order_number]).'?session_id={CHECKOUT_SESSION_ID}',
                 'cancel_url' => route('payment.cancel'),
-                'customer_email' => auth()->user()->email,
+                'customer_email' => Auth::user()->email,
                 'metadata' => [
                     'order_id' => $order->id,
                     'order_number' => $order->order_number,
@@ -75,7 +145,12 @@ class PaymentController extends Controller
             return Inertia::location($session->url);
 
         } catch (\Exception $e) {
-            return back()->with('error', $e->getMessage());
+            Log::error('Checkout Error: '.$e->getMessage(), [
+                'user_id' => auth()->id(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return back()->withErrors(['error' => 'Payment processing failed: '.$e->getMessage()]);
         }
     }
 

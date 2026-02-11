@@ -20,6 +20,12 @@ class Lead extends Model
         'province',
         'postcode',
         'country',
+        'shipping_street_address',
+        'shipping_unit_number',
+        'shipping_city',
+        'shipping_province',
+        'shipping_postcode',
+        'shipping_country',
         'notes',
         'vehicle_info',
         'vin',
@@ -38,10 +44,10 @@ class Lead extends Model
         parent::boot();
 
         static::creating(function ($lead) {
-            if (!$lead->lead_number) {
+            if (! $lead->lead_number) {
                 $last = static::orderBy('id', 'desc')->first();
                 $nextNumber = $last ? intval(substr($last->lead_number, 3)) + 1 : 10001;
-                $lead->lead_number = 'LD-' . $nextNumber;
+                $lead->lead_number = 'LD-'.$nextNumber;
             }
         });
     }

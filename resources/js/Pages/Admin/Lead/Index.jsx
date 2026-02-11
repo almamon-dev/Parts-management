@@ -457,48 +457,7 @@ export default function Index({
                                         {lead.vehicle_info || "No vehicle info"}
                                     </div>
 
-                                    <div className="flex flex-wrap gap-1">
-                                        {lead.vendors
-                                            ?.split(",")
-                                            .slice(0, 2)
-                                            .map((v, i) => (
-                                                <span
-                                                    key={i}
-                                                    className="text-[10px] font-black px-2 py-0.5 bg-white text-slate-400 rounded-md border border-slate-100"
-                                                >
-                                                    {v.trim()}
-                                                </span>
-                                            ))}
-                                        {lead.vendors?.split(",").length >
-                                            2 && (
-                                            <span className="text-[10px] font-black px-2 py-0.5 bg-white text-slate-400 rounded-md border border-slate-100">
-                                                +
-                                                {lead.vendors.split(",")
-                                                    .length - 2}
-                                            </span>
-                                        )}
-                                    </div>
-
                                     <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-                                        <div className="flex flex-col">
-                                            <div className="text-xs font-bold text-slate-500">
-                                                Economics
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-xs font-bold text-slate-300 line-through">
-                                                    $
-                                                    {parseFloat(
-                                                        lead.total_buy || 0,
-                                                    ).toLocaleString()}
-                                                </span>
-                                                <span className="text-sm font-black text-[#FF9F43]">
-                                                    $
-                                                    {parseFloat(
-                                                        lead.total_sell || 0,
-                                                    ).toLocaleString()}
-                                                </span>
-                                            </div>
-                                        </div>
                                         <div className="flex items-center gap-1 text-xs font-bold text-slate-900 bg-slate-100 px-2 py-1 rounded-lg">
                                             <Hash
                                                 size={10}
@@ -615,7 +574,7 @@ export default function Index({
                                         onClick={() => handleSort("shop_name")}
                                     >
                                         <div className="flex items-center gap-1.5 text-slate-800">
-                                            Business{" "}
+                                            Business Name
                                             <SortIcon column="shop_name" />
                                         </div>
                                     </th>
@@ -625,9 +584,6 @@ export default function Index({
                                             <span className="text-slate-800">
                                                 Contact & City
                                             </span>
-                                            <span className="text-[8px] font-medium text-slate-400 normal-case italic hidden lg:inline">
-                                                Connectivity details
-                                            </span>
                                         </div>
                                     </th>
 
@@ -635,27 +591,8 @@ export default function Index({
                                         Vehicle Specs
                                     </th>
 
-                                    <th className="py-4 px-4 text-slate-800 hidden xl:table-cell">
-                                        Vendor
-                                    </th>
-
-                                    <th
-                                        className="py-4 px-4 text-center cursor-pointer hover:bg-slate-100/80 transition-colors"
-                                        onClick={() => handleSort("buy")}
-                                    >
-                                        <div className="flex flex-col items-center gap-0.5 text-slate-800">
-                                            <div className="flex items-center gap-1.5">
-                                                Economics{" "}
-                                                <SortIcon column="buy" />
-                                            </div>
-                                            <span className="text-[8px] font-medium text-slate-400 normal-case italic hidden lg:inline">
-                                                Cost vs Revenue
-                                            </span>
-                                        </div>
-                                    </th>
-
-                                    <th className="py-4 px-6 text-right text-slate-800">
-                                        Management
+                                    <th className="py-4 px-6 text-right text-slate-800 uppercase">
+                                        Actions
                                     </th>
                                 </tr>
                             </thead>
@@ -792,127 +729,43 @@ export default function Index({
                                                 </div>
                                             </td>
 
-                                            <td className="py-4 px-4 hidden xl:table-cell">
-                                                <div className="flex flex-wrap gap-1.5">
-                                                    {lead.vendors
-                                                        ?.split(",")
-                                                        .map((v, i) => (
-                                                            <span
-                                                                key={i}
-                                                                className="text-[9px] font-black px-2 py-0.5 bg-white text-slate-400 rounded-md border border-slate-100 uppercase shadow-sm"
-                                                            >
-                                                                {v.trim()}
-                                                            </span>
-                                                        ))}
-                                                </div>
-                                            </td>
-                                            <td className="py-4 px-4">
-                                                <div className="flex flex-col items-center space-y-2">
-                                                    <div className="flex items-center gap-3">
-                                                        <span className="text-xs text-slate-400 line-through">
-                                                            $
-                                                            {parseFloat(
-                                                                lead.total_buy ||
-                                                                    0,
-                                                            ).toLocaleString()}
-                                                        </span>
-                                                        <span className="text-sm font-semibold text-[#FF9F43]">
-                                                            $
-                                                            {parseFloat(
-                                                                lead.total_sell ||
-                                                                    0,
-                                                            ).toLocaleString()}
-                                                        </span>
-                                                    </div>
-                                                    <div className="text-xs text-slate-700 flex items-center gap-1">
-                                                        <Hash
-                                                            size={10}
-                                                            className="text-slate-400"
-                                                        />
-                                                        {lead.lead_number ||
-                                                            `INV-${String(lead.id).padStart(5, "0")}`}
-                                                    </div>
-                                                </div>
-                                            </td>
                                             <td className="py-4 px-6 text-right">
-                                                <div className="flex items-center justify-end">
-                                                    <DropdownMenu>
-                                                        <DropdownMenuTrigger className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-[#FF9F43] hover:bg-[#FF9F43]/5 transition-all outline-none border border-transparent hover:border-[#FF9F43]/10">
-                                                            <MoreVertical
-                                                                size={16}
-                                                            />
-                                                        </DropdownMenuTrigger>
-                                                        <DropdownMenuContent
-                                                            align="end"
-                                                            className="w-32 bg-white border border-slate-100 shadow-xl rounded-xl p-1.5"
-                                                        >
-                                                            <DropdownMenuItem
-                                                                asChild
-                                                            >
-                                                                <Link
-                                                                    href={route(
-                                                                        "admin.leads.show",
-                                                                        lead.id,
-                                                                    )}
-                                                                    className="flex items-center gap-2 px-2 py-2 text-[10.5px] font-bold text-slate-600 hover:text-[#FF9F43] hover:bg-[#FF9F43]/5 rounded-lg transition-colors cursor-pointer"
-                                                                >
-                                                                    <Eye
-                                                                        size={
-                                                                            14
-                                                                        }
-                                                                        className="text-slate-400"
-                                                                    />{" "}
-                                                                    View Details
-                                                                </Link>
-                                                            </DropdownMenuItem>
-                                                            <DropdownMenuItem
-                                                                asChild
-                                                            >
-                                                                <Link
-                                                                    href={route(
-                                                                        "admin.leads.edit",
-                                                                        lead.id,
-                                                                    )}
-                                                                    className="flex items-center gap-2 px-2 py-2 text-[10.5px] font-bold text-slate-600 hover:text-[#FF9F43] hover:bg-[#FF9F43]/5 rounded-lg transition-colors cursor-pointer"
-                                                                >
-                                                                    <Pencil
-                                                                        size={
-                                                                            14
-                                                                        }
-                                                                        className="text-slate-400"
-                                                                    />{" "}
-                                                                    Edit Lead
-                                                                </Link>
-                                                            </DropdownMenuItem>
-                                                            <DropdownMenuItem
-                                                                asChild
-                                                            >
-                                                                <Link
-                                                                    href={route(
-                                                                        "admin.leads.invoice",
-                                                                        lead.id,
-                                                                    )}
-                                                                    className="flex items-center gap-2 px-2 py-2 text-[10.5px] font-bold text-slate-600 hover:text-[#FF9F43] hover:bg-[#FF9F43]/5 rounded-lg transition-colors cursor-pointer"
-                                                                >
-                                                                    <FileText
-                                                                        size={
-                                                                            14
-                                                                        }
-                                                                        className="text-slate-400"
-                                                                    />{" "}
-                                                                    Invoice
-                                                                </Link>
-                                                            </DropdownMenuItem>
-                                                            <div className="h-px bg-slate-100 my-1" />
-                                                            <div className="px-2 py-1">
-                                                                <ConfirmDelete
-                                                                    id={lead.id}
-                                                                    routeName="admin.leads.destroy"
-                                                                    variant="dropdown"
-                                                                />
-                                                            </div>
-                                                        </DropdownMenuContent>
-                                                    </DropdownMenu>
+                                                <div className="flex items-center justify-end gap-2">
+                                                    <Link
+                                                        href={route(
+                                                            "admin.leads.show",
+                                                            lead.id,
+                                                        )}
+                                                        className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-[#FF9F43] hover:bg-[#FF9F43]/5 transition-all border border-transparent hover:border-[#FF9F43]/10"
+                                                        title="View Details"
+                                                    >
+                                                        <Eye size={16} />
+                                                    </Link>
+                                                    <Link
+                                                        href={route(
+                                                            "admin.leads.edit",
+                                                            lead.id,
+                                                        )}
+                                                        className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all border border-transparent hover:border-blue-100"
+                                                        title="Edit Lead"
+                                                    >
+                                                        <Pencil size={16} />
+                                                    </Link>
+                                                    <Link
+                                                        href={route(
+                                                            "admin.leads.invoice",
+                                                            lead.id,
+                                                        )}
+                                                        className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-all border border-transparent hover:border-emerald-100"
+                                                        title="Invoice"
+                                                    >
+                                                        <FileText size={16} />
+                                                    </Link>
+                                                    <ConfirmDelete
+                                                        id={lead.id}
+                                                        routeName="admin.leads.destroy"
+                                                        variant="button"
+                                                    />
                                                 </div>
                                             </td>
                                         </tr>
@@ -920,7 +773,7 @@ export default function Index({
                                 ) : (
                                     <tr>
                                         <td
-                                            colSpan="14"
+                                            colSpan="8"
                                             className="py-32 text-center bg-white"
                                         >
                                             <div className="flex flex-col items-center gap-4 text-slate-300">

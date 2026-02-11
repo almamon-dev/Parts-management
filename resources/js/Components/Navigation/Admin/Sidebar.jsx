@@ -18,6 +18,8 @@ import {
     Image as ImageIcon,
     X,
     Globe,
+    Shield,
+    Key,
 } from "lucide-react";
 
 const Sidebar = ({ isCollapsed, isMobileOpen, setIsMobileOpen }) => {
@@ -84,18 +86,21 @@ const Sidebar = ({ isCollapsed, isMobileOpen, setIsMobileOpen }) => {
             path: route("admin.orders.index"),
             icon: <ShoppingCart size={18} />,
             activeIdentifier: "admin.orders.*",
+            permission: "orders.view",
         },
         {
             label: "Categories",
             path: route("admin.categories.index"),
             icon: <List size={18} />,
             activeIdentifier: "admin.categories.*",
+            permission: "products.view",
         },
         {
             label: "Returns",
             path: route("admin.returns.index"),
             icon: <RefreshCw size={18} />,
             activeIdentifier: "admin.returns.*",
+            permission: "returns.view",
         },
         {
             label: "Leads",
@@ -103,16 +108,19 @@ const Sidebar = ({ isCollapsed, isMobileOpen, setIsMobileOpen }) => {
             icon: <Users size={18} />,
             key: "leads",
             activeIdentifier: "admin.leads.*",
+            permission: "leads.view",
             children: [
                 {
                     label: "All Leads",
                     path: route("admin.leads.index"),
                     icon: <List size={14} />,
+                    permission: "leads.view",
                 },
                 {
                     label: "Add Lead",
                     path: route("admin.leads.create"),
                     icon: <PlusCircle size={14} />,
+                    permission: "leads.create",
                 },
             ],
         },
@@ -121,6 +129,7 @@ const Sidebar = ({ isCollapsed, isMobileOpen, setIsMobileOpen }) => {
             path: route("admin.customers.index"),
             icon: <Users size={18} />,
             activeIdentifier: "admin.customers.*",
+            permission: "orders.manage",
         },
         {
             label: "Products",
@@ -128,16 +137,19 @@ const Sidebar = ({ isCollapsed, isMobileOpen, setIsMobileOpen }) => {
             icon: <Tag size={18} />,
             key: "products",
             activeIdentifier: "admin.products.*",
+            permission: "products.view",
             children: [
                 {
                     label: "All Products",
                     path: route("admin.products.index"),
                     icon: <List size={14} />,
+                    permission: "products.view",
                 },
                 {
                     label: "Add Product",
                     path: route("admin.products.create"),
                     icon: <PlusCircle size={14} />,
+                    permission: "products.create",
                 },
             ],
         },
@@ -147,16 +159,19 @@ const Sidebar = ({ isCollapsed, isMobileOpen, setIsMobileOpen }) => {
             icon: <FileText size={18} />,
             key: "blogs",
             activeIdentifier: "admin.blogs.*",
+            permission: "blogs.view",
             children: [
                 {
                     label: "All Blogs",
                     path: route("admin.blogs.index"),
                     icon: <List size={14} />,
+                    permission: "blogs.view",
                 },
                 {
                     label: "Add Blog",
                     path: route("admin.blogs.create"),
                     icon: <PlusCircle size={14} />,
+                    permission: "blogs.manage",
                 },
             ],
         },
@@ -165,19 +180,46 @@ const Sidebar = ({ isCollapsed, isMobileOpen, setIsMobileOpen }) => {
             path: route("admin.support.index"),
             icon: <Headset size={18} />,
             activeIdentifier: "admin.support.*",
+            permission: "support_tickets.view",
         },
         {
             label: "Announcements",
             path: route("admin.announcements.index"),
             icon: <ImageIcon size={18} />,
             activeIdentifier: "admin.announcements.*",
+            permission: "announcements.view",
+        },
+        {
+            label: "Employee Management",
+            icon: <Users size={18} />,
+            key: "employee_management",
+            activeIdentifier: ["admin.settings.roles.*", "admin.settings.staff.*", "admin.settings.permissions.*"], 
+            permission: "settings.access",
+            children: [
+                {
+                    label: "Roles",
+                    path: route("admin.settings.roles.index"),
+                    icon: <Shield size={14} />,
+                },
+                {
+                    label: "Permissions",
+                    path: route("admin.settings.permissions.index"),
+                    icon: <Key size={14} />,
+                },
+                {
+                    label: "Staff Management",
+                    path: route("admin.settings.staff.index"),
+                    icon: <UserCircle size={14} />,
+                },
+            ],
         },
         {
             label: "Settings",
             path: route("admin.settings.index"),
             icon: <Settings size={18} />,
             key: "settings",
-            activeIdentifier: "admin.settings.*",
+            activeIdentifier: ["admin.settings.index", "admin.settings.profile", "admin.settings.email", "admin.settings.payment"],
+            permission: "settings.access",
             children: [
                 {
                     label: "Profile Settings",
@@ -203,9 +245,30 @@ const Sidebar = ({ isCollapsed, isMobileOpen, setIsMobileOpen }) => {
         },
     ];
 
+    const { auth } = usePage().props;
+    const userPermissions = auth.user?.permissions || [];
+    const userRoles = auth.user?.roles || [];
+    const isSuperAdmin = userRoles.includes("Super Admin");
+
+    const hasPermission = (permission) => {
+        if (!permission || isSuperAdmin) return true;
+        return userPermissions.includes(permission);
+    };
+
+    const filteredMenuItems = menuItems
+        .filter((item) => hasPermission(item.permission))
+        .map((item) => ({
+            ...item,
+            children: item.children
+                ? item.children.filter((child) =>
+                      hasPermission(child.permission),
+                  )
+                : null,
+        }));
+
     // Auto-open menus based on active state
     useEffect(() => {
-        menuItems.forEach((item) => {
+        filteredMenuItems.forEach((item) => {
             if (item.key && checkActive(item)) {
                 setOpenMenus((prev) => ({ ...prev, [item.key]: true }));
             }
@@ -250,7 +313,7 @@ const Sidebar = ({ isCollapsed, isMobileOpen, setIsMobileOpen }) => {
                 )}
 
                 <div className="space-y-1">
-                    {menuItems.map((item) => {
+                    {filteredMenuItems.map((item) => {
                         const isActive = checkActive(item);
 
                         // Child active highlights

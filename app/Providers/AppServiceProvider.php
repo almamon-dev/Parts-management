@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Schema;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -22,9 +23,15 @@ class AppServiceProvider extends ServiceProvider
     {
         Vite::prefetch(concurrency: 3);
 
+        // Implicitly grant "Super Admin" role all permissions
+        // This works in the app by using gate-related functions like auth()->user->can() and @can()
+        \Illuminate\Support\Facades\Gate::before(function ($user, $ability) {
+            return ($user->hasRole('Super Admin') || $user->user_type === 'admin') ? true : null;
+        });
+
         // Load dynamic mail settings from database
         try {
-            if (\Schema::hasTable('settings')) {
+            if (Schema::hasTable('settings')) {
                 $mailSettings = \App\Models\Setting::where('group', 'email')->pluck('value', 'key');
                 
                 if ($mailSettings->isNotEmpty()) {

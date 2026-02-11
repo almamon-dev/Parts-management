@@ -38,7 +38,7 @@ class UserSeeder extends Seeder
             'total_returns' => 0,
         ]);
 
-        // 2-6. Five Normal B2B Users with Complete Data
+        // 2-4. Three Normal B2B Users
         $normalUsers = [
             [
                 'first_name' => 'Ahmed',
@@ -48,9 +48,6 @@ class UserSeeder extends Seeder
                 'company_phone' => '01711111111',
                 'phone_number' => '01711111111',
                 'address' => 'Mirpur, Dhaka',
-                'discount_rate' => 0,
-                'total_purchases' => 0,
-                'total_returns' => 0,
             ],
             [
                 'first_name' => 'Fatima',
@@ -60,9 +57,6 @@ class UserSeeder extends Seeder
                 'company_phone' => '01722222222',
                 'phone_number' => '01722222222',
                 'address' => 'Uttara, Dhaka',
-                'discount_rate' => 0,
-                'total_purchases' => 0,
-                'total_returns' => 0,
             ],
             [
                 'first_name' => 'Karim',
@@ -72,37 +66,10 @@ class UserSeeder extends Seeder
                 'company_phone' => '01733333333',
                 'phone_number' => '01733333333',
                 'address' => 'Dhanmondi, Dhaka',
-                'discount_rate' => 0,
-                'total_purchases' => 0,
-                'total_returns' => 0,
-            ],
-            [
-                'first_name' => 'Nadia',
-                'last_name' => 'Khan',
-                'email' => 'nadia@parts.com',
-                'company_name' => 'Nadia Car Parts',
-                'company_phone' => '01744444444',
-                'phone_number' => '01744444444',
-                'address' => 'Gulshan, Dhaka',
-                'discount_rate' => 0,
-                'total_purchases' => 0,
-                'total_returns' => 0,
-            ],
-            [
-                'first_name' => 'Rahim',
-                'last_name' => 'Uddin',
-                'email' => 'rahim@auto.com',
-                'company_name' => 'Rahim Auto Service',
-                'company_phone' => '01755555555',
-                'phone_number' => '01755555555',
-                'address' => 'Banani, Dhaka',
-                'discount_rate' => 0,
-                'total_purchases' => 0,
-                'total_returns' => 0,
             ],
         ];
 
-        foreach ($normalUsers as $index => $userData) {
+        foreach ($normalUsers as $userData) {
             User::create([
                 'first_name' => $userData['first_name'],
                 'last_name' => $userData['last_name'],
@@ -130,9 +97,9 @@ class UserSeeder extends Seeder
                 'order_confirmation' => true,
                 'order_cancellation' => true,
                 'monthly_statement' => false,
-                'discount_rate' => $userData['discount_rate'],
-                'total_purchases' => $userData['total_purchases'],
-                'total_returns' => $userData['total_returns'],
+                'discount_rate' => 0,
+                'total_purchases' => 0,
+                'total_returns' => 0,
             ]);
         }
     }

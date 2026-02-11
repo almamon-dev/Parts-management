@@ -7,9 +7,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
+use Spatie\Permission\Traits\HasRoles;
+
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasRoles;
 
     protected $fillable = [
         'username', 'customer_number', 'user_type', 'first_name', 'last_name', 'email', 'password', 'position', 'phone_number',
@@ -39,7 +41,7 @@ class User extends Authenticatable
 
     public function isAdmin(): bool
     {
-        return trim($this->user_type) === 'admin';
+        return in_array(trim($this->user_type), ['admin', 'staff']);
     }
 
     protected static function booted()

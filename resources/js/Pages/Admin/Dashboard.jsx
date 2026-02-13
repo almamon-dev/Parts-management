@@ -14,6 +14,10 @@ import {
     Cell,
 } from "recharts";
 
+// ... imports
+import { router } from "@inertiajs/react";
+import { useState } from "react";
+
 export default function Dashboard({
     auth,
     leads = [],
@@ -23,45 +27,37 @@ export default function Dashboard({
     onlineSalesStats = [],
     salesByChannel = [],
     customerStats = [],
+    filters = {
+        leads_filter: "last_30_days",
+        listings_filter: "last_30_days",
+        sales_filter: "last_30_days",
+        channels_filter: "last_30_days",
+        customers_filter: "last_30_days",
+    },
 }) {
+    const onFilterChange = (key, value) => {
+        router.get(
+            route("dashboard"),
+            { ...filters, [key]: value },
+            { preserveState: true, preserveScroll: true, replace: true },
+        );
+    };
+
     return (
         <AdminLayout user={auth.user}>
             <Head title="Dashboard" />
-            <div className="p-1 md:p-2 min-h-screen font-sans">
+            <div className="p-4 md:p-6 min-h-screen font-sans">
                 {/* --- Row 1: Lists --- */}
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-6">
-                    {/* Quick Product Search */}
-                    <DataCard title="Product Lookup">
-                        <div className="mt-4 space-y-3">
-                            <p className="text-[11px] text-slate-500 font-medium">
-                                Quickly jump to a product by its PP ID.
-                            </p>
-                            <input
-                                type="text"
-                                placeholder="Enter PP ID (e.g. PP110001)"
-                                className="w-full h-11 px-4 rounded-xl border border-slate-200 bg-slate-50 text-sm font-bold focus:ring-4 focus:ring-[#FF9F43]/10 focus:border-[#FF9F43] outline-none transition-all placeholder:text-slate-400"
-                                onKeyDown={(e) => {
-                                    if (e.key === "Enter") {
-                                        window.location.href = route(
-                                            "admin.products.index",
-                                            { search: e.target.value },
-                                        );
-                                    }
-                                }}
-                            />
-                            <div className="flex items-center gap-2 mt-4 pt-4 border-t border-slate-50">
-                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">
-                                    Shortcut:
-                                </span>
-                                <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded uppercase">
-                                    Enter
-                                </span>
-                            </div>
-                        </div>
-                    </DataCard>
-
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
                     {/* Leads Created */}
-                    <DataCard title="Leads Created" hasFilter>
+                    <DataCard
+                        title="Leads Created"
+                        hasFilter
+                        currentFilter={filters.leads_filter}
+                        onFilterChange={(val) =>
+                            onFilterChange("leads_filter", val)
+                        }
+                    >
                         <div className="space-y-2 mt-4 overflow-hidden">
                             {leads.length > 0 ? (
                                 <div className="space-y-2">
@@ -84,16 +80,6 @@ export default function Dashboard({
                                             />
                                         </div>
                                     ))}
-                                    {/* Ghost items to maintain layout height if few items */}
-                                    {leads.length < 8 &&
-                                        [...Array(8 - leads.length)].map(
-                                            (_, i) => (
-                                                <div
-                                                    key={`ghost-${i}`}
-                                                    className="bg-slate-50/30 h-10 rounded-xl border border-slate-50/50"
-                                                ></div>
-                                            ),
-                                        )}
                                 </div>
                             ) : (
                                 <div className="flex flex-col items-center justify-center py-20 text-slate-400">
@@ -112,7 +98,7 @@ export default function Dashboard({
                     <DataCard title="Online Orders">
                         <div className="space-y-3 mt-4 overflow-x-auto custom-scrollbar pb-2">
                             {onlineOrders.length > 0 ? (
-                                <div className="min-w-[400px] lg:min-w-0 space-y-3">
+                                <div className="w-full space-y-3">
                                     {onlineOrders.map((order, i) => (
                                         <div
                                             key={i}
@@ -126,23 +112,21 @@ export default function Dashboard({
                                             </span>
                                             <Badge
                                                 text={order.type}
-                                                color="bg-blue-500/10 text-blue-600 border border-blue-100"
+                                                color="bg-slate-800 text-white"
                                             />
                                             <Badge
                                                 text={`${order.items} Items`}
-                                                color="bg-indigo-500/10 text-indigo-600 border border-indigo-100"
+                                                color="bg-slate-800 text-white"
                                             />
                                             <Badge
                                                 text={order.date}
-                                                color="bg-slate-100 text-slate-600 border border-slate-200"
+                                                color="bg-slate-800 text-white"
                                             />
                                             <Badge
                                                 text={order.status}
-                                                color={
-                                                    order.status === "Fulfilled"
-                                                        ? "bg-emerald-500/10 text-emerald-600 border border-emerald-100"
-                                                        : "bg-rose-500/10 text-rose-600 border border-rose-100"
-                                                }
+                                                color={getStatusColorBadge(
+                                                    order.status,
+                                                )}
                                             />
                                         </div>
                                     ))}
@@ -173,7 +157,7 @@ export default function Dashboard({
                     <DataCard title="Return Requests">
                         <div className="space-y-3 mt-4 overflow-x-auto custom-scrollbar pb-2">
                             {returnRequests.length > 0 ? (
-                                <div className="min-w-[400px] lg:min-w-0 space-y-3">
+                                <div className="w-full space-y-3">
                                     {returnRequests.map((req, i) => (
                                         <div
                                             key={i}
@@ -187,15 +171,15 @@ export default function Dashboard({
                                             </span>
                                             <Badge
                                                 text={req.type}
-                                                color="bg-blue-500/10 text-blue-600 border border-blue-100"
+                                                color="bg-slate-800 text-white"
                                             />
                                             <Badge
                                                 text={`${req.items} Items`}
-                                                color="bg-indigo-500/10 text-indigo-600 border border-indigo-100"
+                                                color="bg-slate-800 text-white"
                                             />
                                             <Badge
                                                 text={req.date}
-                                                color="bg-slate-100 text-slate-600 border border-slate-200"
+                                                color="bg-slate-800 text-white"
                                             />
                                             <Badge
                                                 text={req.status}
@@ -232,15 +216,22 @@ export default function Dashboard({
                 {/* --- Row 2: Listings & Sales Charts --- */}
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
                     {/* New Listings Chart */}
-                    <DataCard title="New Listings" hasFilter>
-                        <div className="flex items-center justify-between h-52 mt-4">
-                            <div className="w-[140px] md:w-1/2 h-full relative">
+                    <DataCard
+                        title="New Listings"
+                        hasFilter
+                        currentFilter={filters.listings_filter}
+                        onFilterChange={(val) =>
+                            onFilterChange("listings_filter", val)
+                        }
+                    >
+                        <div className="flex flex-col sm:flex-row items-center justify-between h-auto sm:h-52 mt-4 gap-4 sm:gap-0">
+                            <div className="w-full sm:w-1/2 h-40 sm:h-full relative">
                                 <ResponsiveContainer width="100%" height="100%">
                                     <PieChart>
                                         <Pie
                                             data={listingsStats}
-                                            innerRadius={55}
-                                            outerRadius={75}
+                                            innerRadius={45}
+                                            outerRadius={65}
                                             paddingAngle={4}
                                             dataKey="value"
                                             stroke="none"
@@ -261,11 +252,13 @@ export default function Dashboard({
                                         Total
                                     </span>
                                     <span className="text-xl font-black text-slate-800 tracking-tight">
-                                        2,366
+                                        {listingsStats
+                                            .reduce((a, b) => a + b.value, 0)
+                                            .toLocaleString()}
                                     </span>
                                 </div>
                             </div>
-                            <div className="flex-1 space-y-4 pr-2 pl-4">
+                            <div className="w-full sm:w-auto flex-1 space-y-3 sm:space-y-4 px-2 sm:pl-4">
                                 {listingsStats.map((stat, i) => (
                                     <div
                                         key={i}
@@ -290,17 +283,23 @@ export default function Dashboard({
                             </div>
                         </div>
                     </DataCard>
-
                     {/* Online Sales Donut */}
-                    <DataCard title="Online Sales" hasFilter>
-                        <div className="flex items-center justify-between h-52 mt-4">
-                            <div className="w-[140px] md:w-1/2 h-full relative">
+                    <DataCard
+                        title="Online Sales"
+                        hasFilter
+                        currentFilter={filters.sales_filter}
+                        onFilterChange={(val) =>
+                            onFilterChange("sales_filter", val)
+                        }
+                    >
+                        <div className="flex flex-col sm:flex-row items-center justify-between h-auto sm:h-52 mt-4 gap-4 sm:gap-0">
+                            <div className="w-full sm:w-1/2 h-40 sm:h-full relative">
                                 <ResponsiveContainer width="100%" height="100%">
                                     <PieChart>
                                         <Pie
                                             data={onlineSalesStats}
-                                            innerRadius={55}
-                                            outerRadius={75}
+                                            innerRadius={45}
+                                            outerRadius={65}
                                             paddingAngle={4}
                                             dataKey="value"
                                             stroke="none"
@@ -321,11 +320,20 @@ export default function Dashboard({
                                         Revenue
                                     </span>
                                     <span className="text-xl font-black text-slate-800 tracking-tight">
-                                        $37K
+                                        $
+                                        {onlineSalesStats
+                                            .reduce(
+                                                (a, b) => a + Number(b.value),
+                                                0,
+                                            )
+                                            .toLocaleString(undefined, {
+                                                minimumFractionDigits: 2,
+                                                maximumFractionDigits: 2,
+                                            })}
                                     </span>
                                 </div>
                             </div>
-                            <div className="flex-1 space-y-4 pr-2 pl-4">
+                            <div className="w-full sm:w-auto flex-1 space-y-3 sm:space-y-4 px-2 sm:pl-4">
                                 {onlineSalesStats.map((stat, i) => (
                                     <div
                                         key={i}
@@ -342,7 +350,13 @@ export default function Dashboard({
                                                 {stat.name}
                                             </span>
                                             <span className="text-sm font-black text-slate-800 tracking-tight">
-                                                ${stat.value.toLocaleString()}
+                                                $
+                                                {Number(
+                                                    stat.value,
+                                                ).toLocaleString(undefined, {
+                                                    minimumFractionDigits: 2,
+                                                    maximumFractionDigits: 2,
+                                                })}
                                             </span>
                                         </div>
                                     </div>
@@ -350,9 +364,15 @@ export default function Dashboard({
                             </div>
                         </div>
                     </DataCard>
-
                     {/* Sales - All Channels Bar Chart */}
-                    <DataCard title="Sales - All Channels" hasFilter>
+                    <DataCard
+                        title="Sales - All Channels"
+                        hasFilter
+                        currentFilter={filters.channels_filter}
+                        onFilterChange={(val) =>
+                            onFilterChange("channels_filter", val)
+                        }
+                    >
                         <div className="h-52 mt-4">
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart
@@ -432,15 +452,22 @@ export default function Dashboard({
 
                 {/* --- Row 3: Online Customers --- */}
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                    <DataCard title="Online Customers" hasFilter>
-                        <div className="flex items-center justify-between h-52 mt-4">
-                            <div className="w-[140px] md:w-1/2 h-full relative">
+                    <DataCard
+                        title="Online Customers"
+                        hasFilter
+                        currentFilter={filters.customers_filter}
+                        onFilterChange={(val) =>
+                            onFilterChange("customers_filter", val)
+                        }
+                    >
+                        <div className="flex flex-col sm:flex-row items-center justify-between h-auto sm:h-52 mt-4 gap-4 sm:gap-0">
+                            <div className="w-full sm:w-1/2 h-40 sm:h-full relative">
                                 <ResponsiveContainer width="100%" height="100%">
                                     <PieChart>
                                         <Pie
                                             data={customerStats}
-                                            innerRadius={55}
-                                            outerRadius={75}
+                                            innerRadius={45}
+                                            outerRadius={65}
                                             paddingAngle={4}
                                             dataKey="value"
                                             stroke="none"
@@ -458,14 +485,16 @@ export default function Dashboard({
                                 </ResponsiveContainer>
                                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                                     <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
-                                        Total
+                                        Customers
                                     </span>
                                     <span className="text-xl font-black text-slate-800 tracking-tight">
-                                        45
+                                        {customerStats
+                                            .reduce((a, b) => a + b.value, 0)
+                                            .toLocaleString()}
                                     </span>
                                 </div>
                             </div>
-                            <div className="flex-1 space-y-4 pr-2 pl-4">
+                            <div className="w-full sm:w-auto flex-1 space-y-3 sm:space-y-4 px-2 sm:pl-4">
                                 {customerStats.map((stat, i) => (
                                     <div
                                         key={i}
@@ -496,32 +525,87 @@ export default function Dashboard({
     );
 }
 
+// ... helper functions ...
+
+// Sub-components
 function getStatusColorBadge(status) {
     const s = status.toLowerCase();
     if (s.includes("pending"))
-        return "bg-amber-500/10 text-amber-600 border border-amber-100";
+        return "bg-amber-400 text-white border border-amber-500";
     if (s.includes("declined"))
-        return "bg-emerald-500/10 text-emerald-600 border border-emerald-100";
+        return "bg-emerald-600 text-white border border-emerald-700";
     if (s.includes("approved"))
-        return "bg-rose-500/10 text-rose-600 border border-rose-100";
-    return "bg-slate-500/10 text-slate-600 border border-slate-100";
+        return "bg-red-700 text-white border border-red-800";
+    if (s.includes("unfulfilled"))
+        return "bg-red-600 text-white border border-red-700";
+    if (s.includes("fulfilled"))
+        return "bg-emerald-600 text-white border border-emerald-700";
+    return "bg-slate-500 text-white border border-slate-600";
 }
 
-// Sub-components
-function DataCard({ title, children, hasFilter }) {
+function DataCard({
+    title,
+    children,
+    hasFilter,
+    currentFilter,
+    onFilterChange,
+}) {
+    const [isOpen, setIsOpen] = useState(false);
+
+    const filterOptions = [
+        { label: "Last 7 days", value: "last_7_days" },
+        { label: "Last 30 days", value: "last_30_days" },
+        { label: "Last Year", value: "last_year" },
+    ];
+
+    const currentLabel =
+        filterOptions.find((opt) => opt.value === currentFilter)?.label ||
+        "Last 30 days";
+
     return (
-        <div className="bg-white p-6 rounded-[22px] shadow-sm border border-slate-200/50 flex flex-col h-full min-h-[300px] transition-all hover:shadow-lg hover:shadow-slate-200/40">
-            <div className="flex justify-between items-start mb-4">
+        <div className="bg-white p-6 rounded-[22px] shadow-sm border border-slate-200/50 flex flex-col h-full min-h-[300px] transition-all hover:shadow-lg hover:shadow-slate-200/40 relative">
+            <div className="flex justify-between items-start mb-4 relative z-20">
                 <h3 className="font-black text-slate-800 text-sm tracking-tight uppercase opacity-80">
                     {title}
                 </h3>
                 {hasFilter && (
-                    <div className="flex items-center gap-1.5 px-3 py-1 bg-slate-50 border border-slate-100 rounded-full text-[10px] text-slate-500 font-bold cursor-pointer hover:bg-white transition-colors">
-                        Last 30 days <ChevronDown size={10} />
+                    <div className="relative">
+                        <button
+                            onClick={() => setIsOpen(!isOpen)}
+                            className="flex items-center gap-1.5 px-3 py-1 bg-slate-50 border border-slate-100 rounded-full text-[10px] text-slate-500 font-bold cursor-pointer hover:bg-white transition-colors outline-none"
+                        >
+                            {currentLabel} <ChevronDown size={10} />
+                        </button>
+                        {isOpen && (
+                            <>
+                                <div
+                                    className="fixed inset-0 z-10"
+                                    onClick={() => setIsOpen(false)}
+                                ></div>
+                                <div className="absolute right-0 mt-2 w-32 bg-white rounded-xl shadow-xl border border-slate-100 z-30 overflow-hidden">
+                                    {filterOptions.map((opt) => (
+                                        <button
+                                            key={opt.value}
+                                            onClick={() => {
+                                                onFilterChange(opt.value);
+                                                setIsOpen(false);
+                                            }}
+                                            className={`w-full text-left px-4 py-2 text-[11px] font-bold hover:bg-slate-50 transition-colors ${
+                                                currentFilter === opt.value
+                                                    ? "text-[#FF9F43]"
+                                                    : "text-slate-600"
+                                            }`}
+                                        >
+                                            {opt.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </>
+                        )}
                     </div>
                 )}
             </div>
-            {children}
+            <div className="relative z-0 h-full flex flex-col">{children}</div>
         </div>
     );
 }
@@ -529,7 +613,7 @@ function DataCard({ title, children, hasFilter }) {
 function Badge({ text, color }) {
     return (
         <span
-            className={`${color} px-2.5 py-0.5 rounded-full whitespace-nowrap text-[10px] font-bold tracking-tight shadow-sm`}
+            className={`${color} px-3 py-1 rounded-full whitespace-nowrap text-[10px] font-bold tracking-tight shadow-sm`}
         >
             {text}
         </span>
@@ -551,13 +635,13 @@ function getStatusColor(status) {
 
 function getChannelColor(index) {
     const colors = [
-        "#22d3ee", // Mississauga
-        "#38bdf8", // Oakville
-        "#60a5fa", // Brampton
-        "#818cf8", // Saskatoon
-        "#a78bfa", // B2B Online
-        "#db2777", // B2C Website
-        "#991b1b", // eBay
+        "#22d3ee",
+        "#38bdf8",
+        "#60a5fa",
+        "#818cf8",
+        "#a78bfa",
+        "#db2777",
+        "#991b1b",
     ];
     return colors[index % colors.length];
 }

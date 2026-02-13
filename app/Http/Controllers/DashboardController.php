@@ -9,73 +9,167 @@ use Inertia\Inertia;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(\Illuminate\Http\Request $request)
     {
+        /** @var \App\Models\User|null $user */
         $user = auth()->user();
 
+        $filters = [
+            'leads_filter' => $request->input('leads_filter', 'last_30_days'),
+            'listings_filter' => $request->input('listings_filter', 'last_30_days'),
+            'sales_filter' => $request->input('sales_filter', 'last_30_days'),
+            'channels_filter' => $request->input('channels_filter', 'last_30_days'),
+            'customers_filter' => $request->input('customers_filter', 'last_30_days'),
+        ];
+
+        // Helper to calculate start date
+        $getStartDate = function ($filter) {
+            return match ($filter) {
+                'last_7_days' => now()->subDays(7),
+                'last_year' => now()->subYear(),
+                default => now()->subDays(30),
+            };
+        };
+
+        // Helper to apply date filter
+        $applyDateToQuery = function ($query, $startDate) {
+            return $query->where('created_at', '>=', $startDate);
+        };
+
         if ($user && $user->isAdmin()) {
-            $leads = \App\Models\Lead::latest()->take(10)->get();
-            $onlineOrders = \App\Models\Order::with(['user', 'items'])
-                ->latest()
-                ->take(5)
+            // Leads (Filtered)
+            $leadsStartDate = $getStartDate($filters['leads_filter']);
+            $leadsQuery = \App\Models\Lead::latest();
+            $applyDateToQuery($leadsQuery, $leadsStartDate);
+            $leads = $leadsQuery->take(8)->get();
+
+            // Online Orders (Fixed: Last 30 Days as per default behavior for lists without filters)
+            $ordersStartDate = $getStartDate('last_30_days');
+            $onlineOrdersQuery = \App\Models\Order::with(['user', 'items'])->latest();
+            $applyDateToQuery($onlineOrdersQuery, $ordersStartDate);
+            $onlineOrders = $onlineOrdersQuery->take(5)
                 ->get()
                 ->map(function ($order) {
                     return [
                         'id' => $order->id,
                         'order_number' => $order->order_number,
                         'customer' => $order->user ? $order->user->name : 'N/A',
-                        'type' => 'Delivery', // Mocked as delivery/pickup info isn't in Order model yet
+                        'type' => $order->order_type ?? 'Delivery',
                         'items' => $order->items->count(),
                         'date' => $order->created_at->format('m/d/Y'),
                         'status' => ucfirst($order->status),
                     ];
                 });
 
-            $returnRequests = \App\Models\ReturnRequest::with(['user', 'order.items'])
-                ->latest()
-                ->take(5)
+            // Return Requests (Fixed: Last 30 Days)
+            $returnsStartDate = $getStartDate('last_30_days');
+            $returnRequestsQuery = \App\Models\ReturnRequest::with(['user', 'order.items'])->latest();
+            $applyDateToQuery($returnRequestsQuery, $returnsStartDate);
+            $returnRequests = $returnRequestsQuery->take(5)
                 ->get()
                 ->map(function ($req) {
                     return [
                         'id' => $req->id,
                         'return_number' => $req->return_number,
                         'customer' => $req->user ? $req->user->name : 'N/A',
-                        'type' => 'Delivery',
+                        'type' => $req->order ? $req->order->order_type : 'Delivery',
                         'items' => $req->order && $req->order->items ? $req->order->items->count() : 0,
                         'date' => $req->created_at->format('m/d/Y'),
                         'status' => ucfirst($req->status),
                     ];
                 });
 
-            // Products stats
-            $totalProducts = \App\Models\Product::count();
-            $productsWithImages = \App\Models\Product::has('files')->count();
-            $productsWithoutImages = $totalProducts - $productsWithImages;
+            // Products stats (Filtered)
+            $listingsStartDate = $getStartDate($filters['listings_filter']);
+            $applyListingsDate = fn ($q) => $q->where('created_at', '>=', $listingsStartDate);
+
+            // Published Listings: Active (visibility='public') + Has Images (Exclusive to avoid double counting)
+            $completeListings = $applyListingsDate(\App\Models\Product::where('visibility', 'public')->has('files'))->count();
+            // Listings Without Images: Active (visibility='public') + No Images
+            $listingsWithoutImages = $applyListingsDate(\App\Models\Product::where('visibility', 'public')->doesntHave('files'))->count();
+            // Unpublished Listings: Inactive (visibility!='public')
+            $unpublishedListings = $applyListingsDate(\App\Models\Product::whereIn('visibility', ['private', 'draft']))->count();
 
             $listingsStats = [
-                ['name' => 'Complete Listings', 'value' => $productsWithImages, 'color' => '#064e3b'],
-                ['name' => 'Listings Without Images', 'value' => $productsWithoutImages, 'color' => '#991b1b'],
-                ['name' => 'Unpublished Listings', 'value' => 338, 'color' => '#b45309'], // Mock placeholder
+                ['name' => 'Published Listings With Images', 'value' => $completeListings, 'color' => '#064e3b'],
+                ['name' => 'Listings Without Images', 'value' => $listingsWithoutImages, 'color' => '#991b1b'],
+                ['name' => 'Unpublished Listings', 'value' => $unpublishedListings, 'color' => '#b45309'],
             ];
+
+            // Online Sales (Filtered)
+            $salesStartDate = $getStartDate($filters['sales_filter']);
+            $applySalesDate = fn ($q) => $q->where('created_at', '>=', $salesStartDate);
+
+            $deliverySales = $applySalesDate(\App\Models\Order::where('order_type', 'Delivery'))->sum('total_amount');
+            $pickupSales = $applySalesDate(\App\Models\Order::where('order_type', 'Pick Up'))->sum('total_amount');
 
             $onlineSalesStats = [
-                ['name' => 'Delivery', 'value' => 26875, 'color' => '#451a03'],
-                ['name' => 'Pick ups', 'value' => 10750, 'color' => '#22d3ee'],
+                ['name' => 'Delivery', 'value' => $deliverySales, 'color' => '#451a03'],
+                ['name' => 'Pick ups', 'value' => $pickupSales, 'color' => '#22d3ee'],
             ];
 
-            $salesByChannel = [
-                ['name' => 'Mississauga', 'value' => 162532],
-                ['name' => 'Oakville', 'value' => 76525],
-                ['name' => 'Brampton', 'value' => 35313],
-                ['name' => 'Saskatoon', 'value' => 49656],
-                ['name' => 'B2B Online', 'value' => 73252],
-                ['name' => 'B2C Website', 'value' => 19650],
-                ['name' => 'eBay', 'value' => 22794],
-            ];
+            // Sales - All Channels (Filtered)
+            $channelsStartDate = $getStartDate($filters['channels_filter']);
+            $applyChannelsDate = fn ($q) => $q->where('created_at', '>=', $channelsStartDate);
+
+            $b2bSales = $applyChannelsDate(\App\Models\Order::whereHas('user', function ($q) {
+                $q->whereNotNull('company_name');
+            }))->sum('total_amount');
+
+            // Location based sales (Dynamic extraction)
+            $ordersForMap = $applyChannelsDate(\App\Models\Order::query())->get(['shipping_address', 'total_amount']);
+
+            $locationSales = $ordersForMap->groupBy(function ($order) {
+                $address = $order->shipping_address;
+
+                if (empty($address)) {
+                    return 'Unknown';
+                }
+
+                if ($address === 'Store Pick Up') {
+                    return 'Store Pick Up';
+                }
+
+                $parts = array_map('trim', explode(',', $address));
+                $count = count($parts);
+                if ($count >= 3) {
+                    $city = $parts[$count - 3];
+
+                    return ! empty($city) ? ucwords(strtolower($city)) : 'Unknown';
+                }
+
+                return 'Unknown';
+            })->map(function ($group) {
+                return $group->sum('total_amount');
+            });
+
+            // remove unknown
+            $locationSales = $locationSales->except('Unknown');
+
+            // Take top 4 locations
+            $topLocations = $locationSales->sortDesc()->take(4);
+
+            $salesByChannel = [];
+
+            // Add dynamic locations
+            foreach ($topLocations as $city => $amount) {
+                $salesByChannel[] = ['name' => $city, 'value' => $amount];
+            }
+
+            // Add fixed channels
+            $salesByChannel[] = ['name' => 'B2B Online', 'value' => $b2bSales];
+
+            // Customer Stats (Filtered)
+            $customersStartDate = $getStartDate($filters['customers_filter']);
+            $applyCustomersDate = fn ($q) => $q->where('created_at', '>=', $customersStartDate);
+
+            // Customer Stats (Outbound/Delivery vs Inbound/Pickup)
+            $outboundCustomers = $applyCustomersDate(\App\Models\Order::where('order_type', 'Delivery'))->distinct('user_id')->count('user_id');
+            $inboundCustomers = $applyCustomersDate(\App\Models\Order::where('order_type', 'Pick Up'))->distinct('user_id')->count('user_id');
 
             $customerStats = [
-                ['name' => 'Outbound', 'value' => 35, 'color' => '#451a03'],
-                ['name' => 'Inbound', 'value' => 25, 'color' => '#22d3ee'],
+                ['name' => 'Outbound', 'value' => $outboundCustomers, 'color' => '#451a03'], // Delivery Customers
+                ['name' => 'Inbound', 'value' => $inboundCustomers, 'color' => '#22d3ee'],   // Pickup Customers
             ];
 
             return Inertia::render('Admin/Dashboard', [
@@ -86,6 +180,7 @@ class DashboardController extends Controller
                 'onlineSalesStats' => $onlineSalesStats,
                 'salesByChannel' => $salesByChannel,
                 'customerStats' => $customerStats,
+                'filters' => $filters,
             ]);
         }
 

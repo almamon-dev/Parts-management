@@ -12,24 +12,24 @@ use Inertia\Inertia;
 
 class HistoryController extends Controller
 {
-public function index()
-{
-    $orders = Order::with([
+    public function index()
+    {
+        $orders = Order::with([
             'items.product.files',
             'items.product.fitments',
-            'returnRequests'
+            'returnRequests',
         ])
-        ->where('user_id', Auth::id())
-        ->whereIn('status', ['delivered', 'cancelled', 'collected'])
-        ->latest()
-        ->get();
+            ->where('user_id', Auth::id())
+            ->whereIn('status', ['delivered', 'cancelled', 'collected'])
+            ->latest()
+            ->get();
 
-    return Inertia::render('User/Order/History', [
-        'orders' => $orders,
+        return Inertia::render('User/Order/History', [
+            'orders' => $orders,
 
-        'deliveredOrders' => $orders->where('status', 'delivered')->values(),
-    ]);
-}
+            'deliveredOrders' => $orders->where('status', 'delivered')->values(),
+        ]);
+    }
 
     // --re-order details
     public function reOrder(Order $order)

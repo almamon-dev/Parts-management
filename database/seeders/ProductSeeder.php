@@ -21,7 +21,7 @@ class ProductSeeder extends Seeder
         $cat2 = Category::where('category_type', 2)->get();
         $cat3 = Category::where('category_type', 3)->get();
 
-        for ($i = 1; $i <= 1; $i++) {
+        for ($i = 1; $i <= 20; $i++) {
             $make = $makes[array_rand($makes)];
             $model = $models[array_rand($models)];
             $basePrice = rand(50, 2000);

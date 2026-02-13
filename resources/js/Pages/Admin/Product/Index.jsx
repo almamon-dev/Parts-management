@@ -190,7 +190,7 @@ export default function Index({
                             <Upload size={16} className="mr-2 text-slate-400" />{" "}
                             Import
                         </button>
-                        <a
+                        {/* <a
                             href={route("admin.products.export")}
                             className="flex-1 md:flex-none inline-flex items-center justify-center px-4 py-2 bg-white border border-slate-200 text-slate-700 text-[13px] font-semibold rounded-lg hover:bg-slate-50 transition-all duration-200"
                         >
@@ -199,7 +199,7 @@ export default function Index({
                                 className="mr-2 text-slate-400"
                             />{" "}
                             Export
-                        </a>
+                        </a> */}
                         <Link
                             href={route("admin.products.create")}
                             className="w-full md:w-auto inline-flex items-center justify-center px-4 py-2 bg-[#FF9F43] text-white text-[13px] font-bold rounded-lg hover:bg-[#e68a30] transition-all duration-200 shadow-lg shadow-orange-100"

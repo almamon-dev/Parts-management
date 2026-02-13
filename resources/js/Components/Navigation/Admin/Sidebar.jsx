@@ -45,6 +45,11 @@ const Sidebar = ({ isCollapsed, isMobileOpen, setIsMobileOpen }) => {
                 window.route &&
                 window.route().current
             ) {
+                if (Array.isArray(item.activeIdentifier)) {
+                    return item.activeIdentifier.some((pattern) =>
+                        window.route().current(pattern),
+                    );
+                }
                 return window.route().current(item.activeIdentifier);
             }
 
@@ -193,7 +198,11 @@ const Sidebar = ({ isCollapsed, isMobileOpen, setIsMobileOpen }) => {
             label: "Employee Management",
             icon: <Users size={18} />,
             key: "employee_management",
-            activeIdentifier: ["admin.settings.roles.*", "admin.settings.staff.*", "admin.settings.permissions.*"], 
+            activeIdentifier: [
+                "admin.settings.roles.*",
+                "admin.settings.staff.*",
+                "admin.settings.permissions.*",
+            ],
             permission: "settings.access",
             children: [
                 {
@@ -218,7 +227,12 @@ const Sidebar = ({ isCollapsed, isMobileOpen, setIsMobileOpen }) => {
             path: route("admin.settings.index"),
             icon: <Settings size={18} />,
             key: "settings",
-            activeIdentifier: ["admin.settings.index", "admin.settings.profile", "admin.settings.email", "admin.settings.payment"],
+            activeIdentifier: [
+                "admin.settings.index",
+                "admin.settings.profile",
+                "admin.settings.email",
+                "admin.settings.payment",
+            ],
             permission: "settings.access",
             children: [
                 {
@@ -319,11 +333,12 @@ const Sidebar = ({ isCollapsed, isMobileOpen, setIsMobileOpen }) => {
                         // Child active highlights
                         const isChildActive = (childPath) => {
                             try {
-                                return (
-                                    url ===
-                                    new URL(childPath, window.location.origin)
-                                        .pathname
-                                );
+                                const currentPath = url.split("?")[0];
+                                const childPathName = new URL(
+                                    childPath,
+                                    window.location.origin,
+                                ).pathname;
+                                return currentPath === childPathName;
                             } catch (e) {
                                 return false;
                             }

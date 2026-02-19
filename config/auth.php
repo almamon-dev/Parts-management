@@ -112,15 +112,4 @@ return [
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
 
-    'otp' => [
-        'length' => 4,
-        'expiry' => 5, // minutes
-        'max_attempts' => 5, // max OTP requests per window
-        'decay_minutes' => 15, // rate limit window in minutes
-        'min_interval' => 120, // minimum seconds between OTP requests
-        'verify_max_attempts' => 3, // max verification attempts per OTP
-        'verify_decay_minutes' => 5, // verification rate limit window
-        'queue' => false,
-    ],
-
 ];

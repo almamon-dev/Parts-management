@@ -36,7 +36,7 @@ export default function VerifyOTP({
         if (timer > 0) {
             const interval = setInterval(
                 () => setTimer((prev) => prev - 1),
-                1000
+                1000,
             );
             return () => clearInterval(interval);
         }
@@ -78,8 +78,11 @@ export default function VerifyOTP({
     // PASTE HANDLER: Fill all fields when a code is pasted
     const handlePaste = (e) => {
         e.preventDefault();
-        const pasteData = e.clipboardData.getData("text").slice(0, otp_length).split("");
-        
+        const pasteData = e.clipboardData
+            .getData("text")
+            .slice(0, otp_length)
+            .split("");
+
         if (pasteData.length > 0) {
             const newOtp = [...data.otp];
             pasteData.forEach((char, i) => {
@@ -89,9 +92,12 @@ export default function VerifyOTP({
             });
             setData("otp", newOtp);
             setOtpError("");
-            
+
             // Focus the last filled input or the first empty one
-            const nextIndex = pasteData.length < otp_length ? pasteData.length : otp_length - 1;
+            const nextIndex =
+                pasteData.length < otp_length
+                    ? pasteData.length
+                    : otp_length - 1;
             inputRefs.current[nextIndex]?.focus();
         }
     };
@@ -105,7 +111,11 @@ export default function VerifyOTP({
 
     const handleResend = () => {
         post(route("otp.resend"), {
-            onSuccess: () => setTimer(resend_interval),
+            onSuccess: () => {
+                setTimer(resend_interval);
+                setData("otp", Array(otp_length).fill(""));
+                inputRefs.current[0]?.focus();
+            },
         });
     };
 
@@ -146,7 +156,9 @@ export default function VerifyOTP({
 
                 <div className="relative z-10 mt-6 flex flex-col items-center">
                     <img src="/img/logo.png" alt="Logo" className="h-16 mb-6" />
-                    <h2 className="text-3xl font-bold tracking-tight">Verify Identity</h2>
+                    <h2 className="text-3xl font-bold tracking-tight">
+                        Verify Identity
+                    </h2>
                     <p className="mt-3 text-gray-300 max-w-[320px] mx-auto leading-relaxed">
                         Enter the {otp_length}-digit code sent to <br />
                         <span className="font-bold text-[#F2A922] block mt-1">
@@ -190,7 +202,9 @@ export default function VerifyOTP({
                             <button
                                 type="submit"
                                 className="group w-full max-w-[240px] h-[56px] bg-[#AD0100] hover:bg-red-700 rounded-full flex items-center justify-center shadow-xl transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
-                                disabled={processing || data.otp.some(d => !d)}
+                                disabled={
+                                    processing || data.otp.some((d) => !d)
+                                }
                             >
                                 <span className="text-lg font-bold mr-3">
                                     {processing ? "Verifying..." : "Verify Now"}

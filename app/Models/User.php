@@ -6,12 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, HasRoles;
+    use HasFactory, HasRoles, Notifiable;
 
     protected $fillable = [
         'username', 'customer_number', 'user_type', 'first_name', 'last_name', 'email', 'password', 'position', 'phone_number',
@@ -76,7 +75,7 @@ class User extends Authenticatable
      */
     public function otps(): HasMany
     {
-        return $this->hasMany(Otp::class);
+        return $this->hasMany(OTP::class);
     }
 
     public function carts()

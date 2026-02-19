@@ -1,13 +1,12 @@
 <?php
 
 use App\Models\User;
+use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Queue;
-use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Support\Str;
 
 uses(WithFaker::class);
 
@@ -62,15 +61,12 @@ it('verifies email OTP and logs the user in', function () {
         'email_verified_at' => null,
     ]);
 
-    // Bypass actual OTP check by faking trait via partial mock on controller route is complex.
-    // Instead, directly insert a valid OTP row into DB for verify purpose if table exists.
     if (DB::getSchemaBuilder()->hasTable('o_t_p_s')) {
         DB::table('o_t_p_s')->insert([
             'user_id' => $user->id,
-            'code' => '123456',
+            'otp' => Hash::make('123456'), // Hashed as per Model/Trait logic
             'purpose' => 'email_verify',
             'expires_at' => now()->addMinutes(5),
-            'attempts' => 0,
             'created_at' => now(),
             'updated_at' => now(),
         ]);
@@ -103,10 +99,9 @@ it('accepts reset OTP and redirects to reset form with token', function () {
     if (DB::getSchemaBuilder()->hasTable('o_t_p_s')) {
         DB::table('o_t_p_s')->insert([
             'user_id' => $user->id,
-            'code' => '654321',
+            'otp' => Hash::make('654321'),
             'purpose' => 'password_reset',
             'expires_at' => now()->addMinutes(5),
-            'attempts' => 0,
             'created_at' => now(),
             'updated_at' => now(),
         ]);
@@ -122,7 +117,7 @@ it('accepts reset OTP and redirects to reset form with token', function () {
     $response->assertRedirect();
     $location = $response->headers->get('Location');
     expect($location)->toContain('/reset-password/');
-    expect($location)->toContain('email=' . urlencode($user->email));
+    expect($location)->toContain('email='.urlencode($user->email));
 
     // After verify, user should not be logged in automatically for reset flow
     $this->assertGuest();

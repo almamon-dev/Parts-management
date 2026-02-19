@@ -215,9 +215,6 @@ const ProductCard = memo(
                             >
                                 {product.shop_view?.name || "STOCK"}
                             </span>
-                            <span className="text-[8px] font-black text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded uppercase">
-                                {product.part_type?.name}
-                            </span>
                         </div>
                         <h4 className="font-bold text-slate-800 text-sm leading-tight tracking-tight mb-2 line-clamp-2 uppercase">
                             {product.description}
@@ -229,31 +226,6 @@ const ProductCard = memo(
                             </span>
                         </div>
                     </div>
-                </div>
-
-                {/* Fitment Scroll */}
-                <div className="mt-4 pt-4 border-t border-slate-50 overflow-x-auto whitespace-nowrap scrollbar-hide flex gap-3 text-[10px] font-bold text-slate-500 uppercase tracking-tight">
-                    {product.fitments?.map((fit, fIdx) => (
-                        <div
-                            key={fIdx}
-                            className="flex items-center gap-1.5 shrink-0"
-                        >
-                            <span className="text-slate-900 font-black">
-                                {fit.year_from}-{fit.year_to}
-                            </span>
-                            <span>
-                                {fit.make} {fit.model}
-                            </span>
-                            {fIdx < product.fitments.length - 1 && (
-                                <span className="text-slate-200 ml-1">|</span>
-                            )}
-                        </div>
-                    ))}
-                    {(!product.fitments || product.fitments.length === 0) && (
-                        <span className="text-slate-400 italic">
-                            Universal Fit
-                        </span>
-                    )}
                 </div>
 
                 {/* Prices & Actions */}
@@ -337,9 +309,6 @@ const ProductRow = memo(
                             >
                                 {product.shop_view?.name || "STOCK"}
                             </span>
-                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
-                                {product.sorting?.name || "N/A"}
-                            </span>
                         </div>
 
                         {/* Image Container */}
@@ -385,38 +354,6 @@ const ProductRow = memo(
                         <h4 className="font-bold text-slate-800 text-[14px] leading-tight tracking-tight whitespace-normal uppercase">
                             {product.description}
                         </h4>
-                        <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-black text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded uppercase tracking-wider">
-                                {product.part_type?.name}
-                            </span>
-                        </div>
-
-                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-[11px] font-bold text-slate-500 uppercase tracking-tight">
-                            {product.fitments?.map((fit, fIdx) => (
-                                <div
-                                    key={fIdx}
-                                    className="flex items-center gap-1.5"
-                                >
-                                    <span className="text-slate-900 font-black">
-                                        {fit.year_from}-{fit.year_to}
-                                    </span>
-                                    <span>
-                                        {fit.make} {fit.model}
-                                    </span>
-                                    {fIdx < product.fitments.length - 1 && (
-                                        <span className="text-slate-200">
-                                            |
-                                        </span>
-                                    )}
-                                </div>
-                            ))}
-                            {(!product.fitments ||
-                                product.fitments.length === 0) && (
-                                <span className="text-slate-400 italic">
-                                    Universal Fit
-                                </span>
-                            )}
-                        </div>
                     </div>
                 </td>
 

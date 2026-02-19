@@ -12,7 +12,7 @@ return [
     |
     */
 
-    'length' => 6,      // The OTP will consist of 4 digits
+    'length' => 6,      // The OTP will consist of 6 digits
     'expiry' => 5,      // Valid for 5 minutes
     'max_attempts' => 5,      // Max requests allowed within the decay window
     'decay_minutes' => 15,     // Reset rate limit window after 15 minutes

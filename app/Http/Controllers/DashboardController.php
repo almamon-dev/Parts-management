@@ -12,7 +12,7 @@ class DashboardController extends Controller
     public function index(\Illuminate\Http\Request $request)
     {
         /** @var \App\Models\User|null $user */
-        $user = auth()->user();
+        $user = \Illuminate\Support\Facades\Auth::user();
 
         $filters = [
             'leads_filter' => $request->input('leads_filter', 'last_30_days'),
@@ -185,12 +185,12 @@ class DashboardController extends Controller
         }
 
         // Fetch products for different sections
-        $sellingItems = \App\Models\Product::with(['files', 'partType', 'fitments'])
+        $sellingItems = \App\Models\Product::with(['files', 'partType', 'shopView', 'fitments'])
             ->latest()
             ->take(4)
             ->get();
 
-        $mechanicalItems = \App\Models\Product::with(['files', 'partType', 'fitments'])
+        $mechanicalItems = \App\Models\Product::with(['files', 'partType', 'shopView', 'fitments'])
             ->whereHas('partType', function ($q) {
                 $q->where('name', 'like', '%Mechanical%');
             })
@@ -202,7 +202,7 @@ class DashboardController extends Controller
             $mechanicalItems = $sellingItems;
         }
 
-        $electricalItems = \App\Models\Product::with(['files', 'partType', 'fitments'])
+        $electricalItems = \App\Models\Product::with(['files', 'partType', 'shopView', 'fitments'])
             ->whereHas('partType', function ($q) {
                 $q->where('name', 'like', '%Electrical%');
             })
@@ -214,7 +214,7 @@ class DashboardController extends Controller
             $electricalItems = $sellingItems;
         }
 
-        $accessories = \App\Models\Product::with(['files', 'partType', 'fitments'])
+        $accessories = \App\Models\Product::with(['files', 'partType', 'shopView', 'fitments'])
             ->whereHas('partType', function ($q) {
                 $q->where('name', 'like', '%Access%');
             })
@@ -226,7 +226,7 @@ class DashboardController extends Controller
             $accessories = $sellingItems;
         }
 
-        $clearanceItems = \App\Models\Product::with(['files', 'partType', 'fitments'])
+        $clearanceItems = \App\Models\Product::with(['files', 'partType', 'shopView', 'fitments'])
             ->where('is_clearance', true)
             ->latest()
             ->take(4)
@@ -264,21 +264,39 @@ class DashboardController extends Controller
         $accessories = $mapProducts($accessories);
         $clearanceItems = $mapProducts($clearanceItems);
 
-        // Fetch Categories for the grid
-        $categories = \App\Models\Category::where('status', 'active')
-            ->take(4)
-            ->get()
-            ->map(function ($cat, $index) {
-                // Assign a color based on index if not stored in DB
-                $colors = ['bg-black', 'bg-[#F5B52E]', 'bg-[#B90000]', 'bg-black'];
+        // High-end categories for the grid with dynamic data and robust fallbacks
+        $gridConfig = [
+            'Aftermarket' => [
+                'names' => ['Aftermarket', 'After'],
+                'img' => '/img/Dashboard/ee41bae3bee280556f5a00ec4188244fc4f406ed.png',
+                'color' => 'bg-black',
+            ],
+            'Used Parts' => [
+                'names' => ['Used Parts', 'Used'],
+                'img' => '/img/Dashboard/56b144518c1fddbb5095d6b2844d7c5de67f040d.png',
+                'color' => 'bg-[#F5B52E]',
+            ],
+            'Interior' => [
+                'names' => ['Interior'],
+                'img' => '/img/Dashboard/17d63dafa7370e189f5dffe98674e135091d04b8.png',
+                'color' => 'bg-[#B90000]',
+            ],
+        ];
 
-                return [
-                    'id' => $cat->id,
-                    'title' => $cat->name,
-                    'img' => $cat->image ? '/'.$cat->image : null,
-                    'color' => $colors[$index % count($colors)],
-                ];
-            });
+        $categories = collect($gridConfig)->map(function ($cfg, $displayName) {
+            $cat = \App\Models\Category::where(function ($q) use ($cfg) {
+                foreach ($cfg['names'] as $name) {
+                    $q->orWhere('name', 'like', "%{$name}%");
+                }
+            })->first();
+
+            return [
+                'id' => $cat ? $cat->id : null,
+                'title' => $displayName,
+                'img' => ($cat && $cat->image) ? '/'.$cat->image : $cfg['img'],
+                'color' => $cfg['color'],
+            ];
+        })->values();
 
         // Default user dashboard
         return Inertia::render('User/Dashboard', [

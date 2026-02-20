@@ -47,8 +47,8 @@ const ProductCard = memo(
                     {/* Badge Container */}
                     <div className="absolute top-2 left-2 md:top-3 md:left-3 z-10">
                         <div className="bg-slate-700/80 backdrop-blur-md text-white text-[9px] md:text-[11px] font-bold px-2 py-1 md:px-3 md:py-1.5 rounded-[6px] md:rounded-[8px] uppercase tracking-wide">
-                            {product.partType?.name ||
-                                product.shopView?.name ||
+                            {product.part_type?.name ||
+                                product.shop_view?.name ||
                                 "Premium Part"}
                         </div>
                     </div>
@@ -320,7 +320,8 @@ export default function Dashboard({
                 <div className="max-w-9xl mx-auto space-y-6 md:space-y-8">
                     {/* 1. CATEGORY GRID */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-                        {categories.map((cat, idx) => (
+                        {/* Dynamic Categories (First 3) */}
+                        {dynamicCategories?.map((cat, idx) => (
                             <div
                                 key={idx}
                                 onClick={() =>
@@ -341,18 +342,41 @@ export default function Dashboard({
                                 <button
                                     className={cn(
                                         cat.color,
-                                        "text-white w-full pl-5 lg:pl-6 pr-1.5 py-2 lg:py-2.5 rounded-full flex items-center justify-between transition-all active:scale-95 shadow-lg",
+                                        "text-white w-fit mx-auto pl-5 pr-1.5 py-1.5 lg:py-2 rounded-full flex items-center gap-4 transition-all active:scale-95 shadow-lg",
                                     )}
                                 >
-                                    <span className="text-base lg:text-lg font-black tracking-tight uppercase ">
+                                    <span className="text-xs lg:text-sm font-black tracking-tight uppercase ">
                                         Shop {cat.title}
                                     </span>
-                                    <div className="bg-white/20 p-2 lg:p-2.5 rounded-full border border-white/10">
-                                        <ArrowUpRight className="w-5 h-5 text-white" />
+                                    <div className="bg-white/20 p-1.5 lg:p-2 rounded-full border border-white/10">
+                                        <ArrowUpRight className="w-4 h-4 text-white" />
                                     </div>
                                 </button>
                             </div>
                         ))}
+
+                        {/* Always Show "Shop All" (4th position) */}
+                        <div
+                            onClick={() => router.get(route("parts.index"))}
+                            className="bg-[#EBEBEB] rounded-[10px] p-4 lg:p-6 flex flex-col items-center justify-between transition-all hover:shadow-xl border border-transparent hover:border-white group cursor-pointer active:scale-[0.98]"
+                        >
+                            <div className="w-full h-32 lg:h-36 flex items-center justify-center mb-4">
+                                <img
+                                    src="/img/Dashboard/3c617ad5f59ffa440da98ed4041a9ae8434609ca.png"
+                                    alt="All Parts"
+                                    className="max-w-full max-h-full object-contain drop-shadow-md transition-transform duration-500 group-hover:scale-110"
+                                />
+                            </div>
+
+                            <button className="bg-black text-white w-fit mx-auto pl-5 pr-1.5 py-1.5 lg:py-2 rounded-full flex items-center gap-4 transition-all active:scale-95 shadow-lg">
+                                <span className="text-xs lg:text-sm font-black tracking-tight uppercase ">
+                                    Shop All
+                                </span>
+                                <div className="bg-white/20 p-1.5 lg:p-2 rounded-full border border-white/10">
+                                    <ArrowUpRight className="w-4 h-4 text-white" />
+                                </div>
+                            </button>
+                        </div>
                     </div>
 
                     {/* 2. PROMO & STATS */}
@@ -524,7 +548,7 @@ function StatCard({ icon, title, value, onClick }) {
             </div>
 
             <div className="mt-6 md:mt-8 z-10">
-                <h3 className="text-[2.5rem] md:text-[3.5rem] font-black text-slate-900 tracking-tighter leading-none transition-all group-hover:translate-x-1">
+                <h3 className="text-[1.8rem] md:text-[2.2rem] font-black text-slate-900 tracking-tighter leading-none transition-all group-hover:translate-x-1">
                     {String(value).padStart(2, "0")}
                 </h3>
             </div>

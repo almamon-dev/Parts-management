@@ -11,14 +11,14 @@ const Input = React.forwardRef(
             isTextArea = false,
             ...props
         },
-        ref
+        ref,
     ) => {
         const Component = isTextArea ? "textarea" : "input";
 
         return (
-            <div className="w-full space-y-1.5 text-left">
+            <div className="w-full space-y-0.5 text-left">
                 {label && (
-                    <label className="text-[12px] font-medium text-slate-500 ml-0.5">
+                    <label className="text-[11px] font-medium text-slate-500 ml-0.5">
                         {label}
                     </label>
                 )}
@@ -35,7 +35,7 @@ const Input = React.forwardRef(
 
                         isTextArea ? "min-h-[100px] resize-y" : "h-10",
                         "disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500",
-                        className
+                        className,
                     )}
                     ref={ref}
                     {...props}
@@ -48,7 +48,7 @@ const Input = React.forwardRef(
                 )}
             </div>
         );
-    }
+    },
 );
 
 Input.displayName = "Input";

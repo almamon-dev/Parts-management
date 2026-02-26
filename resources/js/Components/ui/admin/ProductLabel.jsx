@@ -27,10 +27,14 @@ const ProductLabel = React.forwardRef(({ product }, ref) => {
         }
     }, [product.pp_id]);
 
-    const yearRange =
-        fitment.year_from && fitment.year_to
-            ? `${fitment.year_from} - ${fitment.year_to}`
-            : fitment.year_from || fitment.year_to || "";
+    const yearRange = (() => {
+        const from = fitment.year_from;
+        const to = fitment.year_to;
+        if (!from && !to) return "";
+        if (from && to && String(from) === String(to)) return from;
+        if (from && to) return `${from} - ${to}`;
+        return from || to || "";
+    })();
 
     const vehicleTitle =
         `${yearRange} ${fitment.make || ""} ${fitment.model || ""}`.trim();
@@ -48,7 +52,6 @@ const ProductLabel = React.forwardRef(({ product }, ref) => {
                 fontFamily: "'Inter', sans-serif",
                 display: "flex",
                 flexDirection: "column",
-                border: "1.5px solid #000",
                 borderRadius: "10px",
                 margin: "0 auto",
                 boxSizing: "border-box",

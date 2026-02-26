@@ -17,6 +17,7 @@ class ProductUpdateRequest extends FormRequest
 
         return [
             'description' => 'required|string|min:10',
+            'pp_id' => 'nullable|string|max:100|unique:products,pp_id,'.$productId,
             'list_price' => 'required|numeric|min:0',
             'sku' => 'required|string|max:100|unique:products,sku,'.$productId,
             'part_type_id' => 'required|exists:categories,id',

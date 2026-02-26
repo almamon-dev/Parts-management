@@ -39,7 +39,6 @@ const PrintLabelButton = ({ product, variant = "icon" }) => {
                     margin: 0 !important;
                     padding: 20px 24px !important;
                     box-sizing: border-box !important;
-                    border: 1.5px solid #000 !important;
                     border-radius: 10px !important;
                     background: white !important;
                     width: 4.2in !important;

@@ -18,10 +18,11 @@ import {
     Tag,
 } from "lucide-react";
 
-import { YEARS as YEARS_LIST } from "@/Constants/years";
-
 const MAKES = MAKES_LIST.map((make) => ({ value: make, label: make }));
-const YEARS = YEARS_LIST.map((year) => ({ value: year, label: year }));
+
+const YEARS = Array.from({ length: 2026 - 1995 + 1 }, (_, i) => 1995 + i)
+    .reverse()
+    .map((year) => ({ value: year.toString(), label: year.toString() }));
 
 const POSITIONS = [
     { value: "Front", label: "Front" },
@@ -63,27 +64,13 @@ export default function Edit({
     const updateFitment = (index, field, value) => {
         const updated = [...data.fitments];
         updated[index][field] = value;
-
-        // Reset model if make changes
-        if (field === "make") {
-            updated[index]["model"] = "";
-        }
-
         setData("fitments", updated);
     };
 
-    const updatePartNumber = (index, value) => {
-        const updated = [...data.part_numbers];
-        updated[index] = value;
-        setData("part_numbers", updated);
-    };
+    const updatePartNumber = (index, value) => {};
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        post(route("admin.products.update", product.id), {
-            forceFormData: true,
-            preserveScroll: true,
-        });
     };
 
     return (
@@ -94,11 +81,11 @@ export default function Edit({
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-5">
                     <div>
                         <h1 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                            <Settings className="text-[#FF9F43]" size={24} />
-                            <span>Edit Product</span>
+                            <Info className="text-[#FF9F43]" size={24} />
+                            <span>Product Details</span>
                         </h1>
                         <p className="text-slate-500 text-[13px] mt-1">
-                            Modify existing product details and specifications.
+                            View product details and specifications.
                         </p>
                     </div>
                     <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
@@ -112,10 +99,7 @@ export default function Edit({
                     </div>
                 </div>
 
-                <form
-                    onSubmit={handleSubmit}
-                    className="grid grid-cols-1 lg:grid-cols-12 gap-5"
-                >
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 pointer-events-none">
                     {/* LEFT COLUMN */}
                     <div className="lg:col-span-8 space-y-5">
                         {/* Description Section */}
@@ -658,12 +642,12 @@ export default function Edit({
                             </div>
                         </div>
 
-                        {/* Existing Media Preview */}
-                        {product.files && product.files.length > 0 && (
-                            <div className="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm">
-                                <h3 className="text-[14px] font-bold text-slate-800 mb-4">
-                                    Current Media
-                                </h3>
+                        {/* Media Preview */}
+                        <div className="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm">
+                            <h3 className="text-[14px] font-bold text-slate-800 mb-4">
+                                Product Media
+                            </h3>
+                            {product.files && product.files.length > 0 ? (
                                 <div className="grid grid-cols-3 gap-3">
                                     {product.files.map((file) => (
                                         <div
@@ -675,43 +659,17 @@ export default function Edit({
                                                 className="w-full h-full object-cover rounded-lg"
                                                 alt="Product"
                                             />
-
-                                            <div className="absolute top-1.5 right-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <ConfirmDelete
-                                                    id={file.id}
-                                                    routeName="admin.products.file-destroy"
-                                                    title="Delete Image?"
-                                                    text="Are you sure you want to delete this image permanently?"
-                                                />
-                                            </div>
                                         </div>
                                     ))}
                                 </div>
-                            </div>
-                        )}
-
-                        <div className="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm">
-                            <FileUpload
-                                data={data}
-                                setData={setData}
-                                errors={errors}
-                                field="images"
-                                label="Add New Images"
-                                multiple={true}
-                                className="text-[13px]"
-                            />
+                            ) : (
+                                <div className="text-center py-6 text-slate-400 text-[13px] border-2 border-dashed border-slate-100 rounded-xl bg-slate-50/50">
+                                    No images available for this product.
+                                </div>
+                            )}
                         </div>
-
-                        <button
-                            type="submit"
-                            disabled={processing}
-                            className="w-full bg-[#FF9F43] text-white h-11 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-[#e68a30] active:scale-95 transition-all disabled:opacity-50 mt-2"
-                        >
-                            <Save size={18} />{" "}
-                            {processing ? "Updating..." : "Save Changes"}
-                        </button>
                     </div>
-                </form>
+                </div>
             </div>
         </AdminLayout>
     );

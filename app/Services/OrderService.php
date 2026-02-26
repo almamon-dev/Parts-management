@@ -30,8 +30,9 @@ class OrderService
                 return ($item->product->buy_price ?? $item->product->list_price) * $item->quantity;
             });
 
-            // For now, tax and shipping are 0 or calculated later
-            $tax = 0;
+            // Tax calculation based on settings
+            $taxPercentage = \App\Models\Setting::where('key', 'tax_percentage')->value('value') ?? 13;
+            $tax = round($subtotal * ($taxPercentage / 100), 2);
             $totalAmount = $subtotal + $tax;
 
             $order = Order::create([
@@ -43,6 +44,8 @@ class OrderService
                 'status' => 'Processing',
                 'order_type' => $data['order_type'] ?? 'Pick up',
                 'shipping_address' => $data['shipping_address'] ?? ($user->address ?? 'N/A'),
+                'billing_address' => $data['billing_address'] ?? ($user->address ?? 'N/A'),
+                'address_type' => $data['address_type'] ?? 'Business',
                 'notes' => $data['notes'] ?? null,
             ]);
 
@@ -67,6 +70,9 @@ class OrderService
 
             // Clear the cart
             Cart::where('user_id', $user->id)->delete();
+
+            // Flush admin order cache
+            AdminOrderSnapshot::flush();
 
             return $order;
         });

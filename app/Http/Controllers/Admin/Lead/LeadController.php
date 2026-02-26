@@ -20,6 +20,7 @@ class LeadController extends Controller
 
         // Get users for filter
         $users = \App\Models\User::select('id', 'first_name', 'last_name')
+            ->whereIn('user_type', ['admin', 'staff'])
             ->orderBy('first_name')
             ->get()
             ->map(fn ($u) => ['id' => $u->id, 'name' => "{$u->first_name} {$u->last_name}"]);

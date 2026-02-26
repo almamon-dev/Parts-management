@@ -382,10 +382,11 @@ export default function Index({ orders, filters, counts = {} }) {
                                                     <Link
                                                         href={
                                                             route(
-                                                                "admin.orders.show",
+                                                                "admin.orders.invoice",
                                                                 order.id,
                                                             ) + "?print=1"
                                                         }
+                                                        target="_blank"
                                                         className="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-50 text-slate-400 hover:bg-[#FF9F43]/10 hover:text-[#FF9F43] transition-all border border-transparent hover:border-slate-200"
                                                         title="Print Invoice"
                                                     >

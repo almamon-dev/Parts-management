@@ -175,57 +175,109 @@ export default function Invoice({ lead }) {
                         <div className="flex min-h-[100px]">
                             {/* Bill To Info */}
                             <div className="w-1/2 p-3 border-r-[2.5px] border-black space-y-0.5">
-                                <p className="text-[13px] font-black text-black">
+                                {/* <p className="text-[13px] font-black text-black">
                                     {lead.name}
-                                </p>
-                                <p className="text-[12px] font-bold text-slate-800">
-                                    {lead.shop_name}
-                                </p>
-                                <p className="text-[12px] font-medium text-slate-700 leading-tight">
-                                    {lead.street_address}
-                                    {lead.unit_number &&
-                                        `, Unit ${lead.unit_number}`}
-                                    <br />
-                                    {lead.city}, {lead.province},{" "}
-                                    {lead.postcode}
-                                </p>
-                                <p className="text-[11px] font-bold text-black mt-1">
-                                    {lead.contact_number &&
-                                        lead.contact_number.replace(
-                                            /(\d{3})(\d{3})(\d{4})/,
-                                            "$1-$2-$3",
-                                        )}
-                                </p>
-                                <p className="text-[11px] font-bold text-black">
-                                    {lead.email}
-                                </p>
+                                </p> */}
+                                {lead.shop_name && (
+                                    <p className="text-[12px] font-bold text-slate-800">
+                                        {lead.shop_name}
+                                    </p>
+                                )}
+                                <div className="text-[12px] font-medium text-slate-700 leading-tight">
+                                    <p>
+                                        {lead.street_address}
+                                        {lead.unit_number &&
+                                            `, Unit ${lead.unit_number}`}
+                                    </p>
+                                    <p>
+                                        {lead.city}, {lead.province},{" "}
+                                        {lead.postcode}
+                                    </p>
+                                    {lead.country && <p>{lead.country}</p>}
+                                </div>
+                                <div className="pt-1">
+                                    <p className="text-[11px] font-bold text-black">
+                                        {lead.contact_number &&
+                                            lead.contact_number.replace(
+                                                /(\d{3})(\d{3})(\d{4})/,
+                                                "$1-$2-$3",
+                                            )}
+                                    </p>
+                                    <p className="text-[11px] font-bold text-black">
+                                        {lead.email}
+                                    </p>
+                                </div>
                             </div>
                             {/* Ship To Info */}
                             <div className="w-1/2 p-3 space-y-0.5">
-                                <p className="text-[13px] font-black text-black">
+                                {/* <p className="text-[13px] font-black text-black">
                                     {lead.name}
-                                </p>
-                                <p className="text-[12px] font-bold text-slate-800">
-                                    {lead.shop_name}
-                                </p>
-                                <p className="text-[12px] font-medium text-slate-700 leading-tight">
-                                    {lead.street_address}
-                                    {lead.unit_number &&
-                                        `, Unit ${lead.unit_number}`}
-                                    <br />
-                                    {lead.city}, {lead.province},{" "}
-                                    {lead.postcode}
-                                </p>
-                                <p className="text-[11px] font-bold text-black mt-1">
-                                    {lead.contact_number &&
-                                        lead.contact_number.replace(
-                                            /(\d{3})(\d{3})(\d{4})/,
-                                            "$1-$2-$3",
-                                        )}
-                                </p>
-                                <p className="text-[11px] font-bold text-black">
-                                    {lead.email}
-                                </p>
+                                </p> */}
+                                {lead.shop_name && (
+                                    <p className="text-[12px] font-bold text-slate-800">
+                                        {lead.shop_name}
+                                    </p>
+                                )}
+                                <div className="text-[12px] font-medium text-slate-700 leading-tight">
+                                    {lead.shipping_street_address ||
+                                    lead.shipping_city ? (
+                                        <>
+                                            <p>
+                                                {lead.shipping_street_address ||
+                                                    lead.street_address}
+                                                {(lead.shipping_unit_number ||
+                                                    (lead.shipping_street_address
+                                                        ? ""
+                                                        : lead.unit_number)) &&
+                                                    `, Unit ${lead.shipping_unit_number || lead.unit_number}`}
+                                            </p>
+                                            <p>
+                                                {lead.shipping_city ||
+                                                    lead.city}
+                                                ,{" "}
+                                                {lead.shipping_province ||
+                                                    lead.province}
+                                                ,{" "}
+                                                {lead.shipping_postcode ||
+                                                    lead.postcode}
+                                            </p>
+                                            {(lead.shipping_country ||
+                                                lead.country) && (
+                                                <p>
+                                                    {lead.shipping_country ||
+                                                        lead.country}
+                                                </p>
+                                            )}
+                                        </>
+                                    ) : (
+                                        <>
+                                            <p>
+                                                {lead.street_address}
+                                                {lead.unit_number &&
+                                                    `, Unit ${lead.unit_number}`}
+                                            </p>
+                                            <p>
+                                                {lead.city}, {lead.province},{" "}
+                                                {lead.postcode}
+                                            </p>
+                                            {lead.country && (
+                                                <p>{lead.country}</p>
+                                            )}
+                                        </>
+                                    )}
+                                </div>
+                                <div className="pt-1">
+                                    <p className="text-[11px] font-bold text-black">
+                                        {lead.contact_number &&
+                                            lead.contact_number.replace(
+                                                /(\d{3})(\d{3})(\d{4})/,
+                                                "$1-$2-$3",
+                                            )}
+                                    </p>
+                                    <p className="text-[11px] font-bold text-black">
+                                        {lead.email}
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>

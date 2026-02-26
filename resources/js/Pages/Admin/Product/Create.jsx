@@ -16,11 +16,10 @@ import {
     Tag,
 } from "lucide-react";
 
-const MAKES = MAKES_LIST.map((make) => ({ value: make, label: make }));
+import { YEARS as YEARS_LIST } from "@/Constants/years";
 
-const YEARS = Array.from({ length: 2026 - 1995 + 1 }, (_, i) => 1995 + i)
-    .reverse()
-    .map((year) => ({ value: year.toString(), label: year.toString() }));
+const MAKES = MAKES_LIST.map((make) => ({ value: make, label: make }));
+const YEARS = YEARS_LIST.map((year) => ({ value: year, label: year }));
 
 const POSITIONS = [
     { value: "Front", label: "Front" },
@@ -59,10 +58,10 @@ export default function Create({
             stock_oakville: 0,
             stock_mississauga: 0,
             stock_saskatoon: 0,
+            pp_id: "",
             part_numbers: [""],
             fitments: [{ year_from: "", year_to: "", make: "", model: "" }],
             images: [],
-            position: "",
             is_clearance: false,
         });
 
@@ -74,6 +73,12 @@ export default function Create({
     const updateFitment = (index, field, value) => {
         const updated = [...data.fitments];
         updated[index][field] = value;
+
+        // Reset model if make changes
+        if (field === "make") {
+            updated[index]["model"] = "";
+        }
+
         setData("fitments", updated);
 
         const errorKey = `fitments.${index}.${field}`;
@@ -359,9 +364,20 @@ export default function Create({
                                     <Tag size={14} className="text-[#FF9F43]" />
                                     PP ID:
                                 </span>
-                                <span className="text-[14px] font-black text-[#FF9F43] bg-white px-3 py-1 rounded-lg border border-orange-200">
-                                    Auto-generated
-                                </span>
+                                <div className="w-1/2 sm:w-1/3">
+                                    <Input
+                                        placeholder="Auto-generated if empty"
+                                        className="bg-white border-orange-200 focus:border-[#FF9F43] text-[13px] h-9 text-right font-black text-[#FF9F43] placeholder:text-slate-300 placeholder:font-normal"
+                                        value={data.pp_id}
+                                        error={errors.pp_id}
+                                        onChange={(e) =>
+                                            handleInputChange(
+                                                "pp_id",
+                                                e.target.value,
+                                            )
+                                        }
+                                    />
+                                </div>
                             </div>
                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
                                 {data.part_numbers.map((part, idx) => (
@@ -592,7 +608,7 @@ export default function Create({
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-2 pt-1 border-b border-slate-50 pb-3">
+                            <div className="grid grid-cols-1 gap-2 pt-1 border-b border-slate-50 pb-3">
                                 <Select
                                     label="Visibility"
                                     placeholder="Select visibility"
@@ -603,20 +619,6 @@ export default function Create({
                                     onChange={(e) =>
                                         handleInputChange(
                                             "visibility",
-                                            e.target.value,
-                                        )
-                                    }
-                                />
-                                <Select
-                                    label="Position"
-                                    placeholder="Select position"
-                                    className="bg-white text-[12px] h-9"
-                                    options={POSITIONS}
-                                    value={data.position}
-                                    error={errors.position}
-                                    onChange={(e) =>
-                                        handleInputChange(
-                                            "position",
                                             e.target.value,
                                         )
                                     }

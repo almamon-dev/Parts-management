@@ -4,12 +4,27 @@ import Sidebar from "../Components/Navigation/User/Sidebar";
 import CartDrawer from "../Components/ui/user/CartDrawer";
 import { usePage } from "@inertiajs/react";
 import { Menu, X } from "lucide-react";
+import { toast, Toaster } from "react-hot-toast";
 import { motion } from "framer-motion";
 
 export default function UserLayout({ children }) {
     const { url } = usePage();
     const [isMobileOpen, setIsMobileOpen] = useState(false);
     const [isCartOpen, setIsCartOpen] = useState(false);
+    const { flash, errors } = usePage().props;
+
+    // Server-side Flash Messages
+    useEffect(() => {
+        if (flash?.success) {
+            toast.success(flash.success, { position: "top-center" });
+        }
+        if (flash?.error) {
+            toast.error(flash.error, { position: "top-center" });
+        }
+        if (errors && Object.keys(errors).length > 0) {
+            // Optional: toast any specific errors if needed
+        }
+    }, [flash, errors]);
 
     // Close mobile menu on page change
     useEffect(() => {
@@ -18,6 +33,7 @@ export default function UserLayout({ children }) {
 
     return (
         <div className="flex h-screen bg-[#F9F9F9] font-sans overflow-hidden">
+            <Toaster />
             {/* Mobile Overlay */}
             {isMobileOpen && (
                 <div

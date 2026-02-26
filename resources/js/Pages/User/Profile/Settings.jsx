@@ -270,7 +270,7 @@ export default function SettingsPage() {
                                                         )
                                                     }
                                                     placeholder="Enter your first name"
-                                                    className="w-full h-[54px] bg-[#F0F2F5] border-none rounded-[14px] px-6 text-[15px] outline-none"
+                                                    className="w-full h-[54px] bg-white border border-[#E2E8F0] rounded-[14px] px-6 text-[15px] focus:border-[#AD0100] transition-colors outline-none"
                                                 />
                                             </div>
                                             <div className="space-y-3">
@@ -383,7 +383,7 @@ export default function SettingsPage() {
                                                     )
                                                 }
                                                 placeholder="e.g. Bay Mechanic Shop"
-                                                className="w-full h-[54px] bg-[#F0F2F5] border-none rounded-[14px] px-6 text-[15px] outline-none"
+                                                className="w-full h-[54px] bg-white border border-[#E2E8F0] rounded-[14px] px-6 text-[15px] focus:border-[#AD0100] transition-colors outline-none"
                                             />
                                         </div>
                                         <div className="space-y-3">
@@ -464,7 +464,7 @@ export default function SettingsPage() {
                                                 }
                                                 className="bg-[#AD0100] text-white h-[54px] pl-8 pr-3 rounded-full font-bold flex items-center gap-4 hover:bg-[#8B0000] transition-all group"
                                             >
-                                                Request to Change
+                                                Save Changes
                                                 <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center transition-transform group-hover:translate-x-1 group-hover:-translate-y-1">
                                                     <ArrowUpRight size={18} />
                                                 </div>

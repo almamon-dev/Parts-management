@@ -16,9 +16,7 @@ import {
 import { MAKES } from "@/Constants/makes";
 import { MODELS } from "@/Constants/models";
 
-const YEARS = Array.from({ length: 2026 - 1995 + 1 }, (_, i) =>
-    (2026 - i).toString(),
-);
+import { YEARS } from "@/Constants/years";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -219,6 +217,30 @@ const ProductCard = memo(
                         <h4 className="font-bold text-slate-800 text-sm leading-tight tracking-tight mb-2 line-clamp-2 uppercase">
                             {product.description}
                         </h4>
+                        {/* Fitments */}
+                        {product.fitments?.length > 0 && (
+                            <div className="flex flex-wrap gap-1.5 mb-2">
+                                {product.fitments
+                                    .slice(0, 2)
+                                    .map((fit, idx) => (
+                                        <span
+                                            key={idx}
+                                            className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-blue-50 text-blue-700 border border-blue-100 uppercase tracking-tighter"
+                                        >
+                                            {String(fit.year_from) ===
+                                            String(fit.year_to)
+                                                ? fit.year_from
+                                                : `${fit.year_from}-${fit.year_to}`}{" "}
+                                            {fit.make} {fit.model}
+                                        </span>
+                                    ))}
+                                {product.fitments.length > 2 && (
+                                    <span className="text-[9px] font-black text-slate-400 self-center">
+                                        +{product.fitments.length - 2}
+                                    </span>
+                                )}
+                            </div>
+                        )}
                         <div className="text-[10px] font-mono font-bold text-slate-400 flex items-center gap-1">
                             SKU:{" "}
                             <span className="text-slate-600">
@@ -351,9 +373,41 @@ const ProductRow = memo(
                 </td>
                 <td className="px-6 py-3">
                     <div className="flex flex-col gap-1.5">
-                        <h4 className="font-bold text-slate-800 text-[14px] leading-tight tracking-tight whitespace-normal uppercase">
+                        <h4 className="font-bold text-slate-800 text-[14px] leading-tight tracking-tight whitespace-normal uppercase mb-1">
                             {product.description}
                         </h4>
+                        {product.fitments?.length > 0 && (
+                            <div className="flex flex-wrap gap-1.5">
+                                {product.fitments
+                                    .slice(0, 3)
+                                    .map((fit, idx) => (
+                                        <span
+                                            key={idx}
+                                            className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-slate-50 text-slate-600 border border-slate-200/60 uppercase tracking-tighter shadow-sm"
+                                        >
+                                            <span className="underline decoration-slate-300">
+                                                {String(fit.year_from) ===
+                                                String(fit.year_to)
+                                                    ? fit.year_from
+                                                    : `${fit.year_from}-${fit.year_to}`}
+                                            </span>
+                                            <span className="mx-1"></span>
+                                            <span className="underline decoration-slate-300">
+                                                {fit.make}
+                                            </span>
+                                            <span className="mx-1"></span>
+                                            <span className="underline decoration-slate-300">
+                                                {fit.model}
+                                            </span>
+                                        </span>
+                                    ))}
+                                {product.fitments.length > 3 && (
+                                    <span className="text-[10px] font-black text-slate-400 self-center">
+                                        +{product.fitments.length - 3} MORE
+                                    </span>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </td>
 
@@ -468,10 +522,8 @@ export default function Index() {
     const isSearchActive = useMemo(() => {
         return !!(
             filters.search ||
-            (filters.year_from &&
-                filters.make &&
-                filters.model &&
-                filters.category)
+            (filters.year_from && filters.make && filters.model) ||
+            filters.category
         );
     }, [filters]);
 
@@ -614,7 +666,6 @@ export default function Index() {
                                             options={MAKES}
                                             currentValue={filters.make}
                                             onFilter={applyFilter}
-                                            isDisabled={!filters.year_from}
                                         />
                                     </div>
                                     <div className="grid grid-cols-1 md:contents gap-2 w-full">
@@ -632,13 +683,7 @@ export default function Index() {
                                             options={filterOptions?.part_types}
                                             currentValue={filters.category}
                                             onFilter={applyFilter}
-                                            isDisabled={
-                                                !(
-                                                    filters.year_from &&
-                                                    filters.make &&
-                                                    filters.model
-                                                )
-                                            }
+                                            isDisabled={false}
                                         />
                                     </div>
                                 </div>
@@ -712,8 +757,12 @@ export default function Index() {
                                                             search term or
                                                             select{" "}
                                                             <strong>
-                                                                Year, Make,
-                                                                Model & Category
+                                                                Vehicle (Year,
+                                                                Make, Model)
+                                                            </strong>{" "}
+                                                            or a{" "}
+                                                            <strong>
+                                                                Category
                                                             </strong>{" "}
                                                             to view specific
                                                             products.
@@ -755,7 +804,6 @@ export default function Index() {
                             </table>
                         </div>
 
-                        {/* MOBILE CARD VIEW */}
                         <div className="xl:hidden p-4">
                             {!isSearchActive ? (
                                 <EmptyState
@@ -765,9 +813,10 @@ export default function Index() {
                                         <>
                                             Please enter a search term or select{" "}
                                             <strong>
-                                                Year, Make, Model & Category
+                                                Vehicle (Year, Make, Model)
                                             </strong>{" "}
-                                            to view products.
+                                            or a <strong>Category</strong> to
+                                            view products.
                                         </>
                                     }
                                 />

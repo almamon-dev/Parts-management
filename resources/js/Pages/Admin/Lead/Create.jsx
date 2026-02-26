@@ -178,9 +178,9 @@ export default function Create() {
         <AdminLayout>
             <Head title="Create New Lead" />
 
-            <div className="font-sans px-6 py-6">
+            <div className="font-sans px-4 py-4">
                 {/* Header */}
-                <div className="flex justify-between items-center mb-6">
+                <div className="flex justify-between items-center mb-4">
                     <div>
                         <h1 className="text-2xl font-bold text-slate-800">
                             Create New Lead
@@ -199,22 +199,22 @@ export default function Create() {
 
                 <form
                     onSubmit={(e) => e.preventDefault()}
-                    className="space-y-6"
+                    className="space-y-3"
                 >
                     {/* Top Row: Shop Info, Notes/PO, and Default Settings */}
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
                         {/* Shop & Requester Info */}
-                        <div className="bg-white p-5 rounded-xl border border-slate-200/60 shadow-sm">
-                            <h3 className="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
+                        <div className="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm">
+                            <h3 className="text-xs font-bold text-slate-800 mb-3 flex items-center gap-2">
                                 <Users size={18} className="text-[#FF9F43]" />
                                 Shop & Requester Info
                             </h3>
 
-                            <div className="grid grid-cols-1 gap-4">
+                            <div className="grid grid-cols-1 gap-2">
                                 <Input
                                     label="Shop"
                                     placeholder="Enter shop name"
-                                    className="text-sm h-10"
+                                    className="text-xs h-8"
                                     value={data.shop_name}
                                     onChange={(e) =>
                                         setData("shop_name", e.target.value)
@@ -224,18 +224,18 @@ export default function Create() {
                                 <Input
                                     label="Customer Name"
                                     placeholder="Enter name"
-                                    className="text-sm h-10"
+                                    className="text-xs h-8"
                                     value={data.name}
                                     onChange={(e) =>
                                         setData("name", e.target.value)
                                     }
                                     error={errors.name}
                                 />
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-2 gap-2">
                                     <Input
                                         label="Phone"
                                         placeholder="Telephone"
-                                        className="text-sm h-10"
+                                        className="text-xs h-8"
                                         value={data.contact_number}
                                         onChange={(e) => {
                                             setData(
@@ -254,7 +254,7 @@ export default function Create() {
                                         label="Email"
                                         placeholder="Email"
                                         type="email"
-                                        className="text-sm h-10"
+                                        className="text-xs h-8"
                                         value={data.email}
                                         onChange={(e) =>
                                             setData("email", e.target.value)
@@ -266,8 +266,8 @@ export default function Create() {
                         </div>
 
                         {/* Notes & PO */}
-                        <div className="bg-white p-5 rounded-xl border border-slate-200/60 shadow-sm flex flex-col h-full">
-                            <h3 className="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
+                        <div className="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm flex flex-col h-full">
+                            <h3 className="text-xs font-bold text-slate-800 mb-3 flex items-center gap-2">
                                 <FileText
                                     size={18}
                                     className="text-[#FF9F43]"
@@ -277,7 +277,7 @@ export default function Create() {
                             <Input
                                 isTextArea
                                 placeholder="Requirements or notes..."
-                                className="flex-1 min-h-[100px] text-sm focus:ring-[#FF9F43]/10 mb-4"
+                                className="flex-1 min-h-[80px] text-xs focus:ring-[#FF9F43]/10 mb-3"
                                 value={data.notes}
                                 onChange={(e) =>
                                     setData("notes", e.target.value)
@@ -286,7 +286,7 @@ export default function Create() {
                             <Input
                                 label="PO Number"
                                 placeholder="PO Number"
-                                className="text-sm h-10"
+                                className="text-xs h-8"
                                 value={data.po_number || ""}
                                 onChange={(e) =>
                                     setData("po_number", e.target.value)
@@ -296,18 +296,18 @@ export default function Create() {
                         </div>
 
                         {/* Default Settings */}
-                        <div className="bg-white p-5 rounded-xl border border-slate-200/60 shadow-sm">
-                            <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-4">
+                        <div className="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm">
+                            <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">
                                 Default Settings
                             </h3>
-                            <div className="space-y-4">
+                            <div className="space-y-2">
                                 {/* Bulk Vendor */}
-                                <div className="space-y-1.5">
+                                <div className="space-y-1">
                                     <label className="text-[12px] font-semibold text-slate-700">
                                         Default Vendor
                                     </label>
                                     <select
-                                        className="w-full h-10 bg-slate-50/50 border border-slate-200 rounded-lg px-3 text-sm font-medium focus:bg-white transition-all outline-none focus:border-[#FF9F43] focus:ring-2 focus:ring-[#FF9F43]/10 appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%3E%3Cpath%20stroke%3D%22%236b7280%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%221.5%22%20d%3D%22m6%208%204%204%204-4%22%2F%3E%3C%2Fsvg%3E')] bg-[position:right_0.75rem_center] bg-[length:1.25rem_1.25rem] bg-no-repeat pr-10"
+                                        className="w-full h-8 bg-slate-50/50 border border-slate-200 rounded-lg px-3 text-xs font-medium focus:bg-white transition-all outline-none focus:border-[#FF9F43] focus:ring-2 focus:ring-[#FF9F43]/10 appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%3E%3Cpath%20stroke%3D%22%236b7280%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%221.5%22%20d%3D%22m6%208%204%204%204-4%22%2F%3E%3C%2Fsvg%3E')] bg-[position:right_0.75rem_center] bg-[length:1.25rem_1.25rem] bg-no-repeat pr-10"
                                         onChange={(e) => {
                                             const updated = data.parts.map(
                                                 (p) => ({
@@ -332,7 +332,7 @@ export default function Create() {
                                     </select>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-2 gap-2">
                                     {/* Bulk Method */}
                                     <div className="space-y-1.5">
                                         <label className="text-[12px] font-semibold text-slate-700">
@@ -441,20 +441,20 @@ export default function Create() {
                     </div>
 
                     {/* Address Row: Billing and Shipping */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                         {/* Billing Address */}
                         <div className="bg-white p-5 rounded-xl border border-slate-200/60 shadow-sm">
                             <h3 className="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
                                 <MapPin size={18} className="text-[#FF9F43]" />
                                 Billing Address
                             </h3>
-                            <div className="space-y-4">
+                            <div className="space-y-3">
                                 <div className="grid grid-cols-3 gap-3">
                                     <div className="col-span-2">
                                         <Input
                                             label="Street Address"
                                             placeholder="Street address"
-                                            className="text-sm h-10"
+                                            className="text-xs h-8"
                                             value={data.street_address}
                                             onChange={(e) =>
                                                 setData(
@@ -503,7 +503,7 @@ export default function Create() {
                                     <Input
                                         label="Postcode"
                                         placeholder="Postcode"
-                                        className="text-sm h-10"
+                                        className="text-xs h-8"
                                         value={data.postcode}
                                         onChange={(e) =>
                                             setData("postcode", e.target.value)
@@ -514,7 +514,7 @@ export default function Create() {
                                 <Input
                                     label="Country"
                                     placeholder="Country"
-                                    className="text-sm h-10"
+                                    className="text-xs h-8"
                                     value={data.country}
                                     onChange={(e) =>
                                         setData("country", e.target.value)
@@ -525,7 +525,7 @@ export default function Create() {
                         </div>
 
                         {/* Shipping Address */}
-                        <div className="bg-white p-5 rounded-xl border border-slate-200/60 shadow-sm">
+                        <div className="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm">
                             <div className="flex items-center justify-between mb-4">
                                 <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
                                     <MapPin
@@ -551,12 +551,12 @@ export default function Create() {
                             <div
                                 className={`space-y-4 ${sameAsBilling ? "opacity-50 pointer-events-none" : ""}`}
                             >
-                                <div className="grid grid-cols-3 gap-3">
+                                <div className="grid grid-cols-3 gap-2">
                                     <div className="col-span-2">
                                         <Input
                                             label="Street Address"
                                             placeholder="Street address"
-                                            className="text-sm h-10"
+                                            className="text-xs h-8"
                                             value={
                                                 data.shipping_street_address ||
                                                 ""
@@ -575,7 +575,7 @@ export default function Create() {
                                     <Input
                                         label="Unit #"
                                         placeholder="Unit #"
-                                        className="text-sm h-10"
+                                        className="text-xs h-8"
                                         value={data.shipping_unit_number || ""}
                                         onChange={(e) =>
                                             setData(
@@ -586,11 +586,11 @@ export default function Create() {
                                         error={errors.shipping_unit_number}
                                     />
                                 </div>
-                                <div className="grid grid-cols-3 gap-3">
+                                <div className="grid grid-cols-3 gap-2">
                                     <Input
                                         label="City"
                                         placeholder="City"
-                                        className="text-sm h-10"
+                                        className="text-xs h-8"
                                         value={data.shipping_city || ""}
                                         onChange={(e) =>
                                             setData(
@@ -603,7 +603,7 @@ export default function Create() {
                                     <Input
                                         label="Province"
                                         placeholder="Province"
-                                        className="text-sm h-10"
+                                        className="text-xs h-8"
                                         value={data.shipping_province || ""}
                                         onChange={(e) =>
                                             setData(
@@ -616,7 +616,7 @@ export default function Create() {
                                     <Input
                                         label="Postcode"
                                         placeholder="Postcode"
-                                        className="text-sm h-10"
+                                        className="text-xs h-8"
                                         value={data.shipping_postcode || ""}
                                         onChange={(e) =>
                                             setData(
@@ -630,7 +630,7 @@ export default function Create() {
                                 <Input
                                     label="Country"
                                     placeholder="Country"
-                                    className="text-sm h-10"
+                                    className="text-xs h-8"
                                     value={data.shipping_country || ""}
                                     onChange={(e) =>
                                         setData(
@@ -645,12 +645,12 @@ export default function Create() {
                     </div>
 
                     {/* Vehicle Info */}
-                    <div className="bg-white p-5 rounded-xl border border-slate-200/60 shadow-sm">
+                    <div className="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm">
                         <h3 className="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
                             <Car size={18} className="text-[#FF9F43]" />
                             Vehicle Info
                         </h3>
-                        <div className="grid grid-cols-12 gap-4">
+                        <div className="grid grid-cols-12 gap-3">
                             <div className="col-span-2">
                                 <Select
                                     label="Year"
@@ -668,7 +668,7 @@ export default function Create() {
                                 <Select
                                     label="Make"
                                     placeholder="Make"
-                                    className="bg-white text-sm h-10"
+                                    className="bg-white text-xs h-8"
                                     options={data.year ? MAKES_OPTIONS : []}
                                     value={data.make}
                                     onChange={(e) => {
@@ -683,7 +683,7 @@ export default function Create() {
                                 <Select
                                     label="Model"
                                     placeholder="Model"
-                                    className="bg-white text-sm h-10"
+                                    className="bg-white text-xs h-8"
                                     options={getModelsForMake(data.make)}
                                     value={data.model}
                                     onChange={(e) =>
@@ -697,7 +697,7 @@ export default function Create() {
                                 <Input
                                     label="Trim / Submodel"
                                     placeholder="Trim (e.g. Laredo, XLE)"
-                                    className="text-sm h-10"
+                                    className="text-xs h-8"
                                     value={data.trim}
                                     onChange={(e) =>
                                         setData("trim", e.target.value)
@@ -708,7 +708,7 @@ export default function Create() {
                                 <Input
                                     label="VIN / Frame"
                                     placeholder="VIN or Frame #"
-                                    className="text-sm h-10"
+                                    className="text-xs h-8"
                                     value={data.vin}
                                     onChange={(e) =>
                                         setData("vin", e.target.value)
@@ -720,7 +720,7 @@ export default function Create() {
                                 <Input
                                     label="Color Code"
                                     placeholder="Code"
-                                    className="text-sm h-10"
+                                    className="text-xs h-8"
                                     value={data.color_code}
                                     onChange={(e) =>
                                         setData("color_code", e.target.value)
@@ -732,7 +732,7 @@ export default function Create() {
                                 <Input
                                     label="Engine Size"
                                     placeholder="Size"
-                                    className="text-sm h-10"
+                                    className="text-xs h-8"
                                     value={data.engine_size}
                                     onChange={(e) =>
                                         setData("engine_size", e.target.value)
@@ -744,7 +744,7 @@ export default function Create() {
                     </div>
 
                     {/* Parts Selection */}
-                    <div className="bg-white p-5 rounded-xl border border-slate-200/60 shadow-sm">
+                    <div className="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm">
                         <div className="flex justify-between items-center mb-4 pb-2 border-b border-slate-50">
                             <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
                                 <Package size={18} className="text-[#FF9F43]" />
@@ -788,7 +788,7 @@ export default function Create() {
                             {data.parts.map((part, idx) => (
                                 <div
                                     key={idx}
-                                    className="grid grid-cols-12 gap-x-3 gap-y-4 items-center bg-slate-50/30 p-4 xl:p-2 rounded-xl border border-slate-100 relative group transition-all hover:bg-white hover:shadow-md"
+                                    className="grid grid-cols-12 gap-x-2 gap-y-2 items-center bg-slate-50/30 p-2 xl:p-1.5 rounded-xl border border-slate-100 relative group transition-all hover:bg-white hover:shadow-md"
                                 >
                                     {/* Row Remove Button (Floating) */}
                                     {data.parts.length > 1 && (
@@ -1025,23 +1025,23 @@ export default function Create() {
                         </div>
 
                         {/* Totals Display */}
-                        <div className="mt-6 pt-4 border-t border-slate-50 flex flex-col sm:flex-row justify-end gap-3">
-                            <div className="flex items-center gap-3 bg-slate-50/50 px-4 py-2.5 rounded-xl border border-slate-100/50">
-                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                        <div className="mt-4 pt-2 border-t border-slate-50 flex flex-col sm:flex-row justify-end gap-2">
+                            <div className="flex items-center gap-2 bg-slate-50/50 px-3 py-1.5 rounded-lg border border-slate-100/50">
+                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
                                     Total Buy
                                 </span>
-                                <span className="text-base font-black text-slate-600">
+                                <span className="text-sm font-black text-slate-600">
                                     $
                                     {totalBuy.toLocaleString(undefined, {
                                         minimumFractionDigits: 2,
                                     })}
                                 </span>
                             </div>
-                            <div className="flex items-center gap-3 bg-[#FF9F43]/5 px-4 py-2.5 rounded-xl border border-[#FF9F43]/10">
-                                <span className="text-[10px] font-bold text-[#FF9F43] uppercase tracking-widest">
+                            <div className="flex items-center gap-2 bg-[#FF9F43]/5 px-3 py-1.5 rounded-lg border border-[#FF9F43]/10">
+                                <span className="text-[9px] font-bold text-[#FF9F43] uppercase tracking-widest">
                                     Total Sell
                                 </span>
-                                <span className="text-base font-black text-[#FF9F43]">
+                                <span className="text-sm font-black text-[#FF9F43]">
                                     $
                                     {totalSell.toLocaleString(undefined, {
                                         minimumFractionDigits: 2,
@@ -1052,15 +1052,15 @@ export default function Create() {
                     </div>
 
                     {/* Submit Buttons */}
-                    <div className="mt-6">
-                        <div className="flex flex-col sm:flex-row items-center gap-4">
+                    <div className="mt-4">
+                        <div className="flex flex-col sm:flex-row items-center gap-3">
                             <button
                                 type="button"
                                 onClick={handleSubmit}
                                 disabled={processing}
-                                className="flex-1 min-h-[46px] bg-[#FF9F43] text-white rounded-xl font-bold text-sm flex items-center justify-center gap-3 hover:bg-[#e68a30] active:scale-[0.99] transition-all shadow-md shadow-[#FF9F43]/20 disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-widest"
+                                className="flex-1 min-h-[38px] bg-[#FF9F43] text-white rounded-lg font-bold text-xs flex items-center justify-center gap-2 hover:bg-[#e68a30] active:scale-[0.99] transition-all shadow-md shadow-[#FF9F43]/20 disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-widest"
                             >
-                                <Save size={20} />
+                                <Save size={16} />
                                 {processing
                                     ? "Processing..."
                                     : "Save Lead Info"}
@@ -1068,7 +1068,7 @@ export default function Create() {
                             <button
                                 type="button"
                                 onClick={() => reset()}
-                                className="px-8 min-h-[46px] bg-slate-100 text-slate-500 rounded-xl font-bold text-xs hover:bg-slate-200 hover:text-slate-700 transition-all uppercase tracking-widest"
+                                className="px-6 min-h-[38px] bg-slate-100 text-slate-500 rounded-lg font-bold text-[10px] hover:bg-slate-200 hover:text-slate-700 transition-all uppercase tracking-widest"
                             >
                                 Reset
                             </button>

@@ -20,6 +20,8 @@ class Order extends Model
         'status',
         'order_type',
         'shipping_address',
+        'billing_address',
+        'address_type',
         'notes',
     ];
 
@@ -29,17 +31,17 @@ class Order extends Model
 
         static::creating(function ($order) {
             // Generate Order Number
-            if (!$order->order_number) {
+            if (! $order->order_number) {
                 $lastOrder = static::orderBy('id', 'desc')->first();
                 $nextOrderNumber = $lastOrder ? intval(substr($lastOrder->order_number, 2)) + 1 : 21001;
-                $order->order_number = 'OR' . $nextOrderNumber;
+                $order->order_number = 'OR'.$nextOrderNumber;
             }
 
             // Generate Invoice Number
-            if (!$order->invoice_number) {
+            if (! $order->invoice_number) {
                 $lastInvoice = static::whereNotNull('invoice_number')->orderBy('id', 'desc')->first();
                 $nextInvoiceNumber = $lastInvoice ? intval(substr($lastInvoice->invoice_number, 3)) + 1 : 100001;
-                $order->invoice_number = 'INV' . $nextInvoiceNumber;
+                $order->invoice_number = 'INV'.$nextInvoiceNumber;
             }
         });
     }

@@ -41,6 +41,15 @@ class OrderController extends Controller
         ]);
     }
 
+    public function invoice(Order $order)
+    {
+        $order->load(['user', 'items.product', 'payment']);
+
+        return Inertia::render('Admin/Order/Invoice', [
+            'order' => $order,
+        ]);
+    }
+
     public function updateStatus(Request $request, Order $order)
     {
         $validated = $request->validate([

@@ -2,7 +2,7 @@ import React from "react";
 import AdminLayout from "@/Layouts/AdminLayout";
 import { Head, Link, router } from "@inertiajs/react";
 import Pagination from "@/Components/Pagination";
-import { Skeleton } from "@/Components/ui/skeleton";
+import { Skeleton } from "@/Components/ui/Skeleton";
 import { TableManager } from "@/Hooks/TableManager";
 import {
     Search,

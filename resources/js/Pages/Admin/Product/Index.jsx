@@ -13,17 +13,18 @@ import {
     Search,
     Plus,
     Pencil,
+    Eye,
     Calendar,
     MapPin,
     ImageOff,
     X,
     ChevronDown,
     Check,
-    Download,
     Upload,
     AlertCircle,
     Tag,
     Filter,
+    Settings,
 } from "lucide-react";
 import ConfirmDelete from "@/Components/ui/admin/ConfirmDelete";
 import ConfirmBulkDelete from "@/Components/ui/admin/ConfirmBulkDelete";
@@ -560,6 +561,37 @@ export default function Index({
                                                                         ?.name ||
                                                                         "N/A"}
                                                                 </span>
+
+                                                                {/* Fitments */}
+                                                                {item.fitments?.map(
+                                                                    (
+                                                                        fit,
+                                                                        fIdx,
+                                                                    ) => (
+                                                                        <span
+                                                                            key={
+                                                                                fIdx
+                                                                            }
+                                                                            className="text-[9px] font-bold text-orange-600 bg-orange-50 border border-orange-100 px-1.5 py-0.5 rounded leading-none flex items-center gap-1"
+                                                                        >
+                                                                            <Settings
+                                                                                size={
+                                                                                    8
+                                                                                }
+                                                                            />
+                                                                            {fit.year_from ===
+                                                                            fit.year_to
+                                                                                ? fit.year_from
+                                                                                : `${fit.year_from}-${fit.year_to}`}{" "}
+                                                                            {
+                                                                                fit.make
+                                                                            }{" "}
+                                                                            {
+                                                                                fit.model
+                                                                            }
+                                                                        </span>
+                                                                    ),
+                                                                )}
                                                             </div>
                                                         </div>
                                                     </div>
@@ -625,6 +657,15 @@ export default function Index({
                                                         <PrintLabelButton
                                                             product={item}
                                                         />
+                                                        <Link
+                                                            href={route(
+                                                                "admin.products.show",
+                                                                item.id,
+                                                            )}
+                                                            className="inline-flex items-center justify-center w-8 h-8 text-slate-400 hover:text-indigo-500 hover:bg-white bg-transparent border border-transparent hover:border-slate-200 rounded-lg transition-all duration-200"
+                                                        >
+                                                            <Eye size={15} />
+                                                        </Link>
                                                         <Link
                                                             href={route(
                                                                 "admin.products.edit",

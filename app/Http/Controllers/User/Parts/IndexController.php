@@ -8,7 +8,6 @@ use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class IndexController extends Controller
@@ -26,29 +25,34 @@ class IndexController extends Controller
             });
         });
 
-        // Fitment Filters
-        $query->when($request->year_from, function ($q, $year) {
-            $q->whereHas('fitments', function ($f) use ($year) {
-                $f->where('year_from', '<=', $year)
-                    ->where('year_to', '>=', $year);
+        // Fitment Filters (Combined for precision)
+        if ($request->year_from || $request->make || $request->model) {
+            $query->whereHas('fitments', function ($f) use ($request) {
+                if ($request->year_from) {
+                    $f->where('year_from', '<=', $request->year_from)
+                        ->where('year_to', '>=', $request->year_from);
+                }
+                if ($request->make) {
+                    $f->where('make', $request->make);
+                }
+                if ($request->model) {
+                    $f->where('model', $request->model);
+                }
             });
-        });
-
-        $query->when($request->make, fn ($q, $make) => $q->whereHas('fitments', fn ($f) => $f->where('make', $make)));
-        $query->when($request->model, fn ($q, $model) => $q->whereHas('fitments', fn ($f) => $f->where('model', $model)));
+        }
 
         // Tiered Category Filters
         $query->when($request->category, fn ($q, $cat) => $q->whereHas('partType', fn ($c) => $c->where('name', $cat)));
         $query->when($request->shop_view, fn ($q, $sv) => $q->whereHas('shopView', fn ($c) => $c->where('name', $sv)));
         $query->when($request->sorting, fn ($q, $s) => $q->whereHas('sorting', fn ($c) => $c->where('name', $s)));
 
-        $user = auth()->user();
+        $user = Auth::user();
         $products = $query->with(['partType:id,name', 'shopView:id,name', 'sorting:id,name', 'partsNumbers', 'files', 'fitments'])
-            ->withExists(['favourites as is_favorite' => function ($q) use ($user) {
-                $q->where('user_id', $user->id);
+            ->withExists(['favourites as is_favorite' => function ($q) {
+                $q->where('user_id', Auth::id());
             }])
-            ->withExists(['carts as in_cart' => function ($q) use ($user) {
-                $q->where('user_id', $user->id);
+            ->withExists(['carts as in_cart' => function ($q) {
+                $q->where('user_id', Auth::id());
             }])
             ->orderByRaw("CASE 
                 WHEN position = 'Front' THEN 1 
@@ -60,9 +64,6 @@ class IndexController extends Controller
             ->latest()
             ->get()
             ->map(function ($product) use ($user) {
-                $product->applied_discount = 0;
-                $product->discount_type = null;
-
                 if ($user) {
                     $specificDiscount = $product->userProductDiscounts()
                         ->where('user_id', $user->id)
@@ -83,29 +84,6 @@ class IndexController extends Controller
             });
 
         $filterOptions = [
-            'years' => DB::table('fitments')
-                ->distinct()
-                ->orderByDesc('year_from')
-                ->pluck('year_from')
-                ->toArray(),
-
-            'makes' => $request->year_from ? DB::table('fitments')
-                ->where('year_from', '<=', $request->year_from)
-                ->where('year_to', '>=', $request->year_from)
-                ->distinct()
-                ->orderBy('make')
-                ->pluck('make')
-                ->toArray() : [],
-
-            'models' => ($request->year_from && $request->make) ? DB::table('fitments')
-                ->where('year_from', '<=', $request->year_from)
-                ->where('year_to', '>=', $request->year_from)
-                ->where('make', $request->make)
-                ->distinct()
-                ->orderBy('model')
-                ->pluck('model')
-                ->toArray() : [],
-
             'part_types' => Category::where('category_type', 1)->pluck('name')->toArray(),
             'shop_views' => Category::where('category_type', 2)->pluck('name')->toArray(),
             'sortings' => Category::where('category_type', 3)->pluck('name')->toArray(),

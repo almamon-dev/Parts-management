@@ -92,6 +92,16 @@ class HandleInertiaRequests extends Middleware
                     'total' => $subtotal,
                 ];
             },
+
+            'pending_tickets_count' => function () use ($request) {
+                $user = $request->user();
+                if ($user && $user->can('support_tickets.view')) {
+                    return \App\Models\SupportTicket::where('status', 'pending')->count();
+                }
+
+                return 0;
+            },
+            'app_url' => config('app.url'),
         ];
     }
 }

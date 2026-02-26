@@ -2,7 +2,7 @@ import React from "react";
 import AdminLayout from "@/Layouts/AdminLayout";
 import { Head, Link } from "@inertiajs/react";
 import Pagination from "@/Components/Pagination";
-import { Skeleton } from "@/Components/ui/skeleton";
+import { Skeleton } from "@/Components/ui/Skeleton";
 import { TableManager } from "@/Hooks/TableManager";
 import {
     Search,
@@ -30,7 +30,7 @@ export default function Index({ blogs }) {
         setSelectAllGlobal,
         clearSelection,
     } = TableManager("admin.blogs.index", blogs?.data || [], {
-        only: ["blogs"]
+        only: ["blogs"],
     });
 
     const skeletonRows = Array.from({ length: 5 });
@@ -202,7 +202,7 @@ export default function Index({ blogs }) {
                                                         checked={isSelected}
                                                         onChange={() =>
                                                             toggleSelect(
-                                                                item.id
+                                                                item.id,
                                                             )
                                                         }
                                                         className="rounded border-slate-300 text-indigo-600 focus:ring-0 cursor-pointer"
@@ -238,11 +238,11 @@ export default function Index({ blogs }) {
                                                                 {item.content
                                                                     ?.replace(
                                                                         /<[^>]*>?/gm,
-                                                                        ""
+                                                                        "",
                                                                     )
                                                                     .substring(
                                                                         0,
-                                                                        60
+                                                                        60,
                                                                     )}
                                                                 ...
                                                             </p>
@@ -274,14 +274,14 @@ export default function Index({ blogs }) {
                                                             className="text-slate-400"
                                                         />
                                                         {new Date(
-                                                            item.created_at
+                                                            item.created_at,
                                                         ).toLocaleDateString(
                                                             "en-GB",
                                                             {
                                                                 day: "2-digit",
                                                                 month: "short",
                                                                 year: "numeric",
-                                                            }
+                                                            },
                                                         )}
                                                     </div>
                                                 </td>
@@ -291,7 +291,7 @@ export default function Index({ blogs }) {
                                                         <Link
                                                             href={route(
                                                                 "admin.blogs.edit",
-                                                                item.id
+                                                                item.id,
                                                             )}
                                                             className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 border border-slate-200 rounded-lg shadow-sm transition-all"
                                                         >

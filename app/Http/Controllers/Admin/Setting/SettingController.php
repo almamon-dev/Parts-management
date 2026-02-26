@@ -28,6 +28,8 @@ class SettingController extends Controller
             'contact_email' => 'nullable|email',
             'contact_phone' => 'nullable|string',
             'address' => 'nullable|string',
+            'tax_percentage' => 'nullable|numeric|min:0|max:100',
+            'tax_label' => 'nullable|string|max:50',
         ]);
 
         foreach ($data as $key => $value) {

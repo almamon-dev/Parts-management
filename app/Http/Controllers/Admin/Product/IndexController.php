@@ -53,19 +53,24 @@ class IndexController extends Controller
         DB::beginTransaction();
 
         try {
-            // Generate PP ID: PP110001, PP110002, etc.
-            $latestProduct = Product::whereNotNull('pp_id')
-                ->where('pp_id', 'like', 'PP%')
-                ->orderBy('pp_id', 'desc')
-                ->first();
-
-            if ($latestProduct) {
-                $lastNumber = (int) str_replace('PP', '', $latestProduct->pp_id);
-                $nextNumber = $lastNumber + 1;
+            if ($request->filled('pp_id')) {
+                $ppId = $request->pp_id;
             } else {
-                $nextNumber = 110001;
+                // Generate PP ID: PP110001, PP110002, etc.
+                $latestProduct = Product::whereNotNull('pp_id')
+                    ->where('pp_id', 'like', 'PP%')
+                    ->orderBy(DB::raw('LENGTH(pp_id)'), 'desc')
+                    ->orderBy('pp_id', 'desc')
+                    ->first();
+
+                if ($latestProduct) {
+                    $lastNumber = (int) str_replace('PP', '', $latestProduct->pp_id);
+                    $nextNumber = $lastNumber > 0 ? $lastNumber + 1 : 110001;
+                } else {
+                    $nextNumber = 110001;
+                }
+                $ppId = 'PP'.$nextNumber;
             }
-            $ppId = 'PP'.$nextNumber;
 
             $product = Product::create([
                 'pp_id' => $ppId,
@@ -80,7 +85,6 @@ class IndexController extends Controller
                 'sku' => $request->sku,
                 'location_id' => $request->location_id,
                 'visibility' => $request->visibility ?? 'public',
-                'position' => $request->position,
                 'is_clearance' => $request->boolean('is_clearance'),
             ]);
 
@@ -127,6 +131,21 @@ class IndexController extends Controller
         }
     }
 
+    public function show(Product $product)
+    {
+        $product->load(['partType', 'shopView', 'sorting', 'fitments', 'partsNumbers', 'files']);
+
+        return Inertia::render('Admin/Product/Show', [
+            'product' => [
+                ...$product->toArray(),
+                'part_numbers' => $product->partsNumbers->pluck('part_number')->toArray(),
+            ],
+            'categoriesTier1' => Category::where('category_type', 1)->get(),
+            'categoriesTier2' => Category::where('category_type', 2)->get(),
+            'categoriesTier3' => Category::where('category_type', 3)->get(),
+        ]);
+    }
+
     public function edit(Product $product)
     {
         $product->load(['partType', 'shopView', 'sorting', 'fitments', 'partsNumbers', 'files']);
@@ -147,6 +166,7 @@ class IndexController extends Controller
         DB::beginTransaction();
         try {
             $product->update([
+                'pp_id' => $request->filled('pp_id') ? $request->pp_id : $product->pp_id,
                 'part_type_id' => $request->part_type_id,
                 'shop_view_id' => $request->shop_view_id,
                 'sorting_id' => $request->sorting_id,
@@ -158,7 +178,7 @@ class IndexController extends Controller
                 'sku' => $request->sku,
                 'location_id' => $request->location_id,
                 'visibility' => $request->visibility ?? 'public',
-                'position' => $request->position,
+
                 'is_clearance' => $request->boolean('is_clearance'),
             ]);
 

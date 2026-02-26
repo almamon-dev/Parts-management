@@ -19,7 +19,7 @@ class AdminOrderSnapshot
             $perPage = $request->per_page ?? 10;
 
             $query = Order::query()
-                ->select(['id', 'user_id', 'order_number', 'subtotal', 'tax', 'total_amount', 'status', 'order_type', 'shipping_address', 'created_at'])
+                ->select(['id', 'user_id', 'order_number', 'subtotal', 'tax', 'total_amount', 'status', 'order_type', 'shipping_address', 'billing_address', 'created_at'])
                 ->whereHas('payment', function ($q) {
                     $q->where('status', 'succeeded');
                 })

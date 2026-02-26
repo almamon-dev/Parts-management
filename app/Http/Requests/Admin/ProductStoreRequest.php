@@ -24,13 +24,13 @@ class ProductStoreRequest extends FormRequest
             'list_price' => ['required', 'numeric', 'min:0'],
 
             // Inventory
+            'pp_id' => ['nullable', 'string', 'unique:products,pp_id'],
             'sku' => ['required', 'string', 'unique:products,sku'],
             'location_id' => ['nullable', 'string'],
             'stock_oakville' => ['nullable', 'integer', 'min:0'],
             'stock_mississauga' => ['nullable', 'integer', 'min:0'],
             'stock_saskatoon' => ['nullable', 'integer', 'min:0'],
             'visibility' => ['required', 'in:public,private,draft'],
-            'position' => ['nullable', 'string', 'in:Front,Driver Side,Passenger Side,Rear,Inside'],
             'is_clearance' => ['nullable', 'boolean'],
 
             // Fitments & Part Numbers (handled in controller but validated here if needed)

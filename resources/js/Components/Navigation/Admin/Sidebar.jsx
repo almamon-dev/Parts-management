@@ -24,7 +24,7 @@ import {
 
 const Sidebar = ({ isCollapsed, isMobileOpen, setIsMobileOpen }) => {
     const { url } = usePage();
-    const { settings } = usePage().props;
+    const { settings, pending_tickets_count } = usePage().props;
 
     const [openMenus, setOpenMenus] = useState({
         leads: false,
@@ -186,6 +186,7 @@ const Sidebar = ({ isCollapsed, isMobileOpen, setIsMobileOpen }) => {
             icon: <Headset size={18} />,
             activeIdentifier: "admin.support.*",
             permission: "support_tickets.view",
+            badge: pending_tickets_count > 0 ? pending_tickets_count : null,
         },
         {
             label: "Announcements",
@@ -354,6 +355,7 @@ const Sidebar = ({ isCollapsed, isMobileOpen, setIsMobileOpen }) => {
                                 active={isActive}
                                 isOpen={openMenus[item.key]}
                                 onClick={() => toggleMenu(item.key)}
+                                pending_tickets_count={pending_tickets_count}
                             >
                                 {!isCollapsed && (
                                     <div className="mt-1 space-y-1 ml-4 pl-2">
@@ -392,6 +394,7 @@ const Sidebar = ({ isCollapsed, isMobileOpen, setIsMobileOpen }) => {
                                 path={item.path}
                                 active={isActive}
                                 isCollapsed={isCollapsed}
+                                pending_tickets_count={pending_tickets_count}
                             />
                         );
                     })}
@@ -411,6 +414,7 @@ const SidebarItem = ({
     isOpen,
     onClick,
     children,
+    pending_tickets_count,
 }) => {
     const itemContent = (
         <div
@@ -431,8 +435,24 @@ const SidebarItem = ({
                 {icon}
             </div>
             {!isCollapsed && (
-                <span className="ml-3 text-[13.5px] font-medium">{label}</span>
+                <div className="flex items-center flex-1 ml-3 overflow-hidden">
+                    <span className="text-[13.5px] font-medium truncate">
+                        {label}
+                    </span>
+                    {label === "Support Tickets" &&
+                        pending_tickets_count > 0 && (
+                            <span className="ml-auto mr-1 flex h-5 min-w-[20px] px-1.5 items-center justify-center rounded-full bg-[#B90000] text-[10px] font-bold text-white shadow-sm ring-2 ring-white transition-all animate-pulse">
+                                {pending_tickets_count}
+                            </span>
+                        )}
+                </div>
             )}
+
+            {isCollapsed &&
+                label === "Support Tickets" &&
+                pending_tickets_count > 0 && (
+                    <span className="absolute top-1.5 right-1.5 w-3 h-3 bg-[#B90000] border-2 border-white rounded-full animate-pulse shadow-sm" />
+                )}
 
             {hasChild && !isCollapsed && (
                 <div className="ml-auto">

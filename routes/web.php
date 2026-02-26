@@ -178,6 +178,7 @@ Route::middleware(['auth'])->prefix('admin')->as('admin.')->group(function () {
             ->middleware('permission:orders.manage')->name('orders.bulk-destroy');
         Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
         Route::get('/orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
+        Route::get('/orders/{order}/invoice', [AdminOrderController::class, 'invoice'])->name('orders.invoice');
         Route::patch('/orders/{order}/status', [AdminOrderController::class, 'updateStatus'])
             ->middleware('permission:orders.manage')->name('orders.update-status');
         Route::delete('/orders/{order}', [AdminOrderController::class, 'destroy'])

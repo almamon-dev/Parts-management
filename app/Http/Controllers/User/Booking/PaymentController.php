@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\User\Cart\IndexController as UserCartController;
 use App\Models\Order;
 use App\Models\Setting;
+use App\Services\AdminOrderSnapshot;
 use App\Services\OrderService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -25,10 +26,18 @@ class PaymentController extends Controller
 
     private function getStripeClient()
     {
-        $secretKey = config('services.stripe.secret') ?? Setting::where('key', 'stripe_secret_key')->value('value');
+        $secretKey = config('services.stripe.secret');
 
-        if (! $secretKey) {
-            throw new \Exception('Stripe secret key not configured in settings or .env.');
+        // If config key is empty or a placeholder, try getting from database settings
+        if (! $secretKey || str_contains($secretKey, 'placeholder')) {
+            $dbKey = Setting::where('key', 'stripe_secret_key')->value('value');
+            if ($dbKey && ! str_contains($dbKey, 'placeholder')) {
+                $secretKey = $dbKey;
+            }
+        }
+
+        if (! $secretKey || str_contains($secretKey, 'placeholder')) {
+            throw new \Exception('Stripe secret key not configured. Please set STRIPE_SECRET in .env or update settings in admin panel.');
         }
 
         return new StripeClient($secretKey);
@@ -57,18 +66,19 @@ class PaymentController extends Controller
         // Validate request
         $request->validate([
             'payment_method' => 'required|in:credit_card,debit_card',
-            'delivery_type' => 'required|in:brampton_pickup,deliver,ship',
+            'delivery_type' => 'required|in:store_pickup,deliver_it,ship_it',
             'order_type' => 'required|in:Pick up,Delivery,Ship',
             'shipping_address' => 'required|string',
             'notes' => 'nullable|string|max:100',
             'po_number' => 'nullable|string|max:15',
-            'shop_name' => 'nullable|required_if:delivery_type,deliver,ship|string|max:255',
-            'manager_name' => 'nullable|required_if:delivery_type,deliver,ship|string|max:255',
-            'contact_number' => 'nullable|required_if:delivery_type,deliver,ship|string|max:20',
-            'street_address' => 'nullable|required_if:delivery_type,deliver,ship|string|max:500',
-            'city' => 'nullable|required_if:delivery_type,deliver,ship|string|max:100',
-            'province' => 'nullable|required_if:delivery_type,deliver,ship|string|max:50',
-            'post_code' => 'nullable|required_if:delivery_type,deliver,ship|string|max:10',
+            'address_option' => 'nullable|string',
+            'shop_name' => 'nullable|required_if:address_option,different_address|string|max:255',
+            'manager_name' => 'nullable|required_if:address_option,different_address|string|max:255',
+            'contact_number' => 'nullable|required_if:address_option,different_address|string|max:20',
+            'street_address' => 'nullable|required_if:address_option,different_address|string|max:500',
+            'city' => 'nullable|required_if:address_option,different_address|string|max:100',
+            'province' => 'nullable|required_if:address_option,different_address|string|max:50',
+            'post_code' => 'nullable|required_if:address_option,different_address|string|max:10',
             'address_type' => 'nullable|in:Business,Residential',
             'save_to_address_book' => 'nullable|boolean',
         ], [
@@ -126,6 +136,21 @@ class PaymentController extends Controller
                 ];
             }
 
+            // Add tax if exists
+            if ($order->tax > 0) {
+                $taxLabel = \App\Models\Setting::where('key', 'tax_label')->value('value') ?? 'Tax';
+                $lineItems[] = [
+                    'price_data' => [
+                        'currency' => 'usd',
+                        'product_data' => [
+                            'name' => $taxLabel,
+                        ],
+                        'unit_amount' => (int) ($order->tax * 100),
+                    ],
+                    'quantity' => 1,
+                ];
+            }
+
             $session = $stripe->checkout->sessions->create([
                 'payment_method_types' => ['card'],
                 'line_items' => $lineItems,
@@ -146,7 +171,7 @@ class PaymentController extends Controller
 
         } catch (\Exception $e) {
             Log::error('Checkout Error: '.$e->getMessage(), [
-                'user_id' => auth()->id(),
+                'user_id' => Auth::id(),
                 'trace' => $e->getTraceAsString(),
             ]);
 
@@ -169,6 +194,7 @@ class PaymentController extends Controller
                         'status' => 'succeeded',
                         'payment_details' => $session->toArray(),
                     ]);
+                    AdminOrderSnapshot::flush();
                 }
             } catch (\Exception $e) {
 
@@ -216,6 +242,7 @@ class PaymentController extends Controller
                     'status' => 'succeeded',
                     'payment_details' => $session->toArray(),
                 ]);
+                AdminOrderSnapshot::flush();
             }
         }
 

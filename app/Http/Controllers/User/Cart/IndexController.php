@@ -6,6 +6,7 @@ use App\Helpers\Helper;
 use App\Http\Controllers\Controller;
 use App\Models\Cart;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class IndexController extends Controller
@@ -16,7 +17,7 @@ class IndexController extends Controller
             return redirect()->route('parts.index')->with('error', 'Invalid access attempt.');
         }
 
-        $cartData = self::getCartData(auth()->id());
+        $cartData = self::getCartData(Auth::id());
 
         return Inertia::render('User/Cart/AddToCart', [
             'cartItems' => $cartData['items'],
@@ -61,10 +62,18 @@ class IndexController extends Controller
             return $item['buy_price'] * $item['quantity'];
         });
 
+        $taxPercentage = \App\Models\Setting::where('key', 'tax_percentage')->value('value') ?? 13;
+        $taxLabel = \App\Models\Setting::where('key', 'tax_label')->value('value') ?? 'Tax';
+
+        $tax = round($subtotal * ($taxPercentage / 100), 2);
+        $total = $subtotal + $tax;
+
         return [
             'items' => $cartItems,
             'subtotal' => number_format($subtotal, 2, '.', ''),
-            'total' => number_format($subtotal, 2, '.', ''),
+            'tax' => number_format($tax, 2, '.', ''),
+            'tax_label' => $taxLabel,
+            'total' => number_format($total, 2, '.', ''),
         ];
     }
 
@@ -73,7 +82,7 @@ class IndexController extends Controller
         $request->validate([
             'quantity' => 'required|integer|min:1',
         ]);
-        $cartItem = Cart::where('user_id', auth()->id())
+        $cartItem = Cart::where('user_id', Auth::id())
             ->where('id', $id)
             ->firstOrFail();
 
@@ -86,7 +95,7 @@ class IndexController extends Controller
 
     public function destroy($id)
     {
-        $cartItem = Cart::where('user_id', auth()->id())
+        $cartItem = Cart::where('user_id', Auth::id())
             ->where('id', $id)
             ->firstOrFail();
 

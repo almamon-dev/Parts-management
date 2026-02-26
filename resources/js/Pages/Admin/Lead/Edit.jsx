@@ -48,7 +48,7 @@ export default function Edit({ lead }) {
 
         if (parts.length > 0) {
             // Try to find a known make
-            const foundMake = MAKES.find(
+            const foundMake = MAKES_LIST.find(
                 (m) => m.toLowerCase() === parts[0].toLowerCase(),
             );
             if (foundMake) {
@@ -260,9 +260,9 @@ export default function Edit({ lead }) {
         <AdminLayout>
             <Head title={`Edit Lead - ${lead.shop_name}`} />
 
-            <div className="font-sans px-6 py-6 transition-all duration-300">
+            <div className="font-sans px-4 py-4 transition-all duration-300">
                 {/* Header */}
-                <div className="flex justify-between items-center mb-6">
+                <div className="flex justify-between items-center mb-4">
                     <div>
                         <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
                             <Pencil className="text-[#FF9F43]" size={24} />
@@ -282,22 +282,22 @@ export default function Edit({ lead }) {
 
                 <form
                     onSubmit={(e) => e.preventDefault()}
-                    className="space-y-6"
+                    className="space-y-3"
                 >
                     {/* Top Row: Shop Info, Notes/PO, and Default Settings */}
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
                         {/* Shop & Requester Info */}
-                        <div className="bg-white p-5 rounded-xl border border-slate-200/60 shadow-sm">
-                            <h3 className="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
+                        <div className="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm">
+                            <h3 className="text-xs font-bold text-slate-800 mb-3 flex items-center gap-2">
                                 <Users size={18} className="text-[#FF9F43]" />
                                 Shop & Requester Info
                             </h3>
 
-                            <div className="grid grid-cols-1 gap-4">
+                            <div className="grid grid-cols-1 gap-2">
                                 <Input
                                     label="Shop"
                                     placeholder="Enter shop name"
-                                    className="text-sm h-10"
+                                    className="text-xs h-8"
                                     value={data.shop_name}
                                     onChange={(e) =>
                                         setData("shop_name", e.target.value)
@@ -307,7 +307,7 @@ export default function Edit({ lead }) {
                                 <Input
                                     label="Customer Name"
                                     placeholder="Enter name"
-                                    className="text-sm h-10"
+                                    className="text-xs h-8"
                                     value={data.name}
                                     onChange={(e) =>
                                         setData("name", e.target.value)
@@ -318,7 +318,7 @@ export default function Edit({ lead }) {
                                     <Input
                                         label="Phone"
                                         placeholder="Telephone"
-                                        className="text-sm h-10"
+                                        className="text-xs h-8"
                                         value={data.contact_number}
                                         onChange={(e) => {
                                             setData(
@@ -337,7 +337,7 @@ export default function Edit({ lead }) {
                                         label="Email"
                                         placeholder="Email"
                                         type="email"
-                                        className="text-sm h-10"
+                                        className="text-xs h-8"
                                         value={data.email}
                                         onChange={(e) =>
                                             setData("email", e.target.value)
@@ -349,8 +349,8 @@ export default function Edit({ lead }) {
                         </div>
 
                         {/* Notes & PO */}
-                        <div className="bg-white p-5 rounded-xl border border-slate-200/60 shadow-sm flex flex-col h-full">
-                            <h3 className="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
+                        <div className="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm flex flex-col h-full">
+                            <h3 className="text-xs font-bold text-slate-800 mb-3 flex items-center gap-2">
                                 <FileText
                                     size={18}
                                     className="text-[#FF9F43]"
@@ -360,7 +360,7 @@ export default function Edit({ lead }) {
                             <Input
                                 isTextArea
                                 placeholder="Requirements or notes..."
-                                className="flex-1 min-h-[100px] text-sm focus:ring-[#FF9F43]/10 mb-4"
+                                className="flex-1 min-h-[80px] text-xs focus:ring-[#FF9F43]/10 mb-3"
                                 value={data.notes}
                                 onChange={(e) =>
                                     setData("notes", e.target.value)
@@ -369,7 +369,7 @@ export default function Edit({ lead }) {
                             <Input
                                 label="PO Number"
                                 placeholder="PO Number"
-                                className="text-sm h-10"
+                                className="text-xs h-8"
                                 value={data.po_number || ""}
                                 onChange={(e) =>
                                     setData("po_number", e.target.value)
@@ -379,18 +379,18 @@ export default function Edit({ lead }) {
                         </div>
 
                         {/* Default Settings */}
-                        <div className="bg-white p-5 rounded-xl border border-slate-200/60 shadow-sm">
-                            <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-4">
+                        <div className="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm">
+                            <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">
                                 Default Settings
                             </h3>
-                            <div className="space-y-4">
+                            <div className="space-y-2">
                                 {/* Bulk Vendor */}
-                                <div className="space-y-1.5">
+                                <div className="space-y-1">
                                     <label className="text-[12px] font-semibold text-slate-700">
                                         Default Vendor
                                     </label>
                                     <select
-                                        className="w-full h-10 bg-slate-50/50 border border-slate-200 rounded-lg px-3 text-sm font-medium focus:bg-white transition-all outline-none focus:border-[#FF9F43] focus:ring-2 focus:ring-[#FF9F43]/10 appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%3E%3Cpath%20stroke%3D%22%236b7280%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%221.5%22%20d%3D%22m6%208%204%204%204-4%22%2F%3E%3C%2Fsvg%3E')] bg-[position:right_0.75rem_center] bg-[length:1.25rem_1.25rem] bg-no-repeat pr-10"
+                                        className="w-full h-8 bg-slate-50/50 border border-slate-200 rounded-lg px-3 text-xs font-medium focus:bg-white transition-all outline-none focus:border-[#FF9F43] focus:ring-2 focus:ring-[#FF9F43]/10 appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%3E%3Cpath%20stroke%3D%22%236b7280%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%221.5%22%20d%3D%22m6%208%204%204%204-4%22%2F%3E%3C%2Fsvg%3E')] bg-[position:right_0.75rem_center] bg-[length:1.25rem_1.25rem] bg-no-repeat pr-10"
                                         onChange={(e) => {
                                             const updated = data.parts.map(
                                                 (p) => ({
@@ -504,7 +504,7 @@ export default function Edit({ lead }) {
                                         Lead Execution Status
                                     </label>
                                     <select
-                                        className="w-full h-11 border-2 border-slate-100 bg-white rounded-xl px-4 text-sm font-bold transition-all focus:border-[#FF9F43] focus:ring-4 focus:ring-[#FF9F43]/5 outline-none text-[#FF9F43] uppercase tracking-wide"
+                                        className="w-full h-8 border-2 border-slate-100 bg-white rounded-lg px-4 text-xs font-bold transition-all focus:border-[#FF9F43] focus:ring-4 focus:ring-[#FF9F43]/5 outline-none text-[#FF9F43] uppercase tracking-wide"
                                         value={data.status}
                                         onChange={(e) =>
                                             setData("status", e.target.value)
@@ -524,20 +524,20 @@ export default function Edit({ lead }) {
                     </div>
 
                     {/* Address Row: Billing and Shipping */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                         {/* Billing Address */}
-                        <div className="bg-white p-5 rounded-xl border border-slate-200/60 shadow-sm">
+                        <div className="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm">
                             <h3 className="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
                                 <MapPin size={18} className="text-[#FF9F43]" />
                                 Billing Address
                             </h3>
-                            <div className="space-y-4">
-                                <div className="grid grid-cols-3 gap-3">
+                            <div className="space-y-2">
+                                <div className="grid grid-cols-3 gap-2">
                                     <div className="col-span-2">
                                         <Input
                                             label="Street Address"
                                             placeholder="Street address"
-                                            className="text-sm h-10"
+                                            className="text-xs h-8"
                                             value={data.street_address}
                                             onChange={(e) =>
                                                 setData(
@@ -551,7 +551,7 @@ export default function Edit({ lead }) {
                                     <Input
                                         label="Unit #"
                                         placeholder="Unit #"
-                                        className="text-sm h-10"
+                                        className="text-xs h-8"
                                         value={data.unit_number || ""}
                                         onChange={(e) =>
                                             setData(
@@ -562,11 +562,11 @@ export default function Edit({ lead }) {
                                         error={errors.unit_number}
                                     />
                                 </div>
-                                <div className="grid grid-cols-3 gap-3">
+                                <div className="grid grid-cols-3 gap-2">
                                     <Input
                                         label="City"
                                         placeholder="City"
-                                        className="text-sm h-10"
+                                        className="text-xs h-8"
                                         value={data.city}
                                         onChange={(e) =>
                                             setData("city", e.target.value)
@@ -576,7 +576,7 @@ export default function Edit({ lead }) {
                                     <Input
                                         label="Province"
                                         placeholder="Province"
-                                        className="text-sm h-10"
+                                        className="text-xs h-8"
                                         value={data.province}
                                         onChange={(e) =>
                                             setData("province", e.target.value)
@@ -586,7 +586,7 @@ export default function Edit({ lead }) {
                                     <Input
                                         label="Postcode"
                                         placeholder="Postcode"
-                                        className="text-sm h-10"
+                                        className="text-xs h-8"
                                         value={data.postcode}
                                         onChange={(e) =>
                                             setData("postcode", e.target.value)
@@ -597,7 +597,7 @@ export default function Edit({ lead }) {
                                 <Input
                                     label="Country"
                                     placeholder="Country"
-                                    className="text-sm h-10"
+                                    className="text-xs h-8"
                                     value={data.country}
                                     onChange={(e) =>
                                         setData("country", e.target.value)
@@ -634,12 +634,12 @@ export default function Edit({ lead }) {
                             <div
                                 className={`space-y-4 ${sameAsBilling ? "opacity-50 pointer-events-none" : ""}`}
                             >
-                                <div className="grid grid-cols-3 gap-3">
+                                <div className="grid grid-cols-3 gap-2">
                                     <div className="col-span-2">
                                         <Input
                                             label="Street Address"
                                             placeholder="Street address"
-                                            className="text-sm h-10"
+                                            className="text-xs h-8"
                                             value={
                                                 data.shipping_street_address ||
                                                 ""
@@ -658,7 +658,7 @@ export default function Edit({ lead }) {
                                     <Input
                                         label="Unit #"
                                         placeholder="Unit #"
-                                        className="text-sm h-10"
+                                        className="text-xs h-8"
                                         value={data.shipping_unit_number || ""}
                                         onChange={(e) =>
                                             setData(
@@ -669,11 +669,11 @@ export default function Edit({ lead }) {
                                         error={errors.shipping_unit_number}
                                     />
                                 </div>
-                                <div className="grid grid-cols-3 gap-3">
+                                <div className="grid grid-cols-3 gap-2">
                                     <Input
                                         label="City"
                                         placeholder="City"
-                                        className="text-sm h-10"
+                                        className="text-xs h-8"
                                         value={data.shipping_city || ""}
                                         onChange={(e) =>
                                             setData(
@@ -686,7 +686,7 @@ export default function Edit({ lead }) {
                                     <Input
                                         label="Province"
                                         placeholder="Province"
-                                        className="text-sm h-10"
+                                        className="text-xs h-8"
                                         value={data.shipping_province || ""}
                                         onChange={(e) =>
                                             setData(
@@ -699,7 +699,7 @@ export default function Edit({ lead }) {
                                     <Input
                                         label="Postcode"
                                         placeholder="Postcode"
-                                        className="text-sm h-10"
+                                        className="text-xs h-8"
                                         value={data.shipping_postcode || ""}
                                         onChange={(e) =>
                                             setData(
@@ -713,7 +713,7 @@ export default function Edit({ lead }) {
                                 <Input
                                     label="Country"
                                     placeholder="Country"
-                                    className="text-sm h-10"
+                                    className="text-xs h-8"
                                     value={data.shipping_country || ""}
                                     onChange={(e) =>
                                         setData(
@@ -733,12 +733,12 @@ export default function Edit({ lead }) {
                             <Car size={18} className="text-[#FF9F43]" />
                             Vehicle Info
                         </h3>
-                        <div className="grid grid-cols-12 gap-4">
+                        <div className="grid grid-cols-12 gap-3">
                             <div className="col-span-2">
                                 <Select
                                     label="Year"
                                     placeholder="Year"
-                                    className="bg-white text-sm h-10"
+                                    className="bg-white text-xs h-8"
                                     options={YEARS}
                                     value={data.year}
                                     onChange={(e) =>
@@ -751,7 +751,7 @@ export default function Edit({ lead }) {
                                 <Select
                                     label="Make"
                                     placeholder="Make"
-                                    className="bg-white text-sm h-10"
+                                    className="bg-white text-xs h-8"
                                     options={data.year ? MAKES_OPTIONS : []}
                                     value={data.make}
                                     onChange={(e) => {
@@ -766,7 +766,7 @@ export default function Edit({ lead }) {
                                 <Select
                                     label="Model"
                                     placeholder="Model"
-                                    className="bg-white text-sm h-10"
+                                    className="bg-white text-xs h-8"
                                     options={getModelsForMake(data.make)}
                                     value={data.model}
                                     onChange={(e) =>
@@ -780,7 +780,7 @@ export default function Edit({ lead }) {
                                 <Input
                                     label="Trim / Submodel"
                                     placeholder="Trim (e.g. Laredo, XLE)"
-                                    className="text-sm h-10"
+                                    className="text-xs h-8"
                                     value={data.trim || ""}
                                     onChange={(e) =>
                                         setData("trim", e.target.value)
@@ -791,7 +791,7 @@ export default function Edit({ lead }) {
                                 <Input
                                     label="VIN / Frame"
                                     placeholder="VIN or Frame #"
-                                    className="text-sm h-10"
+                                    className="text-xs h-8"
                                     value={data.vin}
                                     onChange={(e) =>
                                         setData("vin", e.target.value)
@@ -803,7 +803,7 @@ export default function Edit({ lead }) {
                                 <Input
                                     label="Color Code"
                                     placeholder="Code"
-                                    className="text-sm h-10"
+                                    className="text-xs h-8"
                                     value={data.color_code}
                                     onChange={(e) =>
                                         setData("color_code", e.target.value)
@@ -815,7 +815,7 @@ export default function Edit({ lead }) {
                                 <Input
                                     label="Engine Size"
                                     placeholder="Size"
-                                    className="text-sm h-10"
+                                    className="text-xs h-8"
                                     value={data.engine_size}
                                     onChange={(e) =>
                                         setData("engine_size", e.target.value)
@@ -871,7 +871,7 @@ export default function Edit({ lead }) {
                             {data.parts.map((part, idx) => (
                                 <div
                                     key={idx}
-                                    className="grid grid-cols-12 gap-x-3 gap-y-4 items-center bg-slate-50/30 p-4 xl:p-2 rounded-xl border border-slate-100 relative group transition-all hover:bg-white hover:shadow-md"
+                                    className="grid grid-cols-12 gap-x-2 gap-y-2 items-center bg-slate-50/30 p-2 xl:p-1.5 rounded-xl border border-slate-100 relative group transition-all hover:bg-white hover:shadow-md"
                                 >
                                     {/* Row Remove Button (Floating) */}
                                     {data.parts.length > 1 && (
@@ -891,7 +891,7 @@ export default function Edit({ lead }) {
                                         </div>
                                         <input
                                             placeholder="Part name"
-                                            className={`w-full h-9 bg-white border ${errors[`parts.${idx}.part_name`] ? "border-rose-300" : "border-slate-200"} rounded-lg px-2 text-[12px] focus:ring-2 focus:ring-[#FF9F43]/20 focus:border-[#FF9F43] outline-none transition-all font-medium`}
+                                            className={`w-full h-8 bg-white border ${errors[`parts.${idx}.part_name`] ? "border-rose-300" : "border-slate-200"} rounded-lg px-2 text-[12px] focus:ring-2 focus:ring-[#FF9F43]/20 focus:border-[#FF9F43] outline-none transition-all font-medium`}
                                             value={part.part_name}
                                             onChange={(e) =>
                                                 handlePartChange(
@@ -915,7 +915,7 @@ export default function Edit({ lead }) {
                                             Vendor
                                         </div>
                                         <select
-                                            className="w-full h-9 bg-white border border-slate-200 rounded-lg px-2 text-[11px] font-medium transition-all outline-none focus:border-[#FF9F43] focus:ring-2 focus:ring-[#FF9F43]/10 appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%3E%3Cpath%20stroke%3D%22%236b7280%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%221.5%22%20d%3D%22m6%208%204%204%204-4%22%2F%3E%3C%2Fsvg%3E')] bg-[position:right_0.25rem_center] bg-[length:1.25rem_1.25rem] bg-no-repeat pr-6"
+                                            className="w-full h-8 bg-white border border-slate-200 rounded-lg px-2 text-[11px] font-medium transition-all outline-none focus:border-[#FF9F43] focus:ring-2 focus:ring-[#FF9F43]/10 appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%3E%3Cpath%20stroke%3D%22%236b7280%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%221.5%22%20d%3D%22m6%208%204%204%204-4%22%2F%3E%3C%2Fsvg%3E')] bg-[position:right_0.25rem_center] bg-[length:1.25rem_1.25rem] bg-no-repeat pr-6"
                                             value={part.vendor}
                                             onChange={(e) =>
                                                 handlePartChange(
@@ -950,7 +950,7 @@ export default function Edit({ lead }) {
                                         <input
                                             placeholder="Buy"
                                             type="number"
-                                            className="w-full h-9 bg-white border border-slate-200 rounded-lg px-1 text-[11px] font-bold text-slate-600 transition-all outline-none text-center focus:border-[#FF9F43] focus:ring-2 focus:ring-[#FF9F43]/10"
+                                            className="w-full h-8 bg-white border border-slate-200 rounded-lg px-1 text-[11px] font-bold text-slate-600 transition-all outline-none text-center focus:border-[#FF9F43] focus:ring-2 focus:ring-[#FF9F43]/10"
                                             value={part.buy_price}
                                             onChange={(e) =>
                                                 handlePartChange(
@@ -970,7 +970,7 @@ export default function Edit({ lead }) {
                                         <input
                                             placeholder="Sell"
                                             type="number"
-                                            className="w-full h-9 bg-white border border-[#FF9F43]/30 rounded-lg px-1 text-[11px] font-black text-[#FF9F43] transition-all outline-none text-center focus:border-[#FF9F43] focus:ring-2 focus:ring-[#FF9F43]/10"
+                                            className="w-full h-8 bg-white border border-[#FF9F43]/30 rounded-lg px-1 text-[11px] font-black text-[#FF9F43] transition-all outline-none text-center focus:border-[#FF9F43] focus:ring-2 focus:ring-[#FF9F43]/10"
                                             value={part.sell_price}
                                             onChange={(e) =>
                                                 handlePartChange(
@@ -988,7 +988,7 @@ export default function Edit({ lead }) {
                                             Payment
                                         </div>
                                         <select
-                                            className="w-full h-9 bg-white border border-slate-200 rounded-lg px-2 text-[11px] font-medium transition-all outline-none focus:border-[#FF9F43] focus:ring-2 focus:ring-[#FF9F43]/10 appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%3E%3Cpath%20stroke%3D%22%236b7280%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%221.5%22%20d%3D%22m6%208%204%204%204-4%22%2F%3E%3C%2Fsvg%3E')] bg-[position:right_0.25rem_center] bg-[length:1.25rem_1.25rem] bg-no-repeat pr-6"
+                                            className="w-full h-8 bg-white border border-slate-200 rounded-lg px-2 text-[11px] font-medium transition-all outline-none focus:border-[#FF9F43] focus:ring-2 focus:ring-[#FF9F43]/10 appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%3E%3Cpath%20stroke%3D%22%236b7280%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%221.5%22%20d%3D%22m6%208%204%204%204-4%22%2F%3E%3C%2Fsvg%3E')] bg-[position:right_0.25rem_center] bg-[length:1.25rem_1.25rem] bg-no-repeat pr-6"
                                             value={part.payment_status}
                                             onChange={(e) =>
                                                 handlePartChange(
@@ -1108,23 +1108,23 @@ export default function Edit({ lead }) {
                         </div>
 
                         {/* Totals Display */}
-                        <div className="mt-6 pt-4 border-t border-slate-50 flex flex-col sm:flex-row justify-end gap-3">
-                            <div className="flex items-center gap-3 bg-slate-50/50 px-4 py-2.5 rounded-xl border border-slate-100/50">
-                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                        <div className="mt-4 pt-2 border-t border-slate-50 flex flex-col sm:flex-row justify-end gap-2">
+                            <div className="flex items-center gap-2 bg-slate-50/50 px-3 py-1.5 rounded-lg border border-slate-100/50">
+                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
                                     Total Buy
                                 </span>
-                                <span className="text-base font-black text-slate-600">
+                                <span className="text-sm font-black text-slate-600">
                                     $
                                     {totalBuy.toLocaleString(undefined, {
                                         minimumFractionDigits: 2,
                                     })}
                                 </span>
                             </div>
-                            <div className="flex items-center gap-3 bg-[#FF9F43]/5 px-4 py-2.5 rounded-xl border border-[#FF9F43]/10">
-                                <span className="text-[10px] font-bold text-[#FF9F43] uppercase tracking-widest">
+                            <div className="flex items-center gap-2 bg-[#FF9F43]/5 px-3 py-1.5 rounded-lg border border-[#FF9F43]/10">
+                                <span className="text-[9px] font-bold text-[#FF9F43] uppercase tracking-widest">
                                     Total Sell
                                 </span>
-                                <span className="text-base font-black text-[#FF9F43]">
+                                <span className="text-sm font-black text-[#FF9F43]">
                                     $
                                     {totalSell.toLocaleString(undefined, {
                                         minimumFractionDigits: 2,
@@ -1135,15 +1135,15 @@ export default function Edit({ lead }) {
                     </div>
 
                     {/* Submit Buttons */}
-                    <div className="mt-6">
-                        <div className="flex flex-col sm:flex-row items-center gap-4">
+                    <div className="mt-4">
+                        <div className="flex flex-col sm:flex-row items-center gap-3">
                             <button
                                 type="button"
                                 onClick={handleSubmit}
                                 disabled={processing}
-                                className="flex-1 min-h-[46px] bg-[#FF9F43] text-white rounded-xl font-bold text-sm flex items-center justify-center gap-3 hover:bg-[#e68a30] active:scale-[0.99] transition-all shadow-md shadow-[#FF9F43]/20 disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-widest"
+                                className="flex-1 min-h-[38px] bg-[#FF9F43] text-white rounded-lg font-bold text-xs flex items-center justify-center gap-2 hover:bg-[#e68a30] active:scale-[0.99] transition-all shadow-md shadow-[#FF9F43]/20 disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-widest"
                             >
-                                <Save size={20} />
+                                <Save size={16} />
                                 {processing
                                     ? "Updating..."
                                     : "Update Lead Info"}
@@ -1151,7 +1151,7 @@ export default function Edit({ lead }) {
                             <button
                                 type="button"
                                 onClick={() => reset()}
-                                className="px-8 min-h-[46px] bg-slate-100 text-slate-500 rounded-xl font-bold text-xs hover:bg-slate-200 hover:text-slate-700 transition-all uppercase tracking-widest"
+                                className="px-6 min-h-[38px] bg-slate-100 text-slate-500 rounded-lg font-bold text-[10px] hover:bg-slate-200 hover:text-slate-700 transition-all uppercase tracking-widest"
                             >
                                 Reset Changes
                             </button>

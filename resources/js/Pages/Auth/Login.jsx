@@ -13,7 +13,7 @@ import {
 // Reusable Input component
 import { Input } from "@/Components/ui/Input";
 
-export default function Login() {
+export default function Login({ isAdmin = false }) {
     // Refs for input handling
     const passwordInput = useRef(null);
 
@@ -21,12 +21,20 @@ export default function Login() {
     const [showPassword, setShowPassword] = useState(false);
 
     // Inertia form state & helpers
-    const { data, setData, post, processing, errors, reset, clearErrors, setError } =
-        useForm({
-            email: "",
-            password: "",
-            remember: false,
-        });
+    const {
+        data,
+        setData,
+        post,
+        processing,
+        errors,
+        reset,
+        clearErrors,
+        setError,
+    } = useForm({
+        email: "",
+        password: "",
+        remember: false,
+    });
 
     // LIVE VALIDATION HANDLER
     const handleChange = (field, value) => {
@@ -39,7 +47,7 @@ export default function Login() {
     // Form submit handler
     const submit = (e) => {
         e.preventDefault();
-        
+
         // Frontend Validation
         clearErrors();
 
@@ -61,7 +69,7 @@ export default function Login() {
         }
 
         // Send login request
-        post(route("login"), {
+        post(route(isAdmin ? "admin.login" : "login"), {
             onFinish: () => reset("password"),
         });
     };
@@ -76,11 +84,11 @@ export default function Login() {
             <div className="absolute inset-0 bg-black/60" />
 
             {/* Page title */}
-            <Head title="Log in" />
+            <Head title={isAdmin ? "Admin Log in" : "Log in"} />
 
             {/* Glassmorphism login card */}
             <div className="relative z-10 w-full max-w-[600px] mx-4 bg-white/10 backdrop-blur-2xl border border-white/20 shadow-2xl rounded-[40px] p-8 md:p-12 flex flex-col justify-center text-white overflow-hidden">
-                 {/* Decorative Hexagon Patterns */}
+                {/* Decorative Hexagon Patterns */}
                 <img
                     src="/img/10.png"
                     className="absolute top-5 left-5 w-[200px] opacity-20 pointer-events-none"
@@ -99,11 +107,14 @@ export default function Login() {
                         alt="Logo"
                     />
                     <h2 className="text-3xl font-bold mb-3">
-                        Welcome Back to Parts Panel
+                        {isAdmin
+                            ? "Admin Login"
+                            : "Welcome Back to Parts Panel"}
                     </h2>
                     <p className="text-base text-gray-200 max-w-[450px] mx-auto opacity-90">
-                        Log in to access your personalized B2B car parts
-                        marketplace.
+                        {isAdmin
+                            ? "Access the administrative dashboard to manage the marketplace."
+                            : "Log in to access your personalized B2B car parts marketplace."}
                     </p>
                 </div>
 
@@ -174,18 +185,20 @@ export default function Login() {
                             </span>
                         </button>
 
-                        {/* Sign up link */}
-                        <p className="mt-8">
-                            <span className="text-gray-300">
-                                Didn't have an account?{" "}
-                            </span>
-                            <Link
-                                href={route("register")}
-                                className="text-white font-bold hover:underline"
-                            >
-                                Sign up
-                            </Link>
-                        </p>
+                        {/* Sign up link - Only show for normal users */}
+                        {!isAdmin && (
+                            <p className="mt-8">
+                                <span className="text-gray-300">
+                                    Didn't have an account?{" "}
+                                </span>
+                                <Link
+                                    href={route("register")}
+                                    className="text-white font-bold hover:underline"
+                                >
+                                    Sign up
+                                </Link>
+                            </p>
+                        )}
                         <div className="flex items-center mt-3 gap-2.5 text-[#00338d] font-semibold">
                             {/* Icon with a slight rotation to match the image */}
                             <Phone

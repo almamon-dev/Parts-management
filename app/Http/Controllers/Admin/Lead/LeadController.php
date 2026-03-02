@@ -8,6 +8,7 @@ use App\Models\Lead;
 use App\Services\AdminLeadSnapshot;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class LeadController extends Controller
@@ -49,7 +50,7 @@ class LeadController extends Controller
             DB::beginTransaction();
 
             $leadData = collect($validated)->except('parts')->toArray();
-            $leadData['user_id'] = auth()->id();
+            $leadData['user_id'] = Auth::id();
 
             $lead = Lead::create($leadData);
 

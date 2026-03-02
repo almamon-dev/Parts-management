@@ -3,6 +3,7 @@ import AdminLayout from "@/Layouts/AdminLayout";
 import { Head, Link } from "@inertiajs/react";
 import JsBarcode from "jsbarcode";
 import { ChevronLeft, Printer, Mail, Phone, MapPin, Globe } from "lucide-react";
+import { TAX_RATES } from "@/Constants/locations";
 
 export default function Invoice({ lead }) {
     const printRef = useRef();
@@ -28,8 +29,27 @@ export default function Invoice({ lead }) {
         (sum, part) => sum + parseFloat(part.sell_price || 0),
         0,
     );
-    const discount = lead.discount || 0; // Assuming lead might have a discount field, or default to 0
-    const taxRate = 0.13;
+    const discount = lead.discount || 0;
+
+    // Calculate dynamic tax based on country and province
+    let taxRate = 0;
+    let taxName = "Tax 0%";
+
+    if (
+        lead.country &&
+        lead.province &&
+        TAX_RATES[lead.country] &&
+        TAX_RATES[lead.country][lead.province]
+    ) {
+        const taxConfig = TAX_RATES[lead.country][lead.province];
+        taxRate = taxConfig.rate;
+        taxName = taxConfig.name;
+    } else if (!lead.country || !lead.province) {
+        // Fallback or default if not specified (maybe default to Ontario if it's the main branch)
+        taxRate = 0.13;
+        taxName = "HST 13%";
+    }
+
     const tax = (subtotal - discount) * taxRate;
     const total = subtotal - discount + tax;
 
@@ -394,7 +414,7 @@ export default function Invoice({ lead }) {
                                 <div className="w-1/2 p-2 bg-[#E2E8F0] text-[11px] font-black border-r-[2.5px] border-black text-left uppercase italic">
                                     Tax{" "}
                                     <span className="font-bold normal-case">
-                                        ON 13%
+                                        {taxName}
                                     </span>
                                 </div>
                                 <div className="w-1/2 p-2 text-[12px] font-black text-right">

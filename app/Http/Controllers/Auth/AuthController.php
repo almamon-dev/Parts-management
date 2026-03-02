@@ -32,6 +32,13 @@ class AuthController extends Controller
         return Inertia::render('Auth/Login');
     }
 
+    public function showAdminLogin()
+    {
+        return Inertia::render('Auth/Login', [
+            'isAdmin' => true,
+        ]);
+    }
+
     public function login(Request $request)
     {
         $request->validate([
@@ -41,7 +48,6 @@ class AuthController extends Controller
 
         $throttleKey = Str::lower($request->input('email')).'|'.$request->ip();
 
-        // Check for too many login attempts
         if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
             $seconds = RateLimiter::availableIn($throttleKey);
 
@@ -50,15 +56,22 @@ class AuthController extends Controller
             ]);
         }
 
-        // Determine if logging in with email or username
         $loginType = filter_var($request->email, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
         $credentials = [$loginType => $request->email, 'password' => $request->password];
 
         if (Auth::attempt($credentials, $request->remember)) {
             $user = Auth::user();
+
+            if ($user->isAdmin()) {
+                Auth::logout();
+
+                return back()->withErrors([
+                    'email' => 'Admins must login through the admin login page.',
+                ]);
+            }
+
             RateLimiter::clear($throttleKey);
 
-            // Force verify if not yet verified
             if (! $user->is_verified) {
                 Auth::logout();
                 $this->sendOtp($user, self::PURPOSES['verify']);
@@ -72,7 +85,51 @@ class AuthController extends Controller
             return redirect()->intended('/dashboard')->with('success', 'Logged in successfully!');
         }
 
-        // Increment attempts on failure
+        RateLimiter::hit($throttleKey);
+
+        return back()->withErrors([
+            'email' => 'These credentials do not match our records.',
+        ]);
+    }
+
+    public function adminLogin(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|string',
+            'password' => 'required',
+        ]);
+
+        $throttleKey = 'admin|'.Str::lower($request->input('email')).'|'.$request->ip();
+
+        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            $seconds = RateLimiter::availableIn($throttleKey);
+
+            return back()->withErrors([
+                'email' => "Too many login attempts. Please try again in {$seconds} seconds.",
+            ]);
+        }
+
+        $loginType = filter_var($request->email, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+        $credentials = [$loginType => $request->email, 'password' => $request->password];
+
+        if (Auth::attempt($credentials, $request->remember)) {
+            $user = Auth::user();
+
+            if (! $user->isAdmin()) {
+                Auth::logout();
+
+                return back()->withErrors([
+                    'email' => 'Only admins can login through this page.',
+                ]);
+            }
+
+            RateLimiter::clear($throttleKey);
+
+            $request->session()->regenerate();
+
+            return redirect()->intended('/admin/products')->with('success', 'Logged in successfully!');
+        }
+
         RateLimiter::hit($throttleKey);
 
         return back()->withErrors([
@@ -278,10 +335,12 @@ class AuthController extends Controller
     // --- 5. Logout ---
     public function logout(Request $request)
     {
+        $isAdmin = Auth::check() && Auth::user()->isAdmin();
+
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/login');
+        return $isAdmin ? redirect()->route('admin.login') : redirect('/login');
     }
 }

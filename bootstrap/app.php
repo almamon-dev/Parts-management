@@ -25,6 +25,17 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
         ]);
+
+        $middleware->redirectTo(
+            guests: function ($request) {
+                if ($request->is('admin') || $request->is('admin/*')) {
+                    return '/admin/login';
+                }
+
+                return '/login';
+            },
+            users: '/dashboard'
+        );
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

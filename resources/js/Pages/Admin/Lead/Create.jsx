@@ -19,6 +19,7 @@ import { Select } from "@/Components/ui/admin/Select";
 import { VENDORS } from "@/Constants/vendors";
 import { MAKES as MAKES_LIST } from "@/Constants/makes";
 import { MODELS } from "@/Constants/models";
+import { COUNTRIES, PROVINCES } from "@/Constants/locations";
 
 const MAKES_OPTIONS = MAKES_LIST.map((make) => ({ value: make, label: make }));
 
@@ -479,26 +480,16 @@ export default function Create() {
                                         error={errors.unit_number}
                                     />
                                 </div>
-                                <div className="grid grid-cols-3 gap-3">
+                                <div className="grid grid-cols-2 gap-3">
                                     <Input
                                         label="City"
                                         placeholder="City"
-                                        className="text-sm h-10"
+                                        className="text-xs h-8"
                                         value={data.city}
                                         onChange={(e) =>
                                             setData("city", e.target.value)
                                         }
                                         error={errors.city}
-                                    />
-                                    <Input
-                                        label="Province"
-                                        placeholder="Province"
-                                        className="text-sm h-10"
-                                        value={data.province}
-                                        onChange={(e) =>
-                                            setData("province", e.target.value)
-                                        }
-                                        error={errors.province}
                                     />
                                     <Input
                                         label="Postcode"
@@ -511,16 +502,53 @@ export default function Create() {
                                         error={errors.postcode}
                                     />
                                 </div>
-                                <Input
-                                    label="Country"
-                                    placeholder="Country"
-                                    className="text-xs h-8"
-                                    value={data.country}
-                                    onChange={(e) =>
-                                        setData("country", e.target.value)
-                                    }
-                                    error={errors.country}
-                                />
+                                <div className="grid grid-cols-2 gap-3">
+                                    <Select
+                                        label="Country"
+                                        placeholder="Select Country"
+                                        className="bg-white text-xs h-8"
+                                        options={COUNTRIES}
+                                        value={data.country}
+                                        onChange={(e) => {
+                                            setData((prev) => ({
+                                                ...prev,
+                                                country: e.target.value,
+                                                province: "", // Reset province when country changes
+                                            }));
+                                        }}
+                                        error={errors.country}
+                                    />
+                                    {PROVINCES[data.country]?.length > 0 ? (
+                                        <Select
+                                            label="Province/State"
+                                            placeholder="Select Province/State"
+                                            className="bg-white text-xs h-8"
+                                            options={PROVINCES[data.country]}
+                                            value={data.province}
+                                            onChange={(e) =>
+                                                setData(
+                                                    "province",
+                                                    e.target.value,
+                                                )
+                                            }
+                                            error={errors.province}
+                                        />
+                                    ) : (
+                                        <Input
+                                            label="Province/State"
+                                            placeholder="Enter Province/State"
+                                            className="text-xs h-8"
+                                            value={data.province}
+                                            onChange={(e) =>
+                                                setData(
+                                                    "province",
+                                                    e.target.value,
+                                                )
+                                            }
+                                            error={errors.province}
+                                        />
+                                    )}
+                                </div>
                             </div>
                         </div>
 
@@ -586,7 +614,7 @@ export default function Create() {
                                         error={errors.shipping_unit_number}
                                     />
                                 </div>
-                                <div className="grid grid-cols-3 gap-2">
+                                <div className="grid grid-cols-2 gap-3">
                                     <Input
                                         label="City"
                                         placeholder="City"
@@ -599,19 +627,6 @@ export default function Create() {
                                             )
                                         }
                                         error={errors.shipping_city}
-                                    />
-                                    <Input
-                                        label="Province"
-                                        placeholder="Province"
-                                        className="text-xs h-8"
-                                        value={data.shipping_province || ""}
-                                        onChange={(e) =>
-                                            setData(
-                                                "shipping_province",
-                                                e.target.value,
-                                            )
-                                        }
-                                        error={errors.shipping_province}
                                     />
                                     <Input
                                         label="Postcode"
@@ -627,19 +642,57 @@ export default function Create() {
                                         error={errors.shipping_postcode}
                                     />
                                 </div>
-                                <Input
-                                    label="Country"
-                                    placeholder="Country"
-                                    className="text-xs h-8"
-                                    value={data.shipping_country || ""}
-                                    onChange={(e) =>
-                                        setData(
-                                            "shipping_country",
-                                            e.target.value,
-                                        )
-                                    }
-                                    error={errors.shipping_country}
-                                />
+                                <div className="grid grid-cols-2 gap-3">
+                                    <Select
+                                        label="Country"
+                                        placeholder="Select Country"
+                                        className="bg-white text-xs h-8"
+                                        options={COUNTRIES}
+                                        value={data.shipping_country || ""}
+                                        onChange={(e) => {
+                                            setData((prev) => ({
+                                                ...prev,
+                                                shipping_country:
+                                                    e.target.value,
+                                                shipping_province: "",
+                                            }));
+                                        }}
+                                        error={errors.shipping_country}
+                                    />
+                                    {PROVINCES[data.shipping_country]?.length >
+                                    0 ? (
+                                        <Select
+                                            label="Province/State"
+                                            placeholder="Select Province/State"
+                                            className="bg-white text-xs h-8"
+                                            options={
+                                                PROVINCES[data.shipping_country]
+                                            }
+                                            value={data.shipping_province || ""}
+                                            onChange={(e) =>
+                                                setData(
+                                                    "shipping_province",
+                                                    e.target.value,
+                                                )
+                                            }
+                                            error={errors.shipping_province}
+                                        />
+                                    ) : (
+                                        <Input
+                                            label="Province/State"
+                                            placeholder="Enter Province/State"
+                                            className="text-xs h-8"
+                                            value={data.shipping_province || ""}
+                                            onChange={(e) =>
+                                                setData(
+                                                    "shipping_province",
+                                                    e.target.value,
+                                                )
+                                            }
+                                            error={errors.shipping_province}
+                                        />
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>

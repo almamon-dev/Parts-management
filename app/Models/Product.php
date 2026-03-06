@@ -10,7 +10,7 @@ class Product extends Model
         'pp_id', 'part_type_id', 'shop_view_id', 'sorting_id', 'description',
         'buy_price', 'list_price', 'stock_oakville',
         'stock_mississauga', 'stock_saskatoon', 'sku',
-        'location_id', 'visibility', 'position', 'is_clearance',
+        'location_id', 'visibility', 'is_clearance',
     ];
 
     protected $casts = [
@@ -36,6 +36,79 @@ class Product extends Model
             }
         });
     }
+
+    // ==========================================
+    // Local Scopes (Query Refactoring)
+    // ==========================================
+
+    public function scopeSearch($query, $search)
+    {
+        return $query->when($search, function ($q, $search) {
+            $q->where(function ($inner) use ($search) {
+                $inner->where('description', 'like', "%{$search}%")
+                    ->orWhere('sku', 'like', "%{$search}%")
+                    ->orWhereHas('partsNumbers', fn ($pq) => $pq->where('part_number', 'like', "%{$search}%"));
+            });
+        });
+    }
+
+    public function scopeFilterFitment($query, $filters)
+    {
+        if (! empty($filters['year_from']) || ! empty($filters['make']) || ! empty($filters['model'])) {
+            $query->whereHas('fitments', function ($f) use ($filters) {
+                if (! empty($filters['year_from'])) {
+                    $f->where('year_from', '<=', $filters['year_from'])
+                        ->where('year_to', '>=', $filters['year_from']);
+                }
+                if (! empty($filters['make'])) {
+                    $f->where('make', $filters['make']);
+                }
+                if (! empty($filters['model'])) {
+                    $f->where('model', $filters['model']);
+                }
+            });
+        }
+
+        return $query;
+    }
+
+    public function scopeFilterCategories($query, $filters)
+    {
+        $query->when($filters['category'] ?? null, fn ($q, $cat) => $q->whereHas('partType', fn ($c) => $c->where('name', $cat)));
+        $query->when($filters['shop_view'] ?? null, fn ($q, $sv) => $q->whereHas('shopView', fn ($c) => $c->where('name', $sv)));
+        $query->when($filters['sorting'] ?? null, fn ($q, $s) => $q->whereHas('sorting', fn ($c) => $c->where('name', $s)));
+
+        return $query;
+    }
+
+    public function scopeSortByPositionCategory($query)
+    {
+        return $query->select('products.*')
+            ->leftJoin('categories as sorting_cat', 'products.sorting_id', '=', 'sorting_cat.id')
+            ->orderByRaw("CASE 
+                WHEN sorting_cat.name = 'Front' THEN 1 
+                WHEN sorting_cat.name = 'Driver Side' THEN 2 
+                WHEN sorting_cat.name = 'Passenger Side' THEN 3 
+                WHEN sorting_cat.name = 'Rear Side' THEN 4 
+                WHEN sorting_cat.name = 'Interior' THEN 5 
+                ELSE 6 END ASC")
+            ->latest('products.created_at');
+    }
+
+    public function scopeWithUserContext($query, $userId)
+    {
+        return $query->with(['partType:id,name', 'shopView:id,name', 'sorting:id,name', 'partsNumbers', 'files', 'fitments'])
+            ->withExists(['favourites as is_favorite' => function ($q) use ($userId) {
+                $q->where('user_id', $userId);
+            }])
+            ->withExists(['carts as in_cart' => function ($q) use ($userId) {
+                $q->where('user_id', $userId);
+            }]);
+    }
+
+    // ==========================================
+    // Relationships
+    // ==========================================
 
     public function partType()
     {

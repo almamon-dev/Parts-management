@@ -18,9 +18,11 @@ return new class extends Migration
             $table->string('manager_name')->nullable();
             $table->string('contact_number')->nullable();
             $table->string('street_address');
+            $table->string('unit_number')->nullable();
             $table->string('city');
             $table->string('province');
             $table->string('post_code');
+            $table->string('country')->nullable();
             $table->boolean('is_default')->default(false);
             $table->timestamps();
         });

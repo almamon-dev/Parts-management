@@ -14,8 +14,7 @@ import {
     Cell,
 } from "recharts";
 
-// ... imports
-import { router } from "@inertiajs/react";
+import { Link, router } from "@inertiajs/react";
 import { useState } from "react";
 
 export default function Dashboard({
@@ -62,23 +61,26 @@ export default function Dashboard({
                             {leads.length > 0 ? (
                                 <div className="space-y-2">
                                     {leads.map((lead, i) => (
-                                        <div
+                                        <Link
+                                            href={(lead.id) ? route("admin.leads.show", lead.id) : "#"}
                                             key={i}
-                                            className="bg-slate-50/80 p-2.5 px-4 rounded-xl text-sm font-medium text-slate-700 flex justify-between items-center border border-slate-100 hover:bg-white hover:shadow-sm transition-all duration-300"
+                                            className="group bg-slate-50/80 p-2.5 px-4 rounded-xl text-sm font-medium text-slate-700 flex justify-between items-center border border-slate-100 hover:bg-white hover:shadow-sm transition-all duration-300"
                                         >
                                             <div className="flex flex-col">
-                                                <span className="text-[10px] font-black text-[#FF9F43] leading-none mb-1">
+                                                <span className="text-[10px] font-black text-[#FF9F43] leading-none mb-1 group-hover:underline">
                                                     {lead.lead_number}
                                                 </span>
-                                                <span className="font-bold">
+                                                <span className="font-bold group-hover:underline">
                                                     {lead.name}
                                                 </span>
                                             </div>
                                             <Badge
-                                                text="Lead"
-                                                color="bg-orange-500/10 text-[#FF9F43] border border-orange-100"
+                                                text={lead.status || "Lead"}
+                                                color={getStatusColorBadge(
+                                                    lead.status || "Lead",
+                                                )}
                                             />
-                                        </div>
+                                        </Link>
                                     ))}
                                 </div>
                             ) : (
@@ -100,14 +102,15 @@ export default function Dashboard({
                             {onlineOrders.length > 0 ? (
                                 <div className="w-full space-y-3">
                                     {onlineOrders.map((order, i) => (
-                                        <div
+                                        <Link
+                                            href={(order.id) ? route("admin.orders.show", order.id) : "#"}
                                             key={i}
-                                            className="flex items-center gap-2 text-[11px] whitespace-nowrap"
+                                            className="group flex items-center gap-2 text-[11px] whitespace-nowrap hover:bg-slate-50/50 p-1.5 -mx-1.5 rounded-lg transition-colors"
                                         >
-                                            <span className="w-16 font-black text-[#FF9F43]">
+                                            <span className="w-16 font-black text-[#FF9F43] group-hover:underline">
                                                 {order.order_number}
                                             </span>
-                                            <span className="w-24 truncate font-bold text-slate-700">
+                                            <span className="w-24 truncate font-bold text-slate-700 group-hover:underline">
                                                 {order.customer}
                                             </span>
                                             <Badge
@@ -128,17 +131,8 @@ export default function Dashboard({
                                                     order.status,
                                                 )}
                                             />
-                                        </div>
+                                        </Link>
                                     ))}
-                                    {onlineOrders.length < 5 &&
-                                        [...Array(5 - onlineOrders.length)].map(
-                                            (_, i) => (
-                                                <div
-                                                    key={`ghost-o-${i}`}
-                                                    className="h-6 w-full bg-slate-50/50 rounded-full border border-slate-100/50"
-                                                ></div>
-                                            ),
-                                        )}
                                 </div>
                             ) : (
                                 <div className="flex flex-col items-center justify-center py-20 text-slate-400">
@@ -159,14 +153,15 @@ export default function Dashboard({
                             {returnRequests.length > 0 ? (
                                 <div className="w-full space-y-3">
                                     {returnRequests.map((req, i) => (
-                                        <div
+                                        <Link
+                                            href={(req.id) ? route("admin.returns.show", req.id) : "#"}
                                             key={i}
-                                            className="flex items-center gap-2 text-[11px] whitespace-nowrap"
+                                            className="group flex items-center gap-2 text-[11px] whitespace-nowrap hover:bg-slate-50/50 p-1.5 -mx-1.5 rounded-lg transition-colors"
                                         >
-                                            <span className="w-16 font-black text-[#FF9F43]">
+                                            <span className="w-16 font-black text-[#FF9F43] group-hover:underline">
                                                 {req.return_number}
                                             </span>
-                                            <span className="w-24 truncate font-bold text-slate-700">
+                                            <span className="w-24 truncate font-bold text-slate-700 group-hover:underline">
                                                 {req.customer}
                                             </span>
                                             <Badge
@@ -187,17 +182,8 @@ export default function Dashboard({
                                                     req.status,
                                                 )}
                                             />
-                                        </div>
+                                        </Link>
                                     ))}
-                                    {returnRequests.length < 5 &&
-                                        [
-                                            ...Array(5 - returnRequests.length),
-                                        ].map((_, i) => (
-                                            <div
-                                                key={`ghost-r-${i}`}
-                                                className="h-6 w-full bg-slate-50/50 rounded-full border border-slate-100/50"
-                                            ></div>
-                                        ))}
                                 </div>
                             ) : (
                                 <div className="flex flex-col items-center justify-center py-20 text-slate-400">
@@ -434,8 +420,8 @@ export default function Dashboard({
                                     />
                                     <Bar
                                         dataKey="value"
-                                        radius={[6, 6, 0, 0]}
-                                        barSize={20}
+                                        radius={[8, 8, 0, 0]}
+                                        barSize={60}
                                     >
                                         {salesByChannel.map((entry, index) => (
                                             <Cell
@@ -623,10 +609,7 @@ function Badge({ text, color }) {
 function getStatusColor(status) {
     const s = status.toLowerCase();
     if (s.includes("pending")) return "bg-orange-500";
-    if (s.includes("declined")) return "bg-emerald-800"; // Match image's green for declined for some reason? Wait, let's check image.
-    // In image: Approved is Red, Declined is Green/Dark Blue?
-    // Wait: Pending (Orange), Declined (Greenish/Turquoise), Declined (Greenish), Approved (Dark Red).
-    // Let's match image exactly:
+    if (s.includes("declined")) return "bg-emerald-800";
     if (s.includes("pending")) return "bg-[#f59e0b]";
     if (s.includes("declined")) return "bg-[#065f46]";
     if (s.includes("approved")) return "bg-[#991b1b]";

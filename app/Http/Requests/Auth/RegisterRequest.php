@@ -50,7 +50,13 @@ class RegisterRequest extends FormRequest
             // Company Information
             'company_name' => ['nullable', 'string', 'max:255'],
             'address' => ['nullable', 'string'],
-            'account_type' => ['nullable', 'in:Bodyshop,Towing / Fleet Services,Auto Part Store,Dealership,Mechanic'],
+            'street_address' => ['nullable', 'string', 'max:255'],
+            'unit_number' => ['nullable', 'string', 'max:255'],
+            'city' => ['nullable', 'string', 'max:255'],
+            'postcode' => ['nullable', 'string', 'max:20'],
+            'country' => ['nullable', 'string', 'max:100'],
+            'province' => ['nullable', 'string', 'max:100'],
+            'account_type' => ['nullable', 'string'],
             'company_phone' => ['nullable', 'string', 'max:20'],
 
             // Store Hours

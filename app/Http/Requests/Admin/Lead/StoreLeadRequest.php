@@ -43,6 +43,7 @@ class StoreLeadRequest extends FormRequest
             'color_code' => 'nullable|string|max:255',
             'engine_size' => 'nullable|string|max:255',
             'status' => 'required|string|in:Quote,Processing,Fulfilled',
+            'discount' => 'nullable|numeric|min:0',
             'parts' => 'required|array|min:1',
             'parts.*.part_name' => 'required|string|max:255',
             'parts.*.vendor' => 'nullable|string|max:255',

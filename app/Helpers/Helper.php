@@ -16,7 +16,16 @@ class Helper
     public static function uploadFile($folder, $file, $withThumb = true): ?array
     {
         try {
-            if (! $file || ! $file->isValid()) {
+            if (! $file) {
+                throw new \Exception('Invalid file');
+            }
+
+            // Check if it's an UploadedFile or a raw path/content
+            if (is_string($file)) {
+                return self::uploadFromSource($folder, $file, $withThumb);
+            }
+
+            if (! $file->isValid()) {
                 throw new \Exception('Invalid file');
             }
 
@@ -56,6 +65,55 @@ class Helper
         } catch (\Exception $e) {
             Log::error('File upload error: '.$e->getMessage());
 
+            return null;
+        }
+    }
+
+    /**
+     * Upload from a URL or a public path string
+     */
+    public static function uploadFromSource($folder, $source, $withThumb = true): ?array
+    {
+        try {
+            $basePath = "uploads/$folder";
+            $fullPath = public_path($basePath);
+            File::ensureDirectoryExists($fullPath);
+
+            $filename = time().'_'.Str::random(8).'.webp';
+            $manager = new ImageManager(new Driver);
+
+            // Handle URL or Local Path
+            if (filter_var($source, FILTER_VALIDATE_URL)) {
+                $content = file_get_contents($source);
+                if (!$content) throw new \Exception("Could not fetch URL: $source");
+                $image = $manager->read($content);
+            } else {
+                // Assume it's a relative path from public root, e.g. "import_images/img.jpg"
+                $localPath = public_path($source);
+                if (!file_exists($localPath)) throw new \Exception("Local file not found: $localPath");
+                $image = $manager->read($localPath);
+            }
+
+            $image->scale(width: 1200)
+                ->toWebp(80)
+                ->save($fullPath.'/'.$filename);
+
+            $result = [
+                'original' => "$basePath/$filename",
+                'thumbnail' => null,
+            ];
+
+            if ($withThumb) {
+                $thumbPath = public_path("$basePath/thumbs");
+                File::ensureDirectoryExists($thumbPath);
+                $image->cover(80, 80)->toWebp(50)->save($thumbPath.'/'.$filename);
+                $result['thumbnail'] = "$basePath/thumbs/$filename";
+            }
+
+            return $result;
+
+        } catch (\Exception $e) {
+            Log::error('uploadFromSource error: '.$e->getMessage());
             return null;
         }
     }
@@ -171,6 +229,6 @@ class Helper
             return $taxRates[$country][$province];
         }
 
-        return ['name' => 'Tax 0%', 'rate' => 0.00];
+        return ['name' => '', 'rate' => 0.00];
     }
 }

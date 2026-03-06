@@ -45,8 +45,8 @@ const ProductCard = memo(
                 {/* Image Container */}
                 <div className="relative h-[180px] sm:h-[220px] w-full overflow-hidden">
                     {/* Badge Container */}
-                    <div className="absolute top-2 left-2 md:top-3 md:left-3 z-10">
-                        <div className="bg-slate-700/80 backdrop-blur-md text-white text-[9px] md:text-[11px] font-bold px-2 py-1 md:px-3 md:py-1.5 rounded-[6px] md:rounded-[8px] uppercase tracking-wide">
+                    <div className="absolute top-2 left-2 md:top-3 md:left-3 z-10 flex flex-col gap-1.5">
+                        <div className="bg-slate-700/80 backdrop-blur-md text-white text-[8px] md:text-[10px] font-bold px-2 py-1 md:px-3 md:py-1 rounded-[4px] uppercase tracking-wide">
                             {product.part_type?.name ||
                                 product.shop_view?.name ||
                                 "Premium Part"}
@@ -120,46 +120,17 @@ const ProductCard = memo(
 
                     {/* Footer Section */}
                     <div className="mt-auto pt-3 md:pt-4 border-t border-slate-50 flex items-end justify-between gap-2 md:gap-4">
-                        <div className="flex gap-3 md:gap-6">
-                            <div className="flex flex-col">
-                                <div className="flex items-center gap-1.5 mb-0.5 md:mb-1">
-                                    <span className="text-[10px] md:text-[12px] font-black text-[#A80000] uppercase tracking-widest">
-                                        Your Price
-                                    </span>
-                                    {product.applied_discount > 0 && (
-                                        <span
-                                            className={cn(
-                                                "text-[8px] md:text-[10px] font-black px-1.5 py-0.5 rounded-full",
-                                                product.discount_type ===
-                                                    "specific"
-                                                    ? "bg-emerald-100 text-emerald-700"
-                                                    : "bg-amber-100 text-amber-700",
-                                            )}
-                                        >
-                                            {product.applied_discount}% OFF
-                                        </span>
-                                    )}
-                                </div>
-                                <div className="flex items-baseline gap-1.5">
-                                    <span
-                                        className={cn(
-                                            "text-[16px] md:text-[20px] font-black tracking-tighter leading-none",
-                                            product.applied_discount > 0
-                                                ? "text-emerald-600"
-                                                : "text-slate-950",
-                                        )}
-                                    >
-                                        $
-                                        {product.your_price ||
-                                            product.list_price ||
-                                            "0.00"}
-                                    </span>
-                                    {product.applied_discount > 0 && (
-                                        <span className="text-[10px] md:text-[12px] font-bold text-slate-400 line-through tracking-tighter opacity-60">
-                                            ${product.list_price}
-                                        </span>
-                                    )}
-                                </div>
+                        <div className="flex flex-col">
+                            <span className="text-[10px] md:text-[11px] font-black text-[#A80000] uppercase tracking-widest mb-1 leading-none">
+                                Your Price
+                            </span>
+                            <div className="flex items-baseline gap-1.5">
+                                <span className="text-[18px] md:text-[22px] font-black text-slate-950 tracking-tighter leading-none">
+                                    $
+                                    {product.your_price ||
+                                        product.list_price ||
+                                        "0.00"}
+                                </span>
                             </div>
                         </div>
 
@@ -210,6 +181,7 @@ const ProductCard = memo(
 export default function Dashboard({
     stats,
     sections,
+    onlineOrders,
     categories: dynamicCategories,
     announcement,
 }) {
@@ -476,11 +448,11 @@ export default function Dashboard({
                             title="Clearance Sale"
                             products={sections?.clearanceItems}
                         />
-                        <ProductSection
+                        {/* <ProductSection
                             title="Shop Selling Items"
                             products={sections?.sellingItems}
-                        />
-                        <ProductSection
+                        /> */}
+                        {/* <ProductSection
                             title="Shop Mechanical Items"
                             products={sections?.mechanicalItems}
                         />
@@ -491,7 +463,7 @@ export default function Dashboard({
                         <ProductSection
                             title="Shop Accessories"
                             products={sections?.accessories}
-                        />
+                        /> */}
                     </div>
                 </div>
             </div>

@@ -230,25 +230,55 @@ export default function Show({ order }) {
                             {/* Detailed Summary Card */}
                             <div className="p-6 bg-slate-50/50 border-t border-slate-100">
                                 <div className="space-y-3 w-full max-w-[320px] ml-auto">
-                                    <div className="flex justify-between text-[13px]">
-                                        <span className="text-slate-500 font-medium">
-                                            Subtotal
-                                        </span>
-                                        <span className="text-slate-800 font-bold">
-                                            $
-                                            {parseFloat(order.subtotal).toFixed(
-                                                2,
-                                            )}
-                                        </span>
-                                    </div>
-                                    <div className="flex justify-between text-[13px]">
-                                        <span className="text-slate-500 font-medium">
-                                            Discount
-                                        </span>
-                                        <span className="text-slate-800 font-bold">
-                                            $0.00
-                                        </span>
-                                    </div>
+                                    {(() => {
+                                        const totalDiscount =
+                                            order.items.reduce((acc, item) => {
+                                                const listPrice = parseFloat(
+                                                    item.product.list_price,
+                                                );
+                                                const paidPrice = parseFloat(
+                                                    item.price,
+                                                );
+                                                return (
+                                                    acc +
+                                                    Math.max(
+                                                        0,
+                                                        listPrice - paidPrice,
+                                                    ) *
+                                                        item.quantity
+                                                );
+                                            }, 0);
+                                        const originalSubtotal =
+                                            parseFloat(order.subtotal) +
+                                            totalDiscount;
+
+                                        return (
+                                            <>
+                                                <div className="flex justify-between text-[13px]">
+                                                    <span className="text-slate-500 font-medium">
+                                                        Subtotal
+                                                    </span>
+                                                    <span className="text-slate-800 font-bold">
+                                                        $
+                                                        {originalSubtotal.toFixed(
+                                                            2,
+                                                        )}
+                                                    </span>
+                                                </div>
+                                                <div className="flex justify-between text-[13px]">
+                                                    <span className="text-slate-500 font-medium">
+                                                        Discount
+                                                    </span>
+                                                    <span className="text-emerald-600 font-bold">
+                                                        -$
+                                                        {totalDiscount.toFixed(
+                                                            2,
+                                                        )}
+                                                    </span>
+                                                </div>
+                                            </>
+                                        );
+                                    })()}
                                     <div className="flex justify-between text-[13px]">
                                         <span className="text-slate-500 font-medium">
                                             Tax & Fees

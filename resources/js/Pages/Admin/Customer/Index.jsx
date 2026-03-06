@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import AdminLayout from "@/Layouts/AdminLayout";
-import { Head, router, Link } from "@inertiajs/react";
+import { Head, router, Link, useForm } from "@inertiajs/react";
 import Pagination from "@/Components/Pagination";
 import { TableManager } from "@/Hooks/TableManager";
 import {
@@ -9,6 +9,7 @@ import {
     Percent,
     DollarSign,
     RefreshCw,
+    ChevronDown,
     Phone,
     Mail,
     Plus,
@@ -19,11 +20,23 @@ import {
 import ConfirmDelete from "@/Components/ui/admin/ConfirmDelete";
 import ConfirmBulkDelete from "@/Components/ui/admin/ConfirmBulkDelete";
 
-export default function Index({ customers, filters = {}, stats }) {
+export default function Index({
+    customers,
+    availableUsers = [],
+    filters = {},
+    stats,
+}) {
     const [showGlobalModal, setShowGlobalModal] = useState(false);
     const [globalDiscount, setGlobalDiscount] = useState({
         rate: "",
         apply_to: "all",
+    });
+
+    const [showAddModal, setShowAddModal] = useState(false);
+    const [memberSearch, setMemberSearch] = useState("");
+    const { data, setData, post, processing, errors, reset } = useForm({
+        user_id: "",
+        discount_rate: "0",
     });
 
     const {
@@ -68,7 +81,7 @@ export default function Index({ customers, filters = {}, stats }) {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                     <div>
                         <h1 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">
-                            Customers - B2B
+                            Customers
                         </h1>
                         <p className="text-slate-500 text-sm mt-1">
                             Manage B2B customer profiles and contact details
@@ -76,8 +89,15 @@ export default function Index({ customers, filters = {}, stats }) {
                     </div>
                     <div className="flex gap-3">
                         <button
+                            onClick={() => setShowAddModal(true)}
+                            className="inline-flex items-center px-5 py-2.5 bg-slate-900 text-white text-[13px] font-bold rounded-sm hover:bg-slate-800 transition-all shadow-lg shadow-slate-900/20"
+                        >
+                            <Plus size={18} className="mr-2" />
+                            Add B2B Account
+                        </button>
+                        <button
                             onClick={() => setShowGlobalModal(true)}
-                            className="inline-flex items-center px-5 py-2.5 bg-[#FF9F43] text-white text-[13px] font-bold rounded-xl hover:bg-[#e68a30] transition-all shadow-lg shadow-[#FF9F43]/20"
+                            className="inline-flex items-center px-5 py-2.5 bg-[#FF9F43] text-white text-[13px] font-bold rounded-sm hover:bg-[#e68a30] transition-all shadow-lg shadow-[#FF9F43]/20"
                         >
                             <Percent size={18} className="mr-2" />
                             Apply Global Discount
@@ -94,10 +114,10 @@ export default function Index({ customers, filters = {}, stats }) {
                                     Total B2B Partners
                                 </p>
                                 <p className="text-2xl font-bold text-slate-900 mt-1">
-                                    {stats.total_customers}
+                                    {stats.total_b2b}
                                 </p>
                             </div>
-                            <div className="w-12 h-12 bg-[#FF9F43]/10 rounded-lg flex items-center justify-center">
+                            <div className="w-12 h-12 bg-[#FF9F43]/10 rounded-sm flex items-center justify-center">
                                 <Users className="w-6 h-6 text-[#FF9F43]" />
                             </div>
                         </div>
@@ -113,7 +133,7 @@ export default function Index({ customers, filters = {}, stats }) {
                                     ${stats.total_revenue.toLocaleString()}
                                 </p>
                             </div>
-                            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                            <div className="w-12 h-12 bg-purple-100 rounded-sm flex items-center justify-center">
                                 <DollarSign className="w-6 h-6 text-purple-600" />
                             </div>
                         </div>
@@ -154,7 +174,7 @@ export default function Index({ customers, filters = {}, stats }) {
                                         handleSearch(e.target.value)
                                     }
                                     placeholder="Search by name, email, company..."
-                                    className="w-full pl-10 pr-4 py-2 bg-slate-50 border-slate-200 rounded-lg text-[13px] focus:bg-white focus:ring-2 focus:ring-[#FF9F43]/10 transition-all outline-none border focus:border-[#FF9F43]"
+                                    className="w-full pl-10 pr-4 py-2 bg-slate-50 border-slate-200 rounded-sm text-[13px] focus:bg-white focus:ring-2 focus:ring-[#FF9F43]/10 transition-all outline-none border focus:border-[#FF9F43]"
                                 />
                             </div>
 
@@ -205,9 +225,7 @@ export default function Index({ customers, filters = {}, stats }) {
                                     <th className="py-3 px-4 whitespace-nowrap">
                                         Full Name
                                     </th>
-                                    <th className="py-3 px-4 whitespace-nowrap">
-                                        Discount
-                                    </th>
+
                                     <th className="py-3 px-4 whitespace-nowrap">
                                         Position
                                     </th>
@@ -219,6 +237,9 @@ export default function Index({ customers, filters = {}, stats }) {
                                     </th>
                                     <th className="py-3 px-4 whitespace-nowrap">
                                         Email Address
+                                    </th>
+                                    <th className="py-3 px-4 whitespace-nowrap">
+                                        B2B Status
                                     </th>
                                     <th className="py-3 px-4 whitespace-nowrap">
                                         Company Address
@@ -280,11 +301,7 @@ export default function Index({ customers, filters = {}, stats }) {
                                                     {customer.name}
                                                 </Link>
                                             </td>
-                                            <td className="py-3 px-3 whitespace-nowrap">
-                                                <div className="inline-flex items-center px-2 py-1 bg-green-50 text-green-700 rounded-lg font-black border border-green-100">
-                                                    {customer.discount_rate}%
-                                                </div>
-                                            </td>
+
                                             <td className="py-3 px-3 whitespace-nowrap text-slate-500">
                                                 {customer.position || "N/A"}
                                             </td>
@@ -300,11 +317,20 @@ export default function Index({ customers, filters = {}, stats }) {
                                             <td className="py-3 px-3 text-slate-600">
                                                 {customer.email}
                                             </td>
+                                            <td className="py-3 px-3 whitespace-nowrap">
+                                                <div className="flex flex-col gap-1">
+                                                    <span className="inline-flex items-center px-2.5 py-1 rounded-sm bg-green-50 text-green-600 border border-green-100 text-[9px] font-black uppercase tracking-wider">
+                                                        B2B Active
+                                                    </span>
+                                                </div>
+                                            </td>
                                             <td
                                                 className="py-3 px-3 text-slate-500 max-w-[250px] truncate"
                                                 title={customer.address}
                                             >
-                                                {customer.address || "N/A"}
+                                                {customer.street_address
+                                                    ? `${customer.street_address}${customer.unit_number ? `, ${customer.unit_number}` : ""} ${customer.city ? `, ${customer.city}` : ""} ${customer.province ? `, ${customer.province}` : ""} ${customer.postcode ? `, ${customer.postcode}` : ""} ${customer.country ? `, ${customer.country}` : ""}`
+                                                    : customer.address || "N/A"}
                                             </td>
                                             <td className="py-3 px-3 text-right sticky right-0 z-10 bg-white/95 backdrop-blur-sm border-l border-slate-50 group-hover:bg-slate-50/95 transition-all">
                                                 <div className="flex items-center justify-end gap-2">
@@ -313,7 +339,7 @@ export default function Index({ customers, filters = {}, stats }) {
                                                             "admin.customers.show",
                                                             customer.id,
                                                         )}
-                                                        className="px-3 py-1.5 text-[11px] font-bold bg-[#FF9F43]/10 text-[#FF9F43] rounded-lg hover:bg-[#FF9F43] hover:text-white transition-all shadow-sm"
+                                                        className="px-3 py-1.5 text-[11px] font-bold bg-[#FF9F43]/10 text-[#FF9F43] rounded-sm hover:bg-[#FF9F43] hover:text-white transition-all shadow-sm"
                                                     >
                                                         Details
                                                     </Link>
@@ -445,6 +471,172 @@ export default function Index({ customers, filters = {}, stats }) {
                                     className="flex-1 py-4 bg-[#FF9F43] text-white rounded-2xl text-sm font-black hover:bg-[#e68a30] transition-all shadow-xl shadow-[#FF9F43]/20"
                                 >
                                     Apply Changes
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+            {/* Add B2B Account Modal */}
+            {showAddModal && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm overflow-y-auto">
+                    <div className="bg-white rounded-sm shadow-xl p-8 w-full max-w-2xl transform transition-all border border-slate-100 my-8">
+                        <div className="flex items-center justify-between mb-8">
+                            <div>
+                                <h3 className="text-2xl font-black text-[#FF9F43]">
+                                    Promote to B2B Partner
+                                </h3>
+                                <p className="text-slate-500 text-[10px] font-black mt-1 flex items-center gap-2">
+                                    <span className="w-2 h-2 bg-[#FF9F43] rounded-full animate-pulse"></span>
+                                    Enable B2B Privileges & Discount
+                                </p>
+                            </div>
+                            <button
+                                onClick={() => {
+                                    setShowAddModal(false);
+                                    reset();
+                                }}
+                                className="w-10 h-10 flex items-center justify-center bg-slate-50 text-slate-400 hover:bg-red-50 hover:text-red-500 rounded-full transition-all"
+                            >
+                                <Plus size={24} className="rotate-45" />
+                            </button>
+                        </div>
+
+                        <form
+                            onSubmit={(e) => {
+                                e.preventDefault();
+                                if (!data.user_id) return;
+                                post(route("admin.customers.store"), {
+                                    onSuccess: () => {
+                                        setShowAddModal(false);
+                                        reset();
+                                        setMemberSearch("");
+                                    },
+                                });
+                            }}
+                            className="space-y-6"
+                        >
+                            <div>
+                                <label className="block text-[10px] font-black text-slate-400  mb-3 px-1">
+                                    Search & Select Membe
+                                </label>
+
+                                <div className="space-y-3">
+                                    {/* Search Input */}
+                                    <div className="relative">
+                                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+                                            <Search size={16} />
+                                        </div>
+                                        <input
+                                            type="text"
+                                            value={memberSearch}
+                                            onChange={(e) =>
+                                                setMemberSearch(e.target.value)
+                                            }
+                                            placeholder="Search by name, email, number or store..."
+                                            className="w-full pl-11 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-sm text-[13px] font-bold text-slate-700 focus:bg-white focus:ring-4 focus:ring-[#FF9F43]/10 focus:border-[#FF9F43] outline-none transition-all"
+                                        />
+                                    </div>
+
+                                    {/* Filtered Results */}
+                                    <div className="max-h-[180px] overflow-y-auto border border-slate-200 rounded-sm divide-y divide-slate-100 custom-scrollbar">
+                                        {availableUsers
+                                            .filter((user) => {
+                                                const searchStr =
+                                                    memberSearch.toLowerCase();
+                                                return (
+                                                    user.name
+                                                        .toLowerCase()
+                                                        .includes(searchStr) ||
+                                                    user.email
+                                                        .toLowerCase()
+                                                        .includes(searchStr) ||
+                                                    user.company_name
+                                                        .toLowerCase()
+                                                        .includes(searchStr)
+                                                );
+                                            })
+                                            .map((user) => (
+                                                <button
+                                                    key={user.id}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setData(
+                                                            "user_id",
+                                                            user.id,
+                                                        );
+                                                        setMemberSearch(
+                                                            user.name,
+                                                        );
+                                                    }}
+                                                    className={`w-full text-left p-4 hover:bg-slate-50 transition-colors flex flex-col gap-0.5 ${
+                                                        data.user_id == user.id
+                                                            ? "bg-[#FF9F43]/5 border-l-4 border-l-[#FF9F43]"
+                                                            : ""
+                                                    }`}
+                                                >
+                                                    <div className="flex justify-between items-center">
+                                                        <span className="text-[13px] font-black text-slate-900">
+                                                            {user.name}
+                                                        </span>
+                                                        <span className="text-[10px] font-black text-[#FF9F43] bg-[#FF9F43]/10 px-2 py-0.5 rounded-full uppercase tracking-tighter">
+                                                            {user.company_name}
+                                                        </span>
+                                                    </div>
+                                                    <span className="text-[11px] font-bold text-slate-400">
+                                                        {user.email}
+                                                    </span>
+                                                </button>
+                                            ))}
+                                        {availableUsers.filter((user) => {
+                                            const searchStr =
+                                                memberSearch.toLowerCase();
+                                            return (
+                                                user.name
+                                                    .toLowerCase()
+                                                    .includes(searchStr) ||
+                                                user.email
+                                                    .toLowerCase()
+                                                    .includes(searchStr) ||
+                                                user.company_name
+                                                    .toLowerCase()
+                                                    .includes(searchStr)
+                                            );
+                                        }).length === 0 && (
+                                            <div className="p-8 text-center text-slate-400">
+                                                <p className="text-[11px] font-bold uppercase tracking-widest">
+                                                    No matching members found
+                                                </p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {errors.user_id && (
+                                    <p className="text-red-500 text-[10px] mt-2 font-bold px-1">
+                                        {errors.user_id}
+                                    </p>
+                                )}
+                            </div>
+                            <div className="flex gap-4 pt-4">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setShowAddModal(false);
+                                        reset();
+                                    }}
+                                    className="flex-1 py-4 border-2 border-slate-100 rounded-sm text-slate-500 text-sm font-bold hover:bg-slate-50 transition-all"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={processing}
+                                    className="flex-2 px-12 py-4 bg-slate-900 text-white rounded-sm text-sm font-black hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/10 disabled:opacity-50"
+                                >
+                                    {processing
+                                        ? "Processing..."
+                                        : "Promote to B2B Partner"}
                                 </button>
                             </div>
                         </form>

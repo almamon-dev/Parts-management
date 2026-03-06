@@ -14,10 +14,10 @@ class User extends Authenticatable
 
     protected $fillable = [
         'username', 'customer_number', 'user_type', 'first_name', 'last_name', 'email', 'password', 'position', 'phone_number',
-        'profile_photo', 'company_name', 'address', 'company_phone', 'account_type',
+        'profile_photo', 'company_name', 'address', 'street_address', 'unit_number', 'city', 'postcode', 'country', 'province', 'company_phone', 'account_type',
         'store_hours', 'marketing_emails', 'order_confirmation',
         'order_cancellation', 'monthly_statement', 'is_verified', 'email_verified_at', 'reset_password_token', 'reset_password_token_expire_at',
-        'discount_rate', 'total_purchases', 'total_returns',
+        'discount_rate', 'total_purchases', 'total_returns', 'is_b2b',
     ];
 
     protected $casts = [
@@ -31,6 +31,7 @@ class User extends Authenticatable
         'discount_rate' => 'decimal:2',
         'total_purchases' => 'decimal:2',
         'total_returns' => 'decimal:2',
+        'is_b2b' => 'boolean',
     ];
 
     protected $hidden = [

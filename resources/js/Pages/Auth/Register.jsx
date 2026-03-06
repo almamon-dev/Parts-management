@@ -31,7 +31,12 @@ export default function Register() {
             position: "",
             phone_number: "",
             company_name: "",
-            address: "",
+            street_address: "",
+            unit_number: "",
+            city: "",
+            postcode: "",
+            country: "Canada",
+            province: "",
             company_phone: "",
             account_type: "",
             profile_photo: null,
@@ -102,7 +107,7 @@ export default function Register() {
             <Head title="Sign up" />
 
             <div className="relative z-10 w-full max-w-[760px] mx-4 text-white bg-white/10 backdrop-blur-2xl border border-white/20 shadow-2xl rounded-[40px] p-8 md:p-12 overflow-hidden">
-                 {/* Decorative Hexagon Patterns */}
+                {/* Decorative Hexagon Patterns */}
                 <img
                     src="/img/10.png"
                     className="absolute top-5 left-5 w-[200px] opacity-20 pointer-events-none"
@@ -143,7 +148,7 @@ export default function Register() {
                                     onChange={(e) =>
                                         handleChange(
                                             "first_name",
-                                            e.target.value
+                                            e.target.value,
                                         )
                                     }
                                 />
@@ -155,7 +160,7 @@ export default function Register() {
                                     onChange={(e) =>
                                         handleChange(
                                             "last_name",
-                                            e.target.value
+                                            e.target.value,
                                         )
                                     }
                                 />
@@ -196,7 +201,7 @@ export default function Register() {
                                         onChange={(e) =>
                                             handleChange(
                                                 "password_confirmation",
-                                                e.target.value
+                                                e.target.value,
                                             )
                                         }
                                     />
@@ -272,7 +277,7 @@ export default function Register() {
                                     onChange={(e) =>
                                         handleChange(
                                             "phone_number",
-                                            e.target.value
+                                            e.target.value,
                                         )
                                     }
                                 />
@@ -294,16 +299,212 @@ export default function Register() {
                                     handleChange("company_name", e.target.value)
                                 }
                             />
-                            <Input
-                                icon={LucideMapPin}
-                                label="Address"
-                                placeholder="Location"
-                                value={data.address}
-                                error={errors.address}
-                                onChange={(e) =>
-                                    handleChange("address", e.target.value)
-                                }
-                            />
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="md:col-span-2">
+                                    <Input
+                                        icon={LucideMapPin}
+                                        label="Street Address"
+                                        placeholder="Street address"
+                                        value={data.street_address}
+                                        error={errors.street_address}
+                                        onChange={(e) =>
+                                            handleChange(
+                                                "street_address",
+                                                e.target.value,
+                                            )
+                                        }
+                                    />
+                                </div>
+                                <Input
+                                    label="Unit #"
+                                    placeholder="Unit #"
+                                    value={data.unit_number}
+                                    error={errors.unit_number}
+                                    onChange={(e) =>
+                                        handleChange(
+                                            "unit_number",
+                                            e.target.value,
+                                        )
+                                    }
+                                />
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <Input
+                                    label="City"
+                                    placeholder="City"
+                                    value={data.city}
+                                    error={errors.city}
+                                    onChange={(e) =>
+                                        handleChange("city", e.target.value)
+                                    }
+                                />
+                                <Input
+                                    label="Postcode"
+                                    placeholder="Postcode"
+                                    value={data.postcode}
+                                    error={errors.postcode}
+                                    onChange={(e) =>
+                                        handleChange("postcode", e.target.value)
+                                    }
+                                />
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-semibold text-gray-100 ml-1">
+                                        Country
+                                    </label>
+                                    <select
+                                        className="w-full bg-black/40 border border-white/20 text-gray-300 rounded-[12px] h-[56px] px-5 outline-none focus:ring-2 focus:ring-red-600 appearance-none transition-all"
+                                        value={data.country}
+                                        onChange={(e) => {
+                                            setData((prev) => ({
+                                                ...prev,
+                                                country: e.target.value,
+                                                province: "",
+                                            }));
+                                        }}
+                                    >
+                                        <option
+                                            value=""
+                                            className="bg-zinc-900"
+                                        >
+                                            Select Country
+                                        </option>
+                                        <option
+                                            value="Canada"
+                                            className="bg-zinc-900"
+                                        >
+                                            Canada
+                                        </option>
+                                        <option
+                                            value="United States"
+                                            className="bg-zinc-900"
+                                        >
+                                            United States
+                                        </option>
+                                        <option
+                                            value="Other"
+                                            className="bg-zinc-900"
+                                        >
+                                            Other
+                                        </option>
+                                    </select>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-semibold text-gray-100 ml-1">
+                                        Province/State
+                                    </label>
+                                    {data.country === "Canada" ||
+                                    data.country === "United States" ? (
+                                        <select
+                                            className="w-full bg-black/40 border border-white/20 text-gray-300 rounded-[12px] h-[56px] px-5 outline-none focus:ring-2 focus:ring-red-600 appearance-none transition-all"
+                                            value={data.province}
+                                            onChange={(e) =>
+                                                handleChange(
+                                                    "province",
+                                                    e.target.value,
+                                                )
+                                            }
+                                        >
+                                            <option
+                                                value=""
+                                                className="bg-zinc-900"
+                                            >
+                                                Select Province
+                                            </option>
+                                            {(data.country === "Canada"
+                                                ? [
+                                                      "Alberta",
+                                                      "British Columbia",
+                                                      "Manitoba",
+                                                      "New Brunswick",
+                                                      "Newfoundland and Labrador",
+                                                      "Northwest Territories",
+                                                      "Nova Scotia",
+                                                      "Nunavut",
+                                                      "Ontario",
+                                                      "Prince Edward Island",
+                                                      "Quebec",
+                                                      "Saskatchewan",
+                                                      "Yukon",
+                                                  ]
+                                                : [
+                                                      "Alabama",
+                                                      "Alaska",
+                                                      "Arizona",
+                                                      "Arkansas",
+                                                      "California",
+                                                      "Colorado",
+                                                      "Connecticut",
+                                                      "Delaware",
+                                                      "Florida",
+                                                      "Georgia",
+                                                      "Hawaii",
+                                                      "Idaho",
+                                                      "Illinois",
+                                                      "Indiana",
+                                                      "Iowa",
+                                                      "Kansas",
+                                                      "Kentucky",
+                                                      "Louisiana",
+                                                      "Maine",
+                                                      "Maryland",
+                                                      "Massachusetts",
+                                                      "Michigan",
+                                                      "Minnesota",
+                                                      "Mississippi",
+                                                      "Missouri",
+                                                      "Montana",
+                                                      "Nebraska",
+                                                      "Nevada",
+                                                      "New Hampshire",
+                                                      "New Jersey",
+                                                      "New Mexico",
+                                                      "New York",
+                                                      "North Carolina",
+                                                      "North Dakota",
+                                                      "Ohio",
+                                                      "Oklahoma",
+                                                      "Oregon",
+                                                      "Pennsylvania",
+                                                      "Rhode Island",
+                                                      "South Carolina",
+                                                      "South Dakota",
+                                                      "Tennessee",
+                                                      "Texas",
+                                                      "Utah",
+                                                      "Vermont",
+                                                      "Virginia",
+                                                      "Washington",
+                                                      "West Virginia",
+                                                      "Wisconsin",
+                                                      "Wyoming",
+                                                  ]
+                                            ).map((p) => (
+                                                <option
+                                                    key={p}
+                                                    value={p}
+                                                    className="bg-zinc-900"
+                                                >
+                                                    {p}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    ) : (
+                                        <Input
+                                            placeholder="Province/State"
+                                            value={data.province}
+                                            error={errors.province}
+                                            onChange={(e) =>
+                                                handleChange(
+                                                    "province",
+                                                    e.target.value,
+                                                )
+                                            }
+                                        />
+                                    )}
+                                </div>
+                            </div>
                             <Input
                                 icon={LucidePhone}
                                 label="Company Phone"
@@ -313,7 +514,7 @@ export default function Register() {
                                 onChange={(e) =>
                                     handleChange(
                                         "company_phone",
-                                        e.target.value
+                                        e.target.value,
                                     )
                                 }
                             />
@@ -327,18 +528,43 @@ export default function Register() {
                                     onChange={(e) =>
                                         handleChange(
                                             "account_type",
-                                            e.target.value
+                                            e.target.value,
                                         )
                                     }
                                 >
                                     <option value="" className="bg-zinc-900">
                                         Select type
                                     </option>
-                                    <option value="Bodyshop" className="bg-zinc-900">Bodyshop</option>
-                                    <option value="Towing / Fleet Services" className="bg-zinc-900">Towing / Fleet Services</option>
-                                    <option value="Auto Part Store" className="bg-zinc-900">Auto Part Store</option>
-                                    <option value="Dealership" className="bg-zinc-900">Dealership</option>
-                                    <option value="Mechanic" className="bg-zinc-900">Mechanic</option>
+                                    <option
+                                        value="Bodyshop"
+                                        className="bg-zinc-900"
+                                    >
+                                        Bodyshop
+                                    </option>
+                                    <option
+                                        value="Towing / Fleet Services"
+                                        className="bg-zinc-900"
+                                    >
+                                        Towing / Fleet Services
+                                    </option>
+                                    <option
+                                        value="Auto Part Store"
+                                        className="bg-zinc-900"
+                                    >
+                                        Auto Part Store
+                                    </option>
+                                    <option
+                                        value="Dealership"
+                                        className="bg-zinc-900"
+                                    >
+                                        Dealership
+                                    </option>
+                                    <option
+                                        value="Mechanic"
+                                        className="bg-zinc-900"
+                                    >
+                                        Mechanic
+                                    </option>
                                 </select>
                                 {errors.account_type && (
                                     <p className="text-red-500 text-xs mt-1">
@@ -419,7 +645,7 @@ export default function Register() {
                                         onClick={() =>
                                             handleChange(
                                                 item.id,
-                                                data[item.id] ? 0 : 1
+                                                data[item.id] ? 0 : 1,
                                             )
                                         }
                                     />

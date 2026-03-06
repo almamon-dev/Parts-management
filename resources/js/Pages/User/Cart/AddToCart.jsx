@@ -264,6 +264,16 @@ export default function AddToCart() {
                                                 Calculated at checkout
                                             </span>
                                         </div>
+                                        {Number(cart?.tax || 0) > 0 && (
+                                            <div className="flex justify-between text-slate-500 font-medium text-sm">
+                                                <span>{cart.tax_label || "Tax"}</span>
+                                                <span className="text-slate-900 font-bold">
+                                                    ${parseFloat(cart.tax).toLocaleString(undefined, {
+                                                        minimumFractionDigits: 2,
+                                                    })}
+                                                </span>
+                                            </div>
+                                        )}
                                         <hr className="border-slate-100 my-2" />
                                         <div className="flex justify-between items-end pt-1">
                                             <span className="text-slate-900 font-bold text-base">

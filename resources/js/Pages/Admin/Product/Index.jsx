@@ -21,6 +21,7 @@ import {
     ChevronDown,
     Check,
     Upload,
+    Download,
     AlertCircle,
     Tag,
     Filter,
@@ -29,6 +30,7 @@ import {
 import ConfirmDelete from "@/Components/ui/admin/ConfirmDelete";
 import ConfirmBulkDelete from "@/Components/ui/admin/ConfirmBulkDelete";
 import PrintLabelButton from "@/Components/ui/admin/PrintLabelButton";
+import ImportModal from "@/Components/Admin/Product/ImportModal";
 
 export default function Index({
     products,
@@ -39,8 +41,7 @@ export default function Index({
     filters = {},
     counts = {},
 }) {
-    const fileInputRef = useRef(null);
-    const [isUploading, setIsUploading] = useState(false);
+    const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
     const {
         search,
@@ -89,21 +90,7 @@ export default function Index({
               })
             : "N/A";
 
-    const handleFileChange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            setIsUploading(true);
-            const formData = new FormData();
-            formData.append("file", file);
-            router.post(route("admin.products.import"), formData, {
-                forceFormData: true,
-                preserveScroll: true,
-                onFinish: () => {
-                    setIsUploading(false);
-                },
-            });
-        }
-    };
+    // Removed handleFileChange in favor of ImportModal
 
     const getStatusBadge = (status) => {
         const config = {
@@ -150,19 +137,7 @@ export default function Index({
         <AdminLayout>
             <Head title="Products" />
 
-            {isUploading && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm">
-                    <div className="bg-white p-8 rounded-2xl shadow-xl max-w-sm w-full mx-4 text-center border border-slate-100">
-                        <div className="animate-spin rounded-full h-12 w-12 border-4 border-[#FF9F43]/20 border-t-[#FF9F43] mx-auto mb-4"></div>
-                        <p className="text-slate-900 font-bold text-lg">
-                            Importing products...
-                        </p>
-                        <p className="text-slate-500 text-sm mt-1">
-                            Please wait while we process your file.
-                        </p>
-                    </div>
-                </div>
-            )}
+
 
             <div className="p-8 bg-[#F8FAFC] min-h-screen font-sans">
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
@@ -176,31 +151,21 @@ export default function Index({
                     </div>
 
                     <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
-                        <input
-                            type="file"
-                            ref={fileInputRef}
-                            className="hidden"
-                            onChange={handleFileChange}
-                            accept=".xlsx,.xls,.csv"
-                        />
+
                         <button
-                            onClick={() => fileInputRef.current.click()}
-                            disabled={isUploading || isLoading}
-                            className="flex-1 md:flex-none inline-flex items-center justify-center px-4 py-2 bg-white border border-slate-200 text-slate-700 text-[13px] font-semibold rounded-lg hover:bg-slate-50 transition-all duration-200 disabled:opacity-50"
+                            onClick={() => setIsImportModalOpen(true)}
+                            className="flex-1 md:flex-none inline-flex items-center justify-center px-4 py-2 bg-white border border-slate-200 text-slate-700 text-[13px] font-semibold rounded-lg hover:bg-slate-50 transition-all duration-200"
                         >
                             <Upload size={16} className="mr-2 text-slate-400" />{" "}
                             Import
                         </button>
-                        {/* <a
-                            href={route("admin.products.export")}
+                        <a
+                            href={route("admin.products.download-template")}
                             className="flex-1 md:flex-none inline-flex items-center justify-center px-4 py-2 bg-white border border-slate-200 text-slate-700 text-[13px] font-semibold rounded-lg hover:bg-slate-50 transition-all duration-200"
                         >
-                            <Download
-                                size={16}
-                                className="mr-2 text-slate-400"
-                            />{" "}
-                            Export
-                        </a> */}
+                            <Download size={16} className="mr-2 text-slate-400" />{" "}
+                            Template
+                        </a>
                         <Link
                             href={route("admin.products.create")}
                             className="w-full md:w-auto inline-flex items-center justify-center px-4 py-2 bg-[#FF9F43] text-white text-[13px] font-bold rounded-lg hover:bg-[#e68a30] transition-all duration-200 shadow-lg shadow-orange-100"
@@ -380,29 +345,10 @@ export default function Index({
                             </DropdownMenu>
 
                             <DropdownMenu>
-                                <DropdownMenuTrigger
-                                    disabled={isLoading}
-                                    className={`flex items-center h-9 px-3 rounded-lg text-[13px] font-medium transition-all disabled:opacity-50 border ${
-                                        currentTier3Name
-                                            ? "bg-[#FF9F43]/10 border-[#FF9F43]/20 text-[#e68a30]"
-                                            : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
-                                    }`}
-                                >
-                                    {currentTier3Name || "Sorting"}{" "}
-                                    <ChevronDown
-                                        className={`ml-2 h-4 w-4 ${currentTier3Name ? "text-[#FF9F43]" : "opacity-40"}`}
-                                    />
-                                </DropdownMenuTrigger>
                                 <DropdownMenuContent
                                     align="start"
                                     className="w-56 p-1 rounded-lg shadow-lg bg-white border-slate-100"
                                 >
-                                    <DropdownMenuItem
-                                        onClick={() => handleTier3Change("")}
-                                        className="rounded-md text-[13px]"
-                                    >
-                                        All (Sorting)
-                                    </DropdownMenuItem>
                                     {categoriesTier3.map((cat) => (
                                         <DropdownMenuItem
                                             key={cat.id}
@@ -422,6 +368,7 @@ export default function Index({
                                     ))}
                                 </DropdownMenuContent>
                             </DropdownMenu>
+
 
                             {(currentCategoryName ||
                                 currentTier2Name ||
@@ -726,6 +673,11 @@ export default function Index({
                     </div>
                 </div>
             </div>
+
+            <ImportModal 
+                isOpen={isImportModalOpen} 
+                onClose={() => setIsImportModalOpen(false)} 
+            />
         </AdminLayout>
     );
 }

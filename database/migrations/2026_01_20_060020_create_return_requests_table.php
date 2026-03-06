@@ -25,6 +25,10 @@ return new class extends Migration
                 ->default('pending');
             $table->text('rejection_reason')->nullable();
             $table->timestamps();
+
+            // Indexes
+            $table->index('status');
+            $table->index('created_at');
         });
     }
 

@@ -1,11 +1,12 @@
 import React, { useRef, useEffect } from "react";
 import AdminLayout from "@/Layouts/AdminLayout";
-import { Head, Link } from "@inertiajs/react";
+import { Head, Link, usePage } from "@inertiajs/react";
 import JsBarcode from "jsbarcode";
 import { ChevronLeft, Printer, Mail, Phone, MapPin, Globe } from "lucide-react";
 import { TAX_RATES } from "@/Constants/locations";
 
 export default function Invoice({ lead }) {
+    const { settings, app_url } = usePage().props;
     const printRef = useRef();
     const barcodeRef = useRef(null);
 
@@ -29,7 +30,7 @@ export default function Invoice({ lead }) {
         (sum, part) => sum + parseFloat(part.sell_price || 0),
         0,
     );
-    const discount = lead.discount || 0;
+    const discount = parseFloat(lead.discount || 0);
 
     // Calculate dynamic tax based on country and province
     let taxRate = 0;
@@ -94,42 +95,79 @@ export default function Invoice({ lead }) {
                                 }}
                                 className="mb-2"
                             />
-                            <div className="bg-black text-white text-[11px] font-black uppercase px-3 py-1 tracking-widest mb-1 w-fit">
-                                Quality Supply, Trusted Service
+                            <div className="bg-black text-white text-[9px] font-black  px-3 py-1 tracking-widest mb-1 w-fit">
+                                {settings.site_slogan ||
+                                    "Automotive Precision • Professional Integrity"}
                             </div>
-                            <p className="text-[10px] font-bold text-slate-700 uppercase">
-                                OEM & Aftermarket Auto Parts
+                            <p className="text-[8px] font-bold text-slate-700 ">
+                                {settings.site_description ||
+                                    "Premium OEM & Aftermarket Solutions"}
                             </p>
                         </div>
 
                         {/* Company Contact Info */}
-                        <div className="col-span-4 flex flex-col justify-center px-4">
-                            <h2 className="text-2xl font-black text-black mb-1 leading-none uppercase tracking-tighter">
-                                Parts Panel
+                        <div className="col-span-4 flex flex-col px-4">
+                            <h2 className="text-xl font-black text-black mb-1 leading-none uppercase tracking-tighter">
+                                {lead.shop_name ||
+                                    settings.site_name ||
+                                    "Parts Panel"}
                             </h2>
                             <div className="space-y-1 mt-2">
-                                <div className="flex items-start gap-2 text-[11px] font-bold text-black leading-tight">
+                                <div className="flex items-start gap-2 text-[9px] font-bold text-black leading-tight">
                                     <MapPin
-                                        size={12}
+                                        size={10}
                                         className="mt-0.5 shrink-0"
                                     />
                                     <span>
-                                        2416 Wyecroft Road,
-                                        <br />
-                                        Unit 1, Oakville, ON, L6L 6M6
+                                        {settings.address ? (
+                                            <>
+                                                {settings.address
+                                                    .split(", ")
+                                                    .map((part, i, arr) => (
+                                                        <React.Fragment key={i}>
+                                                            {part}
+                                                            {i ===
+                                                            arr.length - 3 ? (
+                                                                <br />
+                                                            ) : i <
+                                                              arr.length - 1 ? (
+                                                                ", "
+                                                            ) : (
+                                                                ""
+                                                            )}
+                                                        </React.Fragment>
+                                                    ))}
+                                            </>
+                                        ) : (
+                                            <>
+                                                2416 Wyecroft Road,
+                                                <br />
+                                                Unit 1, Oakville, ON, L6L 6M6
+                                            </>
+                                        )}
                                     </span>
                                 </div>
-                                <div className="flex items-center gap-2 text-[11px] font-bold text-black">
-                                    <Phone size={12} className="shrink-0" />
-                                    <span>345-987-1254</span>
+                                <div className="flex items-center gap-2 text-[9px] font-bold text-black">
+                                    <Phone size={10} className="shrink-0" />
+                                    <span>
+                                        {settings.contact_phone ||
+                                            "345-987-1254"}
+                                    </span>
                                 </div>
-                                <div className="flex items-center gap-2 text-[11px] font-bold text-black">
-                                    <Mail size={12} className="shrink-0" />
-                                    <span>sales@partspanel.com</span>
+                                <div className="flex items-center gap-2 text-[9px] font-bold text-black">
+                                    <Mail size={10} className="shrink-0" />
+                                    <span>
+                                        {settings.contact_email ||
+                                            "sales@partspanel.com"}
+                                    </span>
                                 </div>
-                                <div className="flex items-center gap-2 text-[11px] font-bold text-black">
-                                    <Globe size={12} className="shrink-0" />
-                                    <span>www.partspanel.com</span>
+                                <div className="flex items-center gap-2 text-[9px] font-bold text-black">
+                                    <Globe size={10} className="shrink-0" />
+                                    <span>
+                                        {app_url
+                                            ? `www.${app_url.replace(/^https?:\/\/(www\.)?/, "")}`
+                                            : "www.partspanel.com"}
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -138,36 +176,36 @@ export default function Invoice({ lead }) {
                         <div className="col-span-4 flex flex-col items-end">
                             <div className="w-full border-[2.5px] border-black border-b-0">
                                 <div className="flex border-b-[2.5px] border-black">
-                                    <div className="w-1/2 bg-[#E2E8F0] p-1.5 text-[11px] font-black border-r-[2.5px] border-black text-center uppercase">
+                                    <div className="w-1/2 bg-[#E2E8F0] p-1.5 text-[9px] font-black border-r-[2.5px] border-black text-center uppercase">
                                         Date
                                     </div>
-                                    <div className="w-1/2 p-1.5 text-[11px] font-bold text-center">
+                                    <div className="w-1/2 p-1.5 text-[9px] font-bold text-center">
                                         {new Date().toLocaleDateString()}
                                     </div>
                                 </div>
                                 <div className="flex border-b-[2.5px] border-black">
-                                    <div className="w-1/2 bg-[#E2E8F0] p-1.5 text-[11px] font-black border-r-[2.5px] border-black text-center uppercase">
+                                    <div className="w-1/2 bg-[#E2E8F0] p-1.5 text-[9px] font-black border-r-[2.5px] border-black text-center uppercase leading-tight">
                                         Order Number
                                     </div>
-                                    <div className="w-1/2 p-1.5 text-[11px] font-bold text-center">
+                                    <div className="w-1/2 p-1.5 text-[9px] font-bold text-center uppercase">
                                         #
                                         {lead.lead_number ||
                                             String(lead.id).padStart(5, "0")}
                                     </div>
                                 </div>
                                 <div className="flex border-b-[2.5px] border-black">
-                                    <div className="w-1/2 bg-[#E2E8F0] p-1.5 text-[11px] font-black border-r-[2.5px] border-black text-center uppercase">
+                                    <div className="w-1/2 bg-[#E2E8F0] p-1.5 text-[9px] font-black border-r-[2.5px] border-black text-center uppercase leading-tight">
                                         Invoice Number
                                     </div>
-                                    <div className="w-1/2 p-1.5 text-[11px] font-bold text-center">
+                                    <div className="w-1/2 p-1.5 text-[9px] font-bold text-center uppercase">
                                         INV-{String(lead.id).padStart(6, "0")}
                                     </div>
                                 </div>
                                 <div className="flex border-b-[2.5px] border-black">
-                                    <div className="w-1/2 bg-[#E2E8F0] p-1.5 text-[11px] font-black border-r-[2.5px] border-black text-center uppercase">
+                                    <div className="w-1/2 bg-[#E2E8F0] p-1.5 text-[9px] font-black border-r-[2.5px] border-black text-center uppercase leading-tight">
                                         P.O. Number
                                     </div>
-                                    <div className="w-1/2 p-1.5 text-[11px] font-black text-center text-[#D93025]">
+                                    <div className="w-1/2 p-1.5 text-[9px] font-black text-center text-[#D93025]">
                                         {lead.po_number || "N/A"}
                                     </div>
                                 </div>
@@ -184,7 +222,7 @@ export default function Invoice({ lead }) {
 
                     {/* Bill To / Ship To Section */}
                     <div className="border-[2.5px] border-black mb-4 overflow-hidden">
-                        <div className="flex bg-[#E2E8F0] border-b-[2.5px] border-black uppercase text-[12px] font-black">
+                        <div className="flex bg-[#E2E8F0] border-b-[2.5px] border-black uppercase text-[10px] font-black">
                             <div className="w-1/2 p-1 text-center border-r-[2.5px] border-black italic">
                                 Bill To
                             </div>
@@ -195,15 +233,15 @@ export default function Invoice({ lead }) {
                         <div className="flex min-h-[100px]">
                             {/* Bill To Info */}
                             <div className="w-1/2 p-3 border-r-[2.5px] border-black space-y-0.5">
-                                {/* <p className="text-[13px] font-black text-black">
+                                <p className="text-[11px] font-black text-black uppercase">
                                     {lead.name}
-                                </p> */}
+                                </p>
                                 {lead.shop_name && (
-                                    <p className="text-[12px] font-bold text-slate-800">
+                                    <p className="text-[10px] font-bold text-slate-800 uppercase">
                                         {lead.shop_name}
                                     </p>
                                 )}
-                                <div className="text-[12px] font-medium text-slate-700 leading-tight">
+                                <div className="text-[10px] font-medium text-slate-700 leading-tight uppercase">
                                     <p>
                                         {lead.street_address}
                                         {lead.unit_number &&
@@ -216,23 +254,23 @@ export default function Invoice({ lead }) {
                                     {lead.country && <p>{lead.country}</p>}
                                 </div>
                                 <div className="pt-1">
-                                    <p className="text-[11px] font-bold text-black">
+                                    <p className="text-[9px] font-bold text-black">
                                         {lead.contact_number &&
                                             lead.contact_number.replace(
                                                 /(\d{3})(\d{3})(\d{4})/,
                                                 "$1-$2-$3",
                                             )}
                                     </p>
-                                    <p className="text-[11px] font-bold text-black">
+                                    <p className="text-[9px] font-bold text-black">
                                         {lead.email}
                                     </p>
                                 </div>
                             </div>
                             {/* Ship To Info */}
                             <div className="w-1/2 p-3 space-y-0.5">
-                                {/* <p className="text-[13px] font-black text-black">
+                                <p className="text-[13px] font-black text-black uppercase">
                                     {lead.name}
-                                </p> */}
+                                </p>
                                 {lead.shop_name && (
                                     <p className="text-[12px] font-bold text-slate-800">
                                         {lead.shop_name}
@@ -303,7 +341,7 @@ export default function Invoice({ lead }) {
                     </div>
 
                     {/* Method / Store / Payment Bar */}
-                    <div className="border-[2.5px] border-black mb-4 uppercase text-[12px] font-black">
+                    <div className="border-[2.5px] border-black mb-4 uppercase text-[10px] font-black">
                         <div className="flex bg-[#E2E8F0] border-b-[2.5px] border-black italic">
                             <div className="w-1/3 p-1 text-center border-r-[2.5px] border-black">
                                 Method
@@ -313,11 +351,11 @@ export default function Invoice({ lead }) {
                             </div>
                             <div className="w-1/3 p-1 text-center">Payment</div>
                         </div>
-                        <div className="flex font-bold normal-case">
+                        <div className="flex font-bold uppercase">
                             <div className="w-1/3 p-2 text-center border-r-[2.5px] border-black">
                                 {lead.method || "Delivery"}
                             </div>
-                            <div className="w-1/3 p-2 text-center border-r-[2.5px] border-black">
+                            <div className="w-1/3 p-2 text-center border-r-[2.5px] border-black uppercase font-black">
                                 {lead.city || "Oakville"}
                             </div>
                             <div className="w-1/3 p-2 text-center uppercase">
@@ -330,7 +368,7 @@ export default function Invoice({ lead }) {
                     <div className="border-[2.5px] border-black mb-0 overflow-hidden">
                         <table className="w-full border-collapse">
                             <thead>
-                                <tr className="bg-[#E2E8F0] border-b-[2.5px] border-black uppercase text-[11px] font-black italic">
+                                <tr className="bg-[#E2E8F0] border-b-[2.5px] border-black uppercase text-[9px] font-black italic">
                                     <th className="p-2 text-center border-r-[2.5px] border-black w-[12%] tracking-wider">
                                         SKU
                                     </th>
@@ -351,22 +389,22 @@ export default function Invoice({ lead }) {
                             <tbody className="divide-y-[2px] divide-black min-h-[400px]">
                                 {lead.parts.map((part, idx) => (
                                     <tr key={idx} className="min-h-[40px]">
-                                        <td className="p-2 text-[11px] font-bold text-black border-r-[2.5px] border-black align-top font-mono uppercase text-center">
+                                        <td className="p-2 text-[10px] font-bold text-black border-r-[2.5px] border-black align-top font-mono uppercase text-center">
                                             {part.sku ||
                                                 `GM${1000 + (part.id || idx)}`}
                                         </td>
-                                        <td className="p-2 text-[11px] font-black text-black border-r-[2.5px] border-black align-top leading-tight uppercase px-4">
+                                        <td className="p-2 text-[10px] font-black text-black border-r-[2.5px] border-black align-top leading-tight uppercase px-4">
                                             {lead.vehicle_info} {part.part_name}
                                         </td>
-                                        <td className="p-2 text-[11px] font-black text-black border-r-[2.5px] border-black text-center align-top">
+                                        <td className="p-2 text-[10px] font-black text-black border-r-[2.5px] border-black text-center align-top">
                                             1
                                         </td>
-                                        <td className="p-2 text-[11px] font-black text-black border-r-[2.5px] border-black text-center align-top px-1">
+                                        <td className="p-2 text-[10px] font-black text-black border-r-[2.5px] border-black text-center align-top px-1">
                                             {parseFloat(
                                                 part.sell_price || 0,
                                             ).toFixed(2)}
                                         </td>
-                                        <td className="p-2 text-[11px] font-black text-black text-center align-top px-1">
+                                        <td className="p-2 text-[10px] font-black text-black text-center align-top px-1">
                                             {parseFloat(
                                                 part.sell_price || 0,
                                             ).toFixed(2)}
@@ -395,29 +433,29 @@ export default function Invoice({ lead }) {
                     <div className="flex justify-end mt-[-2.5px]">
                         <div className="w-[280px] border-[2.5px] border-black">
                             <div className="flex border-b-[2.5px] border-black">
-                                <div className="w-1/2 p-2 bg-[#E2E8F0] text-[11px] font-black border-r-[2.5px] border-black text-left uppercase italic">
+                                <div className="w-1/2 p-2 bg-[#E2E8F0] text-[10px] font-black border-r-[2.5px] border-black text-left uppercase italic">
                                     Subtotal
                                 </div>
-                                <div className="w-1/2 p-2 text-[12px] font-black text-right">
+                                <div className="w-1/2 p-2 text-[11px] font-black text-right">
                                     {subtotal.toFixed(2)}
                                 </div>
                             </div>
                             <div className="flex border-b-[2.5px] border-black">
-                                <div className="w-1/2 p-2 bg-[#E2E8F0] text-[11px] font-black border-r-[2.5px] border-black text-left uppercase italic">
+                                <div className="w-1/2 p-2 bg-[#E2E8F0] text-[10px] font-black border-r-[2.5px] border-black text-left uppercase italic">
                                     Discount
                                 </div>
-                                <div className="w-1/2 p-2 text-[12px] font-black text-right">
+                                <div className="w-1/2 p-2 text-[11px] font-black text-right">
                                     ({discount.toFixed(2)})
                                 </div>
                             </div>
                             <div className="flex border-b-[2.5px] border-black">
-                                <div className="w-1/2 p-2 bg-[#E2E8F0] text-[11px] font-black border-r-[2.5px] border-black text-left uppercase italic">
+                                <div className="w-1/2 p-2 bg-[#E2E8F0] text-[10px] font-black border-r-[2.5px] border-black text-left uppercase italic">
                                     Tax{" "}
                                     <span className="font-bold normal-case">
                                         {taxName}
                                     </span>
                                 </div>
-                                <div className="w-1/2 p-2 text-[12px] font-black text-right">
+                                <div className="w-1/2 p-2 text-[11px] font-black text-right">
                                     {tax.toFixed(2)}
                                 </div>
                             </div>

@@ -376,7 +376,7 @@ const ProductRow = memo(
                         <h4 className="font-bold text-slate-800 text-[14px] leading-tight tracking-tight whitespace-normal uppercase mb-1">
                             {product.description}
                         </h4>
-                        {product.fitments?.length > 0 && (
+                        {/* {product.fitments?.length > 0 && (
                             <div className="flex flex-wrap gap-1.5">
                                 {product.fitments
                                     .slice(0, 3)
@@ -407,7 +407,7 @@ const ProductRow = memo(
                                     </span>
                                 )}
                             </div>
-                        )}
+                        )} */}
                     </div>
                 </td>
 
@@ -523,7 +523,8 @@ export default function Index() {
         return !!(
             filters.search ||
             (filters.year_from && filters.make && filters.model) ||
-            filters.category
+            filters.category ||
+            filters.sorting
         );
     }, [filters]);
 

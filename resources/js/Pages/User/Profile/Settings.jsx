@@ -14,6 +14,7 @@ import {
     CheckCircle2,
     ArrowUpRight,
 } from "lucide-react";
+import { COUNTRIES, PROVINCES } from "@/Constants/locations";
 
 export default function SettingsPage() {
     const { auth } = usePage().props;
@@ -33,6 +34,12 @@ export default function SettingsPage() {
         company_name: auth.user.company_name || "",
         position: auth.user.position || "",
         address: auth.user.address || "",
+        street_address: auth.user.street_address || "",
+        unit_number: auth.user.unit_number || "",
+        city: auth.user.city || "",
+        postcode: auth.user.postcode || "",
+        country: auth.user.country || "Canada",
+        province: auth.user.province || "",
         account_type: auth.user.account_type || "Mechanic",
     });
 
@@ -405,23 +412,179 @@ export default function SettingsPage() {
                                                 className="w-full h-[54px] bg-white border border-[#E2E8F0] rounded-[14px] px-6 text-[15px] focus:border-[#AD0100] transition-colors outline-none"
                                             />
                                         </div>
-                                        <div className="space-y-3">
-                                            <label className="text-[15px] font-bold text-slate-900 block">
-                                                Address
-                                            </label>
-                                            <textarea
-                                                rows="3"
-                                                value={companyForm.data.address}
-                                                onChange={(e) =>
-                                                    companyForm.setData(
-                                                        "address",
-                                                        e.target.value,
-                                                    )
-                                                }
-                                                placeholder="Enter your company address"
-                                                className="w-full bg-white border border-[#E2E8F0] rounded-[14px] px-6 py-4 text-[15px] focus:border-[#AD0100] transition-colors outline-none resize-none"
-                                            />
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                            <div className="md:col-span-2 space-y-3">
+                                                <label className="text-[15px] font-bold text-slate-900 block">
+                                                    Street Address
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={
+                                                        companyForm.data
+                                                            .street_address
+                                                    }
+                                                    onChange={(e) =>
+                                                        companyForm.setData(
+                                                            "street_address",
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                    placeholder="Street address"
+                                                    className="w-full h-[54px] bg-white border border-[#E2E8F0] rounded-[14px] px-6 text-[15px] focus:border-[#AD0100] transition-colors outline-none"
+                                                />
+                                            </div>
+                                            <div className="space-y-3">
+                                                <label className="text-[15px] font-bold text-slate-900 block">
+                                                    Unit #
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={
+                                                        companyForm.data
+                                                            .unit_number
+                                                    }
+                                                    onChange={(e) =>
+                                                        companyForm.setData(
+                                                            "unit_number",
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                    placeholder="Unit #"
+                                                    className="w-full h-[54px] bg-white border border-[#E2E8F0] rounded-[14px] px-6 text-[15px] focus:border-[#AD0100] transition-colors outline-none"
+                                                />
+                                            </div>
                                         </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div className="space-y-3">
+                                                <label className="text-[15px] font-bold text-slate-900 block">
+                                                    City
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={
+                                                        companyForm.data.city
+                                                    }
+                                                    onChange={(e) =>
+                                                        companyForm.setData(
+                                                            "city",
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                    placeholder="City"
+                                                    className="w-full h-[54px] bg-white border border-[#E2E8F0] rounded-[14px] px-6 text-[15px] focus:border-[#AD0100] transition-colors outline-none"
+                                                />
+                                            </div>
+                                            <div className="space-y-3">
+                                                <label className="text-[15px] font-bold text-slate-900 block">
+                                                    Postcode
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={
+                                                        companyForm.data
+                                                            .postcode
+                                                    }
+                                                    onChange={(e) =>
+                                                        companyForm.setData(
+                                                            "postcode",
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                    placeholder="Postcode"
+                                                    className="w-full h-[54px] bg-white border border-[#E2E8F0] rounded-[14px] px-6 text-[15px] focus:border-[#AD0100] transition-colors outline-none"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div className="space-y-3">
+                                                <label className="text-[15px] font-bold text-slate-900 block">
+                                                    Country
+                                                </label>
+                                                <select
+                                                    value={
+                                                        companyForm.data.country
+                                                    }
+                                                    onChange={(e) => {
+                                                        companyForm.setData({
+                                                            ...companyForm.data,
+                                                            country:
+                                                                e.target.value,
+                                                            province: "",
+                                                        });
+                                                    }}
+                                                    className="w-full h-[54px] bg-white border border-[#E2E8F0] rounded-[14px] px-6 text-[15px] focus:border-[#AD0100] transition-colors outline-none appearance-none cursor-pointer"
+                                                >
+                                                    <option value="">
+                                                        Select Country
+                                                    </option>
+                                                    {COUNTRIES.map((c) => (
+                                                        <option
+                                                            key={c.value}
+                                                            value={c.value}
+                                                        >
+                                                            {c.label}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                            <div className="space-y-3">
+                                                <label className="text-[15px] font-bold text-slate-900 block">
+                                                    Province/State
+                                                </label>
+                                                {PROVINCES[
+                                                    companyForm.data.country
+                                                ]?.length > 0 ? (
+                                                    <select
+                                                        value={
+                                                            companyForm.data
+                                                                .province
+                                                        }
+                                                        onChange={(e) =>
+                                                            companyForm.setData(
+                                                                "province",
+                                                                e.target.value,
+                                                            )
+                                                        }
+                                                        className="w-full h-[54px] bg-white border border-[#E2E8F0] rounded-[14px] px-6 text-[15px] focus:border-[#AD0100] transition-colors outline-none appearance-none cursor-pointer"
+                                                    >
+                                                        <option value="">
+                                                            Select
+                                                            Province/State
+                                                        </option>
+                                                        {PROVINCES[
+                                                            companyForm.data
+                                                                .country
+                                                        ].map((p) => (
+                                                            <option
+                                                                key={p.value}
+                                                                value={p.value}
+                                                            >
+                                                                {p.label}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                ) : (
+                                                    <input
+                                                        type="text"
+                                                        value={
+                                                            companyForm.data
+                                                                .province
+                                                        }
+                                                        onChange={(e) =>
+                                                            companyForm.setData(
+                                                                "province",
+                                                                e.target.value,
+                                                            )
+                                                        }
+                                                        placeholder="Enter Province/State"
+                                                        className="w-full h-[54px] bg-white border border-[#E2E8F0] rounded-[14px] px-6 text-[15px] focus:border-[#AD0100] transition-colors outline-none"
+                                                    />
+                                                )}
+                                            </div>
+                                        </div>
+
                                         <div className="space-y-3">
                                             <label className="text-[15px] font-bold text-slate-900 block">
                                                 Account type

@@ -26,12 +26,35 @@ class OrderService
                 throw new \Exception('Your cart is empty.');
             }
 
-            $subtotal = $cartItems->sum(function ($item) {
-                return ($item->product->buy_price ?? $item->product->list_price) * $item->quantity;
+            $subtotal = $cartItems->sum(function ($item) use ($user) {
+                return $item->product->getPriceForUser($user) * $item->quantity;
             });
 
-            // Tax calculation based on settings
-            $taxPercentage = \App\Models\Setting::where('key', 'tax_percentage')->value('value') ?? 13;
+            // Tax calculation based on province
+            $taxPercentage = 0; 
+            $effectiveProvince = null;
+            $effectiveCountry = null;
+
+            if (($data['delivery_type'] ?? '') === 'store_pickup') {
+                $effectiveProvince = '';
+                $effectiveCountry = '';
+            } else {
+                if (($data['address_option'] ?? '') === 'my_address') {
+                    $effectiveProvince = $user->province ?? '';
+                    $effectiveCountry = $user->country ?? '';
+                } else {
+                    $effectiveProvince = $data['province'] ?? '';
+                    $effectiveCountry = $data['country'] ?? '';
+                }
+            }
+
+            if ($effectiveProvince) {
+                $taxInfo = \App\Helpers\Helper::getTaxInfo($effectiveCountry, $effectiveProvince);
+                $taxPercentage = $taxInfo['rate'] * 100;
+            } else {
+                $taxPercentage = 0; // Default to 0 if no province selected
+            }
+
             $tax = round($subtotal * ($taxPercentage / 100), 2);
             $totalAmount = $subtotal + $tax;
 
@@ -54,7 +77,7 @@ class OrderService
                     'order_id' => $order->id,
                     'product_id' => $item->product_id,
                     'quantity' => $item->quantity,
-                    'price' => $item->product->buy_price ?? $item->product->list_price,
+                    'price' => $item->product->getPriceForUser($user),
                 ]);
             }
 

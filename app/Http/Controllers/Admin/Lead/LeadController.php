@@ -41,7 +41,6 @@ class LeadController extends Controller
     {
         return Inertia::render('Admin/Lead/Create');
     }
-
     public function store(StoreLeadRequest $request)
     {
         $validated = $request->validated();
@@ -84,12 +83,11 @@ class LeadController extends Controller
     public function edit(Lead $lead)
     {
         $lead->load('parts');
-
+        
         return Inertia::render('Admin/Lead/Edit', [
             'lead' => $lead,
         ]);
     }
-
     public function invoice(Lead $lead)
     {
         $lead->load(['parts', 'user']); // user needed for created by

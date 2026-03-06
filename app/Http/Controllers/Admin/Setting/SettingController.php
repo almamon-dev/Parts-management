@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Admin\Setting;
 
+use App\Helpers\Helper;
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
-use App\Helpers\Helper;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -13,9 +13,9 @@ class SettingController extends Controller
     public function index()
     {
         $settings = Setting::all()->pluck('value', 'key');
-        
+
         return Inertia::render('Admin/Setting/Index', [
-            'settings' => $settings
+            'settings' => $settings,
         ]);
     }
 
@@ -28,8 +28,8 @@ class SettingController extends Controller
             'contact_email' => 'nullable|email',
             'contact_phone' => 'nullable|string',
             'address' => 'nullable|string',
-            'tax_percentage' => 'nullable|numeric|min:0|max:100',
-            'tax_label' => 'nullable|string|max:50',
+            'site_slogan' => 'nullable|string|max:255',
+            'site_description' => 'nullable|string|max:500',
         ]);
 
         foreach ($data as $key => $value) {
@@ -42,7 +42,7 @@ class SettingController extends Controller
 
                 // Use Helper to upload - passing false to withThumb as settings don't need thumbs usually
                 $upload = Helper::uploadFile('settings', $request->file($key), false);
-                
+
                 if ($upload && isset($upload['original'])) {
                     Setting::updateOrCreate(['key' => $key], ['value' => $upload['original']]);
                 }

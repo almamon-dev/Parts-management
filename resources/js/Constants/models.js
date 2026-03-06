@@ -554,7 +554,7 @@ export const MODELS = {
         "CARGO VAN",
         "DAKOTA",
         "PICKUP RAM 1500",
-        "PICKUP RAM CLASSIC",
+        "PICKUP RAM 1500 CLASSIC",
         "PICKUP RAM 2500",
         "PICKUP RAM 3500",
         "PICKUP RAM 4500",

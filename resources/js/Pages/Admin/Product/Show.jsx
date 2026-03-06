@@ -24,13 +24,6 @@ const YEARS = Array.from({ length: 2026 - 1995 + 1 }, (_, i) => 1995 + i)
     .reverse()
     .map((year) => ({ value: year.toString(), label: year.toString() }));
 
-const POSITIONS = [
-    { value: "Front", label: "Front" },
-    { value: "Driver Side", label: "Driver Side" },
-    { value: "Passenger Side", label: "Passenger Side" },
-    { value: "Rear", label: "Rear" },
-    { value: "Inside", label: "Inside" },
-];
 
 const VISIBILITY_OPTIONS = [
     { value: "public", label: "Public" },
@@ -305,75 +298,55 @@ export default function Edit({
                             </div>
                         </div>
 
-                        {/* Part Numbers Section */}
-                        <div className="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm">
+                        {/* PP ID Section */}
+                        <div className="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm transition-all">
                             <h3 className="text-[14px] font-bold text-slate-800 mb-4 flex items-center gap-2 border-b border-slate-50 pb-3">
                                 <Tag size={18} className="text-[#FF9F43]" />
-                                Alternate Part Numbers & PP ID
+                                Product Identity (PP ID)
                             </h3>
-                            <div className="mb-4 bg-orange-50/50 p-3 rounded-xl border border-orange-100 flex items-center justify-between">
-                                <span className="text-[13px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-2">
-                                    <Tag size={16} className="text-[#FF9F43]" />
-                                    PP ID:
-                                </span>
-                                <div className="w-1/2 sm:w-1/3">
-                                    <Input
-                                        placeholder="PP ID"
-                                        className="bg-white border-orange-200 focus:border-[#FF9F43] text-[14px] h-10 text-right font-black text-[#FF9F43] placeholder:text-slate-300 placeholder:font-normal shadow-sm"
-                                        value={data.pp_id || ""}
-                                        error={errors.pp_id}
-                                        onChange={(e) =>
-                                            handleInputChange(
-                                                "pp_id",
-                                                e.target.value,
-                                            )
-                                        }
-                                    />
+                            <div className="bg-orange-50/20 p-4 rounded-2xl border border-orange-100 flex items-center justify-between gap-6">
+                                <div className="flex flex-col">
+                                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">
+                                        Unique Identifier
+                                    </span>
+                                    <span className="text-[13px] font-semibold text-slate-600">
+                                        The primary reference ID for this part
+                                    </span>
+                                </div>
+                                <div className="w-full max-w-[180px]">
+                                    <div className="bg-white border-orange-200/50 px-4 py-2.5 rounded-xl text-center shadow-inner">
+                                        <span className="text-[18px] font-black text-[#FF9F43] tracking-wider leading-none">
+                                            {data.pp_id || "--"}
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
+                        </div>
+
+                        {/* Alternate Part Numbers Section */}
+                        <div className="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm transition-all">
+                            <h3 className="text-[14px] font-bold text-slate-800 mb-4 flex items-center gap-2 border-b border-slate-50 pb-3">
+                                <Tag size={18} className="text-[#FF9F43]" />
+                                Alternate Part Numbers
+                            </h3>
                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                                 {data.part_numbers.map((part, idx) => (
-                                    <div key={idx} className="relative group">
-                                        <Input
-                                            className="bg-slate-50 border-slate-100 focus:bg-white text-[13px]"
-                                            value={part}
-                                            onChange={(e) =>
-                                                updatePartNumber(
-                                                    idx,
-                                                    e.target.value,
-                                                )
-                                            }
-                                        />
-                                        {data.part_numbers.length > 1 && (
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    setData(
-                                                        "part_numbers",
-                                                        data.part_numbers.filter(
-                                                            (_, i) => i !== idx,
-                                                        ),
-                                                    )
-                                                }
-                                                className="absolute -top-1.5 -right-1.5 bg-white text-slate-300 hover:text-rose-500 rounded-lg w-6 h-6 border border-slate-100 shadow-sm flex items-center justify-center transition-all opacity-0 group-hover:opacity-100"
-                                            >
-                                                <Trash2 size={12} />
-                                            </button>
-                                        )}
+                                    <div
+                                        key={idx}
+                                        className="bg-slate-50/50 border border-slate-100/50 px-4 py-2.5 rounded-xl text-center group transition-all hover:bg-white hover:shadow-sm"
+                                    >
+                                        <span className="text-[13px] font-bold text-slate-600 group-hover:text-[#FF9F43] transition-colors">
+                                            {part}
+                                        </span>
                                     </div>
                                 ))}
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        setData("part_numbers", [
-                                            ...data.part_numbers,
-                                            "",
-                                        ])
-                                    }
-                                    className="h-[42px] border-2 border-dashed border-slate-200 text-slate-400 rounded-xl flex items-center justify-center hover:border-[#FF9F43]/50 hover:text-[#FF9F43] transition-all bg-slate-50/10"
-                                >
-                                    <Plus size={18} />
-                                </button>
+                                {data.part_numbers.length === 0 && (
+                                    <div className="col-span-full py-8 text-center bg-slate-50/30 rounded-2xl border-2 border-dashed border-slate-100/50">
+                                        <p className="text-[12px] text-slate-400 font-medium italic">
+                                            No alternate part numbers recorded.
+                                        </p>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -383,7 +356,7 @@ export default function Edit({
                         {/* Category Tier 1 */}
                         <div className="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm">
                             <h3 className="text-[14px] font-bold text-slate-800 mb-4">
-                                Category 1 (Part Type){" "}
+                                Category (Part Type){" "}
                                 <span className="text-rose-500">*</span>
                             </h3>
                             <div className="flex flex-wrap gap-2">
@@ -418,7 +391,7 @@ export default function Edit({
                         {/* Category Tier 2 */}
                         <div className="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm">
                             <h3 className="text-[14px] font-bold text-slate-800 mb-4">
-                                Category 2 (Shop View){" "}
+                                Category (Shop View){" "}
                                 <span className="text-rose-500">*</span>
                             </h3>
                             <div className="flex flex-wrap gap-2">
@@ -453,7 +426,7 @@ export default function Edit({
                         {/* Category Tier 3 */}
                         <div className="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm">
                             <h3 className="text-[14px] font-bold text-slate-800 mb-4">
-                                Category 3 (Sorting){" "}
+                                Category{" "}
                                 <span className="text-rose-500">*</span>
                             </h3>
                             <div className="flex flex-wrap gap-2">
@@ -487,7 +460,7 @@ export default function Edit({
 
                         {/* Visibility & Position */}
                         <div className="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm space-y-4">
-                            <div className="grid grid-cols-2 gap-3 pb-3 border-b border-slate-50">
+                            <div className="grid grid-cols-1 gap-3 pb-3 border-b border-slate-50">
                                 <Select
                                     label="Visibility"
                                     placeholder="Select visibility"
@@ -498,20 +471,6 @@ export default function Edit({
                                     onChange={(e) =>
                                         handleInputChange(
                                             "visibility",
-                                            e.target.value,
-                                        )
-                                    }
-                                />
-                                <Select
-                                    label="Position"
-                                    placeholder="Select position"
-                                    className="bg-white text-[13px] h-10"
-                                    options={POSITIONS}
-                                    value={data.position}
-                                    error={errors.position}
-                                    onChange={(e) =>
-                                        handleInputChange(
-                                            "position",
                                             e.target.value,
                                         )
                                     }

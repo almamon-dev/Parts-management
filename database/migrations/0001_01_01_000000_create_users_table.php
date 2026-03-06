@@ -21,7 +21,7 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             // user type
-            $table->enum('user_type', ['admin', 'user'])->default('user');
+            $table->enum('user_type', ['admin', 'staff', 'user'])->default('user');
 
             // Custom Profile Fields
             $table->string('position')->nullable();
@@ -31,8 +31,15 @@ return new class extends Migration
             // Company Info
             $table->string('company_name')->nullable();
             $table->text('address')->nullable();
+            $table->string('street_address')->nullable();
+            $table->string('unit_number')->nullable();
+            $table->string('city')->nullable();
+            $table->string('postcode')->nullable();
+            $table->string('country')->nullable();
+            $table->string('province')->nullable();
             $table->string('company_phone')->nullable();
             $table->string('account_type')->default('personal');
+            $table->boolean('is_b2b')->default(false);
 
             // preferred store hours
             $table->json('store_hours')->nullable();

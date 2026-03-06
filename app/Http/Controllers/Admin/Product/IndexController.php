@@ -11,6 +11,7 @@ use App\Models\Product;
 use App\Models\ProductFile;
 use App\Services\AdminProductSnapshot;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
@@ -304,9 +305,9 @@ class IndexController extends Controller
 
     public function export(Request $request)
     {
-        $products = Product::query()
+        $products = Product::with(['partsNumbers', 'fitments'])
             ->select([
-                'pp_id', 'sku', 'description', 'list_price',
+                'id', 'pp_id', 'sku', 'description', 'list_price', 'buy_price',
                 'stock_oakville', 'stock_mississauga', 'stock_saskatoon', 'visibility',
             ])
             ->get();
@@ -321,18 +322,33 @@ class IndexController extends Controller
 
         $callback = function () use ($products) {
             $file = fopen('php://output', 'w');
-            fputcsv($file, ['PP ID', 'SKU', 'Description', 'List Price', 'Stock OKV', 'Stock MSA', 'Stock SKT', 'Visibility']);
+            fputcsv($file, [
+                'PP ID', 'SKU', 'Description', 'List Price', 'Buy Price',
+                'Stock OKV', 'Stock MSA', 'Stock SKT', 'Visibility',
+                'Interchange Numbers', 'Fitments'
+            ]);
 
             foreach ($products as $product) {
+                // Format Parts Numbers
+                $partsNumbers = $product->partsNumbers->pluck('part_number')->implode(', ');
+
+                // Format Fitments: YearFrom-YearTo|Make|Model
+                $fitments = $product->fitments->map(function ($f) {
+                    return "{$f->year_from}-{$f->year_to}|{$f->make}|{$f->model}";
+                })->implode(', ');
+
                 fputcsv($file, [
                     $product->pp_id,
                     $product->sku,
                     $product->description,
                     $product->list_price,
+                    $product->buy_price,
                     $product->stock_oakville,
                     $product->stock_mississauga,
                     $product->stock_saskatoon,
                     $product->visibility,
+                    $partsNumbers,
+                    $fitments
                 ]);
             }
 
@@ -340,5 +356,181 @@ class IndexController extends Controller
         };
 
         return response()->stream($callback, 200, $headers);
+    }
+
+    public function downloadTemplate()
+    {
+        // ... same content
+    }
+
+    public function getImportProgress()
+    {
+        return response()->json([
+            'progress' => Cache::get('product_import_progress_'.auth()->id(), 0),
+            'total' => Cache::get('product_import_total_'.auth()->id(), 0),
+            'status' => Cache::get('product_import_status_'.auth()->id(), 'idle'),
+        ]);
+    }
+
+    public function parseImport(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:csv,txt',
+        ]);
+
+        $path = $request->file('file')->getRealPath();
+        $file = fopen($path, 'r');
+        $headers = fgetcsv($file);
+        fclose($file);
+
+        return response()->json([
+            'headers' => $headers,
+        ]);
+    }
+
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:csv,txt',
+            'mapping' => 'required',
+        ]);
+
+        try {
+            $path = $request->file('file')->getRealPath();
+            $data = array_map('str_getcsv', file($path));
+
+            if (count($data) < 2) {
+                return back()->withErrors(['error' => 'The file is empty or has no data.']);
+            }
+
+            $csvHeader = $data[0];
+            unset($data[0]);
+
+            $mapping = $request->input('mapping');
+            Log::info('Product Import Mapping received:', ['mapping' => $mapping]);
+
+            if (is_string($mapping)) {
+                $mapping = json_decode($mapping, true);
+            }
+            
+            if (!$mapping) {
+                Log::error('Product Import: Invalid mapping format.');
+                return back()->withErrors(['error' => 'Invalid column mapping.']);
+            }
+            
+            Log::info('Decoded mapping:', $mapping);
+            
+            $totalRows = count($data);
+            Cache::put('product_import_total_'.auth()->id(), $totalRows, 600);
+            Cache::put('product_import_progress_'.auth()->id(), 0, 600);
+            Cache::put('product_import_status_'.auth()->id(), 'processing', 600);
+            
+            $successCount = 0;
+            $failCount = 0;
+
+            DB::beginTransaction();
+            foreach ($data as $index => $row) {
+                // Update progress every 10 rows to avoid cache overhead
+                if ($index % 10 === 0) {
+                    Cache::put('product_import_progress_'.auth()->id(), $index, 600);
+                }
+                
+                if (count($row) < count($csvHeader)) {
+                    Log::warning("Skipping row $index: Column count mismatch.", ['row' => $row]);
+                    continue;
+                }
+
+                // Map data based on user selection
+                $sku = isset($mapping['sku']) && isset($row[$mapping['sku']]) ? trim($row[$mapping['sku']]) : null;
+                
+                Log::info("Processing row $index SKU: $sku");
+
+                if (!$sku) {
+                    $failCount++;
+                    continue;
+                }
+
+                $productData = [
+                    'sku' => $sku,
+                    'description' => isset($mapping['description']) && isset($row[$mapping['description']]) ? $row[$mapping['description']] : '',
+                    'list_price' => isset($mapping['list_price']) && isset($row[$mapping['list_price']]) ? (float)$row[$mapping['list_price']] : 0,
+                    'buy_price' => isset($mapping['buy_price']) && isset($row[$mapping['buy_price']]) ? (float)$row[$mapping['buy_price']] : 0,
+                    'stock_oakville' => isset($mapping['stock_oakville']) && isset($row[$mapping['stock_oakville']]) ? (int)$row[$mapping['stock_oakville']] : 0,
+                    'stock_mississauga' => isset($mapping['stock_mississauga']) && isset($row[$mapping['stock_mississauga']]) ? (int)$row[$mapping['stock_mississauga']] : 0,
+                    'stock_saskatoon' => isset($mapping['stock_saskatoon']) && isset($row[$mapping['stock_saskatoon']]) ? (int)$row[$mapping['stock_saskatoon']] : 0,
+                    'part_type_id' => isset($mapping['part_type_id']) && isset($row[$mapping['part_type_id']]) ? $row[$mapping['part_type_id']] : 1,
+                    'shop_view_id' => isset($mapping['shop_view_id']) && isset($row[$mapping['shop_view_id']]) ? $row[$mapping['shop_view_id']] : 1,
+                    'sorting_id' => isset($mapping['sorting_id']) && isset($row[$mapping['sorting_id']]) ? $row[$mapping['sorting_id']] : 1,
+                    'location_id' => isset($mapping['location_id']) && isset($row[$mapping['location_id']]) ? $row[$mapping['location_id']] : '',
+                    'visibility' => isset($mapping['visibility']) && isset($row[$mapping['visibility']]) ? $row[$mapping['visibility']] : 'public',
+                    'is_clearance' => isset($mapping['is_clearance']) && isset($row[$mapping['is_clearance']]) ? (bool)$row[$mapping['is_clearance']] : false,
+                ];
+
+                $product = Product::updateOrCreate(['sku' => $sku], $productData);
+
+                // Handle PP ID
+                if (!$product->pp_id) {
+                    $latestProduct = Product::whereNotNull('pp_id')->where('pp_id', 'like', 'PP%')->orderBy(DB::raw('LENGTH(pp_id)'), 'desc')->orderBy('pp_id', 'desc')->first();
+                    $nextNumber = $latestProduct ? (int) str_replace('PP', '', $latestProduct->pp_id) + 1 : 110001;
+                    $product->update(['pp_id' => 'PP'.$nextNumber]);
+                }
+
+                // Related: Interchange Numbers
+                if (isset($mapping['interchange_numbers']) && isset($row[$mapping['interchange_numbers']])) {
+                    $product->partsNumbers()->delete();
+                    foreach (explode(',', $row[$mapping['interchange_numbers']]) as $num) {
+                        if ($n = trim($num)) $product->partsNumbers()->create(['part_number' => $n]);
+                    }
+                }
+
+                // Related: Fitments
+                if (isset($mapping['fitments']) && isset($row[$mapping['fitments']])) {
+                    $product->fitments()->delete();
+                    foreach (explode(',', $row[$mapping['fitments']]) as $fitItem) {
+                        $parts = explode('|', trim($fitItem));
+                        if (count($parts) === 3) {
+                            $years = explode('-', $parts[0]);
+                            $product->fitments()->create([
+                                'year_from' => trim($years[0]),
+                                'year_to' => trim($years[1] ?? $years[0]),
+                                'make' => trim($parts[1]),
+                                'model' => trim($parts[2]),
+                            ]);
+                        }
+                    }
+                }
+
+                // Related: Images
+                if (isset($mapping['image_source']) && isset($row[$mapping['image_source']])) {
+                    foreach (explode(',', $row[$mapping['image_source']]) as $src) {
+                        if ($upload = Helper::uploadFile('products', trim($src))) {
+                            $product->files()->create([
+                                'file_name' => basename($src),
+                                'file_path' => $upload['original'],
+                                'file_type' => 'image',
+                                'thumbnail_path' => $upload['thumbnail'] ?? $upload['original'],
+                                'file_size' => 0,
+                            ]);
+                        }
+                    }
+                }
+
+                $successCount++;
+            }
+            DB::commit();
+
+            Cache::put('product_import_progress_'.auth()->id(), $totalRows, 600);
+            Cache::put('product_import_status_'.auth()->id(), 'completed', 600);
+
+            return redirect()->route('admin.products.index')->with('success', "Import completed: {$successCount} succeeded, {$failCount} failed.");
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Cache::put('product_import_status_'.auth()->id(), 'failed', 600);
+            Log::error('Product Import Exception:', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return back()->withErrors(['error' => 'Import failed: '.$e->getMessage()]);
+        }
     }
 }

@@ -19,6 +19,7 @@ class CustomerController extends Controller
     {
         $query = User::query()
             ->where('user_type', 'user')
+            ->where('is_b2b', true)
             ->select([
                 'id',
                 'customer_number',
@@ -38,6 +39,13 @@ class CustomerController extends Controller
                 'total_purchases',
                 'total_returns',
                 'address',
+                'street_address',
+                'unit_number',
+                'city',
+                'postcode',
+                'country',
+                'province',
+                'is_b2b',
                 'created_at',
             ]);
 
@@ -78,15 +86,51 @@ class CustomerController extends Controller
             return $customer;
         });
 
+        $availableUsers = User::where('user_type', 'user')
+            ->where('is_b2b', false)
+            ->select(['id', 'first_name', 'last_name', 'email', 'customer_number', 'company_name'])
+            ->get()
+            ->map(function($u) {
+                return [
+                    'id' => $u->id,
+                    'name' => trim($u->first_name . ' ' . $u->last_name) . " ({$u->customer_number})",
+                    'email' => $u->email,
+                    'company_name' => $u->company_name ?? 'No Company'
+                ];
+            });
+
         return Inertia::render('Admin/Customer/Index', [
             'customers' => $customers,
+            'availableUsers' => $availableUsers,
             'filters' => $request->only(['search', 'discount_filter', 'sort', 'direction']),
             'stats' => [
                 'total_customers' => User::where('user_type', 'user')->count(),
+                'total_b2b' => User::where('user_type', 'user')->where('is_b2b', true)->count(),
                 'with_discount' => User::where('user_type', 'user')->where('discount_rate', '>', 0)->count(),
                 'total_revenue' => User::where('user_type', 'user')->sum('total_purchases'),
             ],
         ]);
+    }
+
+    /**
+     * Store a new B2B customer.
+     */
+    public function store(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'discount_rate' => 'nullable|numeric|min:0|max:100',
+        ]);
+
+        $user = User::findOrFail($request->user_id);
+        
+        $user->update([
+            'discount_rate' => $request->discount_rate ?? 0,
+            'is_b2b' => true,
+            'is_verified' => true,
+        ]);
+
+        return redirect()->back()->with('success', "User {$user->first_name} has been promoted to B2B Partner successfully.");
     }
 
     /**
@@ -124,6 +168,20 @@ class CustomerController extends Controller
         ]);
 
         return redirect()->back()->with('success', 'Customer discount reset successfully.');
+    }
+
+    /**
+     * Toggle B2B status for a customer.
+     */
+    public function toggleB2B(User $customer)
+    {
+        $customer->update([
+            'is_b2b' => ! $customer->is_b2b,
+        ]);
+
+        $status = $customer->is_b2b ? 'added to' : 'removed from';
+
+        return redirect()->back()->with('success', "Customer {$status} B2B accounts successfully.");
     }
 
     /**

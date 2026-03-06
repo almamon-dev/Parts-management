@@ -28,6 +28,16 @@ return new class extends Migration
             $table->string('province')->nullable();
             $table->string('postcode')->nullable();
             $table->string('country')->nullable();
+            // Shipping Address
+            $table->string('shipping_street_address')->nullable();
+            $table->string('shipping_unit_number')->nullable();
+            $table->string('shipping_city')->nullable();
+            $table->string('shipping_province')->nullable();
+            $table->string('shipping_postcode')->nullable();
+            $table->string('shipping_country')->nullable();
+            $table->string('shipping_name')->nullable();
+            $table->string('shipping_email')->nullable();
+            $table->string('shipping_phone')->nullable();
 
             $table->text('notes')->nullable();
 
@@ -38,6 +48,7 @@ return new class extends Migration
             $table->string('engine_size')->nullable();
 
             $table->string('status')->default('Quote');
+            $table->decimal('discount', 10, 2)->default(0);
             $table->timestamps();
         });
     }

@@ -28,7 +28,6 @@ class ProductUpdateRequest extends FormRequest
             'stock_saskatoon' => 'nullable|integer|min:0',
             'location_id' => 'nullable|string|max:100',
             'visibility' => 'required|in:public,private,draft',
-            'position' => 'nullable|string|in:Front,Driver Side,Passenger Side,Rear,Inside',
             'is_clearance' => 'nullable|boolean',
 
             // Arrays

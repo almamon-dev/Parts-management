@@ -15,9 +15,11 @@ class UserAddress extends Model
         'manager_name',
         'contact_number',
         'street_address',
+        'unit_number',
         'city',
         'province',
         'post_code',
+        'country',
         'is_default',
     ];
 

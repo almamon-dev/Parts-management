@@ -58,28 +58,7 @@ export default function Contact() {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: -20, scale: 0.95 }}
                         className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] w-[90%] max-w-md"
-                    >
-                        <div className="bg-emerald-600 text-white p-4 rounded-2xl shadow-2xl flex items-center gap-4 border border-emerald-500/50 backdrop-blur-md">
-                            <div className="bg-white/20 p-2 rounded-xl">
-                                <CheckCircle2 size={24} />
-                            </div>
-                            <div className="flex-1">
-                                <h4 className="font-black text-sm uppercase tracking-tight">
-                                    Message Received
-                                </h4>
-                                <p className="text-white/80 text-xs font-medium">
-                                    {flash.success ||
-                                        "We've received your inquiry and will respond shortly."}
-                                </p>
-                            </div>
-                            <button
-                                onClick={() => setShowSuccess(false)}
-                                className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
-                            >
-                                <X size={18} />
-                            </button>
-                        </div>
-                    </motion.div>
+                    ></motion.div>
                 )}
             </AnimatePresence>
 

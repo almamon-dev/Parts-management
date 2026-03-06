@@ -14,54 +14,15 @@ class IndexController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Product::query()->where('visibility', 'public');
-
-        // Search Logic
-        $query->when($request->search, function ($q, $search) {
-            $q->where(function ($inner) use ($search) {
-                $inner->where('description', 'like', "%{$search}%")
-                    ->orWhere('sku', 'like', "%{$search}%")
-                    ->orWhereHas('partsNumbers', fn ($pq) => $pq->where('part_number', 'like', "%{$search}%"));
-            });
-        });
-
-        // Fitment Filters (Combined for precision)
-        if ($request->year_from || $request->make || $request->model) {
-            $query->whereHas('fitments', function ($f) use ($request) {
-                if ($request->year_from) {
-                    $f->where('year_from', '<=', $request->year_from)
-                        ->where('year_to', '>=', $request->year_from);
-                }
-                if ($request->make) {
-                    $f->where('make', $request->make);
-                }
-                if ($request->model) {
-                    $f->where('model', $request->model);
-                }
-            });
-        }
-
-        // Tiered Category Filters
-        $query->when($request->category, fn ($q, $cat) => $q->whereHas('partType', fn ($c) => $c->where('name', $cat)));
-        $query->when($request->shop_view, fn ($q, $sv) => $q->whereHas('shopView', fn ($c) => $c->where('name', $sv)));
-        $query->when($request->sorting, fn ($q, $s) => $q->whereHas('sorting', fn ($c) => $c->where('name', $s)));
-
         $user = Auth::user();
-        $products = $query->with(['partType:id,name', 'shopView:id,name', 'sorting:id,name', 'partsNumbers', 'files', 'fitments'])
-            ->withExists(['favourites as is_favorite' => function ($q) {
-                $q->where('user_id', Auth::id());
-            }])
-            ->withExists(['carts as in_cart' => function ($q) {
-                $q->where('user_id', Auth::id());
-            }])
-            ->orderByRaw("CASE 
-                WHEN position = 'Front' THEN 1 
-                WHEN position = 'Driver Side' THEN 2 
-                WHEN position = 'Passenger Side' THEN 3 
-                WHEN position = 'Rear' THEN 4 
-                WHEN position = 'Inside' THEN 5 
-                ELSE 6 END ASC")
-            ->latest()
+
+        $products = Product::query()
+            ->where('visibility', 'public')
+            ->search($request->search)
+            ->filterFitment($request->only(['year_from', 'make', 'model']))
+            ->filterCategories($request->only(['category', 'shop_view', 'sorting']))
+            ->sortByPositionCategory()
+            ->withUserContext($user?->id)
             ->get()
             ->map(function ($product) use ($user) {
                 if ($user) {

@@ -13,6 +13,7 @@ import {
     Info,
     Eye,
 } from "lucide-react";
+import { TAX_RATES } from "@/Constants/locations";
 
 export default function Show({ lead }) {
     return (
@@ -267,6 +268,119 @@ export default function Show({ lead }) {
                                         ))}
                                     </tbody>
                                 </table>
+                            </div>
+
+                            {/* Financial Summary */}
+                            <div className="mt-4 flex flex-col sm:flex-row justify-end items-end gap-3 pt-4 border-t border-slate-100">
+                                <div className="flex flex-col items-end gap-1 px-4 py-2 bg-slate-50/50 rounded-xl border border-slate-100">
+                                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none">
+                                        Total Buy
+                                    </span>
+                                    <span className="text-sm font-black text-slate-600">
+                                        $
+                                        {lead.parts
+                                            .reduce(
+                                                (sum, p) =>
+                                                    sum +
+                                                    parseFloat(
+                                                        p.buy_price || 0,
+                                                    ),
+                                                0,
+                                            )
+                                            .toLocaleString(undefined, {
+                                                minimumFractionDigits: 2,
+                                            })}
+                                    </span>
+                                </div>
+
+                                <div className="flex flex-col items-end gap-1 px-4 py-2 bg-slate-50/50 rounded-xl border border-slate-100 italic opacity-60">
+                                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none">
+                                        Subtotal (Sell)
+                                    </span>
+                                    <span className="text-sm font-bold text-slate-400 line-through">
+                                        $
+                                        {lead.parts
+                                            .reduce(
+                                                (sum, p) =>
+                                                    sum +
+                                                    parseFloat(
+                                                        p.sell_price || 0,
+                                                    ),
+                                                0,
+                                            )
+                                            .toLocaleString(undefined, {
+                                                minimumFractionDigits: 2,
+                                            })}
+                                    </span>
+                                </div>
+
+                                <div className="flex flex-col items-end gap-1 px-4 py-2 bg-[#FF9F43]/5 rounded-xl border border-[#FF9F43]/10">
+                                    <span className="text-[9px] font-bold text-[#FF9F43] uppercase tracking-widest leading-none">
+                                        Discount
+                                    </span>
+                                    <span className="text-sm font-black text-[#FF9F43]">
+                                        $
+                                        {parseFloat(
+                                            lead.discount || 0,
+                                        ).toLocaleString(undefined, {
+                                            minimumFractionDigits: 2,
+                                        })}
+                                    </span>
+                                </div>
+
+                                <div className="flex flex-col items-end gap-1 px-5 py-2.5 bg-emerald-500/10 rounded-xl border border-emerald-500/20">
+                                    <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest leading-none">
+                                        Grand Total (Incl. Tax)
+                                    </span>
+                                    <span className="text-lg font-black text-emerald-600">
+                                        $
+                                        {(() => {
+                                            const subtotal = lead.parts.reduce(
+                                                (sum, p) =>
+                                                    sum +
+                                                    parseFloat(
+                                                        p.sell_price || 0,
+                                                    ),
+                                                0,
+                                            );
+                                            const discount = parseFloat(
+                                                lead.discount || 0,
+                                            );
+
+                                            let taxRate = 0;
+                                            if (
+                                                lead.country &&
+                                                lead.province &&
+                                                TAX_RATES[lead.country] &&
+                                                TAX_RATES[lead.country][
+                                                    lead.province
+                                                ]
+                                            ) {
+                                                taxRate =
+                                                    TAX_RATES[lead.country][
+                                                        lead.province
+                                                    ].rate;
+                                            } else if (
+                                                !lead.country ||
+                                                !lead.province
+                                            ) {
+                                                taxRate = 0.13;
+                                            }
+
+                                            const netAmount = Math.max(
+                                                0,
+                                                subtotal - discount,
+                                            );
+                                            const totalWithTax =
+                                                netAmount * (1 + taxRate);
+
+                                            return totalWithTax.toLocaleString(
+                                                undefined,
+                                                { minimumFractionDigits: 2 },
+                                            );
+                                        })()}
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </div>

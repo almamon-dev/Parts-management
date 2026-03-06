@@ -2,17 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Announcement;
-use App\Models\Order;
-use App\Models\Quote;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class DashboardController extends Controller
 {
-    public function index(\Illuminate\Http\Request $request)
+    public function index(Request $request)
     {
         /** @var \App\Models\User|null $user */
-        $user = \Illuminate\Support\Facades\Auth::user();
+        $user = Auth::user();
 
         $filters = [
             'leads_filter' => $request->input('leads_filter', 'last_30_days'),
@@ -43,9 +42,11 @@ class DashboardController extends Controller
             $applyDateToQuery($leadsQuery, $leadsStartDate);
             $leads = $leadsQuery->take(8)->get();
 
-            // Online Orders (Fixed: Last 30 Days as per default behavior for lists without filters)
+            // Online Orders (Fixed: Last 30 Days)
             $ordersStartDate = $getStartDate('last_30_days');
-            $onlineOrdersQuery = \App\Models\Order::with(['user', 'items'])->latest();
+            $onlineOrdersQuery = \App\Models\Order::with(['user', 'items'])
+                ->whereHas('payment', fn ($q) => $q->where('status', 'succeeded'))
+                ->latest();
             $applyDateToQuery($onlineOrdersQuery, $ordersStartDate);
             $onlineOrders = $onlineOrdersQuery->take(5)
                 ->get()
@@ -83,11 +84,8 @@ class DashboardController extends Controller
             $listingsStartDate = $getStartDate($filters['listings_filter']);
             $applyListingsDate = fn ($q) => $q->where('created_at', '>=', $listingsStartDate);
 
-            // Published Listings: Active (visibility='public') + Has Images (Exclusive to avoid double counting)
             $completeListings = $applyListingsDate(\App\Models\Product::where('visibility', 'public')->has('files'))->count();
-            // Listings Without Images: Active (visibility='public') + No Images
             $listingsWithoutImages = $applyListingsDate(\App\Models\Product::where('visibility', 'public')->doesntHave('files'))->count();
-            // Unpublished Listings: Inactive (visibility!='public')
             $unpublishedListings = $applyListingsDate(\App\Models\Product::whereIn('visibility', ['private', 'draft']))->count();
 
             $listingsStats = [
@@ -100,8 +98,8 @@ class DashboardController extends Controller
             $salesStartDate = $getStartDate($filters['sales_filter']);
             $applySalesDate = fn ($q) => $q->where('created_at', '>=', $salesStartDate);
 
-            $deliverySales = $applySalesDate(\App\Models\Order::where('order_type', 'Delivery'))->sum('total_amount');
-            $pickupSales = $applySalesDate(\App\Models\Order::where('order_type', 'Pick Up'))->sum('total_amount');
+            $deliverySales = $applySalesDate(\App\Models\Order::whereIn('order_type', ['Delivery', 'Ship'])->whereHas('payment', fn($q) => $q->where('status', 'succeeded')))->sum('total_amount');
+            $pickupSales = $applySalesDate(\App\Models\Order::where('order_type', 'Pick up')->whereHas('payment', fn($q) => $q->where('status', 'succeeded')))->sum('total_amount');
 
             $onlineSalesStats = [
                 ['name' => 'Delivery', 'value' => $deliverySales, 'color' => '#451a03'],
@@ -113,66 +111,36 @@ class DashboardController extends Controller
             $applyChannelsDate = fn ($q) => $q->where('created_at', '>=', $channelsStartDate);
 
             $b2bSales = $applyChannelsDate(\App\Models\Order::whereHas('user', function ($q) {
-                $q->whereNotNull('company_name');
+                $q->where('is_b2b', true);
+            })->whereHas('payment', function ($q) {
+                $q->where('status', 'succeeded');
             }))->sum('total_amount');
-
-            // Location based sales (Dynamic extraction)
-            $ordersForMap = $applyChannelsDate(\App\Models\Order::query())->get(['shipping_address', 'total_amount']);
-
-            $locationSales = $ordersForMap->groupBy(function ($order) {
-                $address = $order->shipping_address;
-
-                if (empty($address)) {
-                    return 'Unknown';
-                }
-
-                if ($address === 'Store Pick Up') {
-                    return 'Store Pick Up';
-                }
-
-                $parts = array_map('trim', explode(',', $address));
-                $count = count($parts);
-                if ($count >= 3) {
-                    $city = $parts[$count - 3];
-
-                    return ! empty($city) ? ucwords(strtolower($city)) : 'Unknown';
-                }
-
-                return 'Unknown';
-            })->map(function ($group) {
-                return $group->sum('total_amount');
-            });
-
-            // remove unknown
-            $locationSales = $locationSales->except('Unknown');
-
-            // Take top 4 locations
-            $topLocations = $locationSales->sortDesc()->take(4);
 
             $salesByChannel = [];
 
-            // Add dynamic locations
-            foreach ($topLocations as $city => $amount) {
-                $salesByChannel[] = ['name' => $city, 'value' => $amount];
-            }
-
-            // Add fixed channels
+            // B2B Online Sales
             $salesByChannel[] = ['name' => 'B2B Online', 'value' => $b2bSales];
 
-            // Customer Stats (Filtered)
+            // Fulfilled Leads Sales
+            $fulfilledLeadsSales = $applyChannelsDate(\App\Models\Lead::where('status', 'Fulfilled'))
+                ->with('parts')
+                ->get()
+                ->sum(function ($lead) {
+                    return $lead->parts->sum('sell_price');
+                });
+            $salesByChannel[] = ['name' => 'Fulfilled Leads', 'value' => $fulfilledLeadsSales];          // Customer Stats (Filtered)
             $customersStartDate = $getStartDate($filters['customers_filter']);
             $applyCustomersDate = fn ($q) => $q->where('created_at', '>=', $customersStartDate);
 
-            // Customer Stats (Outbound/Delivery vs Inbound/Pickup)
-            $outboundCustomers = $applyCustomersDate(\App\Models\Order::where('order_type', 'Delivery'))->distinct('user_id')->count('user_id');
-            $inboundCustomers = $applyCustomersDate(\App\Models\Order::where('order_type', 'Pick Up'))->distinct('user_id')->count('user_id');
+            $outboundCustomers = $applyCustomersDate(\App\Models\Order::whereIn('order_type', ['Delivery', 'Ship'])->whereHas('payment', fn($q) => $q->where('status', 'succeeded')))->distinct('user_id')->count('user_id');
+            $inboundCustomers = $applyCustomersDate(\App\Models\Order::where('order_type', 'Pick up')->whereHas('payment', fn($q) => $q->where('status', 'succeeded')))->distinct('user_id')->count('user_id');
 
             $customerStats = [
-                ['name' => 'Outbound', 'value' => $outboundCustomers, 'color' => '#451a03'], // Delivery Customers
-                ['name' => 'Inbound', 'value' => $inboundCustomers, 'color' => '#22d3ee'],   // Pickup Customers
+                ['name' => 'Delivery', 'value' => $outboundCustomers, 'color' => '#451a03'],
+                ['name' => 'Pick up', 'value' => $inboundCustomers, 'color' => '#22d3ee'],
             ];
 
-            return Inertia::render('Admin/Dashboard', [
+            return Inertia::render('Admin/Dashboard', [ 
                 'leads' => $leads,
                 'onlineOrders' => $onlineOrders,
                 'returnRequests' => $returnRequests,
@@ -184,16 +152,14 @@ class DashboardController extends Controller
             ]);
         }
 
-        // Fetch products for different sections
+        // --- USER DASHBOARD ---
         $sellingItems = \App\Models\Product::with(['files', 'partType', 'shopView', 'fitments'])
             ->latest()
             ->take(4)
             ->get();
 
         $mechanicalItems = \App\Models\Product::with(['files', 'partType', 'shopView', 'fitments'])
-            ->whereHas('partType', function ($q) {
-                $q->where('name', 'like', '%Mechanical%');
-            })
+            ->whereHas('partType', fn ($q) => $q->where('name', 'like', '%Mechanical%'))
             ->latest()
             ->take(4)
             ->get();
@@ -203,9 +169,7 @@ class DashboardController extends Controller
         }
 
         $electricalItems = \App\Models\Product::with(['files', 'partType', 'shopView', 'fitments'])
-            ->whereHas('partType', function ($q) {
-                $q->where('name', 'like', '%Electrical%');
-            })
+            ->whereHas('partType', fn ($q) => $q->where('name', 'like', '%Electrical%'))
             ->latest()
             ->take(4)
             ->get();
@@ -215,9 +179,7 @@ class DashboardController extends Controller
         }
 
         $accessories = \App\Models\Product::with(['files', 'partType', 'shopView', 'fitments'])
-            ->whereHas('partType', function ($q) {
-                $q->where('name', 'like', '%Access%');
-            })
+            ->whereHas('partType', fn ($q) => $q->where('name', 'like', '%Access%'))
             ->latest()
             ->take(4)
             ->get();
@@ -232,24 +194,24 @@ class DashboardController extends Controller
             ->take(4)
             ->get();
 
-        // Map helper for consistent discount calculation
         $mapProducts = function ($products) use ($user) {
             return $products->map(function ($product) use ($user) {
-                $specificDiscount = $user
-? $product->userProductDiscounts()->where('user_id', $user->id)->first()
-: null;
-
-                if ($specificDiscount && $specificDiscount->discount_rate > 0) {
-                    $product->applied_discount = $specificDiscount->discount_rate;
-                    $product->discount_type = 'specific';
-                } elseif ($user && $user->discount_rate > 0) {
-                    $product->applied_discount = $user->discount_rate;
-                    $product->discount_type = 'global';
+                if ($user) {
+                    $specificDiscount = $product->userProductDiscounts()->where('user_id', $user->id)->first();
+                    if ($specificDiscount && $specificDiscount->discount_rate > 0) {
+                        $product->applied_discount = $specificDiscount->discount_rate;
+                        $product->discount_type = 'specific';
+                    } elseif ($user->discount_rate > 0) {
+                        $product->applied_discount = $user->discount_rate;
+                        $product->discount_type = 'global';
+                    } else {
+                        $product->applied_discount = 0;
+                        $product->discount_type = null;
+                    }
                 } else {
                     $product->applied_discount = 0;
                     $product->discount_type = null;
                 }
-
                 $product->your_price = $user
                     ? number_format($product->getPriceForUser($user), 2, '.', '')
                     : number_format($product->list_price, 2, '.', '');
@@ -258,13 +220,6 @@ class DashboardController extends Controller
             });
         };
 
-        $sellingItems = $mapProducts($sellingItems);
-        $mechanicalItems = $mapProducts($mechanicalItems);
-        $electricalItems = $mapProducts($electricalItems);
-        $accessories = $mapProducts($accessories);
-        $clearanceItems = $mapProducts($clearanceItems);
-
-        // High-end categories for the grid with dynamic data and robust fallbacks
         $gridConfig = [
             'Aftermarket' => [
                 'names' => ['Aftermarket', 'After'],
@@ -298,20 +253,40 @@ class DashboardController extends Controller
             ];
         })->values();
 
-        // Default user dashboard
+        $activeOrdersCount = $user ? \App\Models\Order::where('user_id', $user->id)->whereIn('status', ['pending', 'processing', 'shipped'])->count() : 0;
+        $savedQuotesCount = $user ? \App\Models\Quote::where('user_id', $user->id)->count() : 0;
+
+        $onlineOrders = $user ? \App\Models\Order::where('user_id', $user->id)
+            ->whereHas('payment', fn ($q) => $q->where('status', 'succeeded'))
+            ->with(['items'])
+            ->latest()
+            ->take(5)
+            ->get()
+            ->map(function ($order) {
+                return [
+                    'id' => $order->id,
+                    'order_number' => $order->order_number,
+                    'type' => $order->order_type ?? 'Delivery',
+                    'items' => $order->items->count(),
+                    'date' => $order->created_at->format('m/d/Y'),
+                    'status' => ucfirst($order->status),
+                ];
+            }) : [];
+
         return Inertia::render('User/Dashboard', [
             'stats' => [
-                'activeOrdersCount' => $user ? Order::where('user_id', $user->id)->whereIn('status', ['pending', 'processing', 'shipped'])->count() : 0,
-                'savedQuotesCount' => $user ? Quote::where('user_id', $user->id)->count() : 0,
+                'activeOrdersCount' => $activeOrdersCount,
+                'savedQuotesCount' => $savedQuotesCount,
             ],
             'categories' => $categories,
-            'announcement' => Announcement::where('is_active', true)->latest()->first(),
+            'onlineOrders' => $onlineOrders,
+            'announcement' => \App\Models\Announcement::where('is_active', true)->latest()->first(),
             'sections' => [
-                'clearanceItems' => $clearanceItems,
-                'sellingItems' => $sellingItems,
-                'mechanicalItems' => $mechanicalItems,
-                'electricalItems' => $electricalItems,
-                'accessories' => $accessories,
+                'clearanceItems' => $mapProducts($clearanceItems),
+                'sellingItems' => $mapProducts($sellingItems),
+                'mechanicalItems' => $mapProducts($mechanicalItems),
+                'electricalItems' => $mapProducts($electricalItems),
+                'accessories' => $mapProducts($accessories),
             ],
         ]);
     }

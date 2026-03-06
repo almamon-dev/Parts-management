@@ -35,6 +35,7 @@ class Lead extends Model
         'color_code',
         'engine_size',
         'status',
+        'discount',
     ];
 
     public function user()

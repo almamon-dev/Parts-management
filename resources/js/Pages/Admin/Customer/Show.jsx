@@ -2,29 +2,35 @@ import React, { useState, useCallback, useEffect, useMemo } from "react";
 import { debounce } from "lodash";
 import AdminLayout from "@/Layouts/AdminLayout";
 import { Head, router, Link } from "@inertiajs/react";
-import { 
-    Users, 
-    ChevronLeft, 
-    Building2, 
-    Mail, 
-    Phone, 
-    MapPin, 
-    Percent, 
-    Search, 
-    Trash2, 
+import {
+    Users,
+    ChevronLeft,
+    Building2,
+    Mail,
+    Phone,
+    MapPin,
+    Percent,
+    Search,
+    Trash2,
     Package,
     Plus,
     Calendar,
     ArrowRight,
     Settings,
     Clock,
-    CheckCircle2
+    CheckCircle2,
 } from "lucide-react";
 
-export default function Show({ customer, categories = [], filterOptions = { years: [], makes: [], models: [] } }) {
+export default function Show({
+    customer,
+    categories = [],
+    filterOptions = { years: [], makes: [], models: [] },
+}) {
     const [showDiscountModal, setShowDiscountModal] = useState(false);
     const [discountType, setDiscountType] = useState("global");
-    const [discountRate, setDiscountRate] = useState(customer.discount_rate || "");
+    const [discountRate, setDiscountRate] = useState(
+        customer.discount_rate || "",
+    );
     const [searchQuery, setSearchQuery] = useState("");
     const [searchResults, setSearchResults] = useState([]);
     const [selectedProducts, setSelectedProducts] = useState([]);
@@ -34,9 +40,10 @@ export default function Show({ customer, categories = [], filterOptions = { year
         category: "",
         year_from: "",
         make: "",
-        model: ""
+        model: "",
     });
-    const [activeFilterOptions, setActiveFilterOptions] = useState(filterOptions);
+    const [activeFilterOptions, setActiveFilterOptions] =
+        useState(filterOptions);
     const [isSearching, setIsSearching] = useState(false);
 
     // Initial fetch when modal opens or tab changes to specific
@@ -50,20 +57,23 @@ export default function Show({ customer, categories = [], filterOptions = { year
         setIsSearching(true);
         try {
             const params = new URLSearchParams();
-            if (query) params.append('search', query);
-            if (currentFilters.category) params.append('category', currentFilters.category);
-            if (currentFilters.year_from) params.append('year_from', currentFilters.year_from);
-            if (currentFilters.make) params.append('make', currentFilters.make);
-            if (currentFilters.model) params.append('model', currentFilters.model);
+            if (query) params.append("search", query);
+            if (currentFilters.category)
+                params.append("category", currentFilters.category);
+            if (currentFilters.year_from)
+                params.append("year_from", currentFilters.year_from);
+            if (currentFilters.make) params.append("make", currentFilters.make);
+            if (currentFilters.model)
+                params.append("model", currentFilters.model);
 
-            const baseUrl = route('admin.customers.search-products');
+            const baseUrl = route("admin.customers.search-products");
             const response = await fetch(`${baseUrl}?${params.toString()}`);
-            
-            if (!response.ok) throw new Error('Network response was not ok');
-            
+
+            if (!response.ok) throw new Error("Network response was not ok");
+
             const data = await response.json();
             setSearchResults(data.products || []);
-            setActiveFilterOptions(prev => ({
+            setActiveFilterOptions((prev) => ({
                 ...prev,
                 makes: data.filterOptions?.makes || prev.makes,
                 models: data.filterOptions?.models || prev.models,
@@ -78,17 +88,17 @@ export default function Show({ customer, categories = [], filterOptions = { year
 
     const debouncedSearch = useMemo(
         () => debounce((query) => performSearch(query, filters), 300),
-        [filters]
+        [filters],
     );
 
     const handleFilterChange = (key, value) => {
         const nextFilters = { ...filters, [key]: value };
-        
+
         // Reset dependent filters
-        if (key === 'year_from') {
+        if (key === "year_from") {
             nextFilters.make = "";
             nextFilters.model = "";
-        } else if (key === 'make') {
+        } else if (key === "make") {
             nextFilters.model = "";
         }
 
@@ -97,50 +107,60 @@ export default function Show({ customer, categories = [], filterOptions = { year
     };
 
     const addProduct = (product) => {
-        if (!selectedProducts.find(p => p.id === product.id)) {
-            setSelectedProducts([...selectedProducts, { ...product, discount_rate: "" }]);
+        if (!selectedProducts.find((p) => p.id === product.id)) {
+            setSelectedProducts([
+                ...selectedProducts,
+                { ...product, discount_rate: "" },
+            ]);
         }
     };
 
     const addAllSelected = () => {
-        const newProducts = searchResults.filter(
-            res => !selectedProducts.find(p => p.id === res.id)
-        ).map(p => ({ ...p, discount_rate: "" }));
-        
+        const newProducts = searchResults
+            .filter((res) => !selectedProducts.find((p) => p.id === res.id))
+            .map((p) => ({ ...p, discount_rate: "" }));
+
         setSelectedProducts([...selectedProducts, ...newProducts]);
     };
 
     const removeProduct = (productId) => {
-        setSelectedProducts(selectedProducts.filter(p => p.id !== productId));
+        setSelectedProducts(selectedProducts.filter((p) => p.id !== productId));
     };
 
     const updateProductDiscountRate = (productId, rate) => {
-        setSelectedProducts(selectedProducts.map(p => 
-            p.id === productId ? { ...p, discount_rate: rate } : p
-        ));
+        setSelectedProducts(
+            selectedProducts.map((p) =>
+                p.id === productId ? { ...p, discount_rate: rate } : p,
+            ),
+        );
     };
 
     const saveDiscount = (e) => {
         e.preventDefault();
         router.patch(
             route("admin.customers.update-discount", customer.id),
-            { 
+            {
                 type: discountType,
                 discount_rate: discountRate,
-                products: selectedProducts
+                products: selectedProducts,
             },
             {
                 onSuccess: () => {
                     setShowDiscountModal(false);
                     setSelectedProducts([]);
                 },
-            }
+            },
         );
     };
 
     const removeSpecificDiscount = (productId) => {
         if (confirm("Are you sure you want to remove this product discount?")) {
-            router.delete(route('admin.customers.remove-product-discount', [customer.id, productId]));
+            router.delete(
+                route("admin.customers.remove-product-discount", [
+                    customer.id,
+                    productId,
+                ]),
+            );
         }
     };
 
@@ -150,11 +170,14 @@ export default function Show({ customer, categories = [], filterOptions = { year
 
             <div className="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8 py-8 font-sans">
                 {/* Header/Back Link */}
-                <Link 
-                    href={route('admin.customers.index')}
+                <Link
+                    href={route("admin.customers.index")}
                     className="inline-flex items-center text-sm font-medium text-slate-500 hover:text-[#FF9F43] transition-colors mb-6 group"
                 >
-                    <ChevronLeft size={16} className="mr-1 group-hover:-translate-x-1 transition-transform" />
+                    <ChevronLeft
+                        size={16}
+                        className="mr-1 group-hover:-translate-x-1 transition-transform"
+                    />
                     Back to Customers List
                 </Link>
 
@@ -167,15 +190,22 @@ export default function Show({ customer, categories = [], filterOptions = { year
                             </div>
                         </div>
                     </div>
-                    
+
                     <div className="pt-16 pb-8 px-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                         <div>
-                            <h1 className="text-3xl font-bold text-slate-900">{customer.name}</h1>
+                            <h1 className="text-3xl font-bold text-slate-900">
+                                {customer.name}
+                            </h1>
                             <div className="flex items-center gap-2 mt-2">
                                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#FF9F43]/10 text-[#FF9F43]">
                                     B2B Partner
                                 </span>
-                                <span className="text-slate-400 text-sm">• Registered {new Date(customer.created_at).toLocaleDateString()}</span>
+                                <span className="text-slate-400 text-sm">
+                                    • Registered{" "}
+                                    {new Date(
+                                        customer.created_at,
+                                    ).toLocaleDateString()}
+                                </span>
                             </div>
                         </div>
                         <div className="flex gap-3">
@@ -195,9 +225,15 @@ export default function Show({ customer, categories = [], filterOptions = { year
                                 <Building2 size={20} />
                             </div>
                             <div>
-                                <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Company & Position</p>
-                                <p className="text-sm font-semibold text-slate-900">{customer.company_name || "N/A"}</p>
-                                <p className="text-[11px] text-slate-400 font-medium">{customer.position || "No position set"}</p>
+                                <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                    Company & Position
+                                </p>
+                                <p className="text-sm font-semibold text-slate-900">
+                                    {customer.company_name || "N/A"}
+                                </p>
+                                <p className="text-[11px] text-slate-400 font-medium">
+                                    {customer.position || "No position set"}
+                                </p>
                             </div>
                         </div>
                         <div className="flex items-center gap-4">
@@ -205,9 +241,15 @@ export default function Show({ customer, categories = [], filterOptions = { year
                                 <Mail size={20} />
                             </div>
                             <div>
-                                <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Contact Methods</p>
-                                <p className="text-sm font-semibold text-slate-900">{customer.email}</p>
-                                <p className="text-[11px] text-slate-400 font-medium">{customer.phone_number || "No phone set"}</p>
+                                <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                    Contact Methods
+                                </p>
+                                <p className="text-sm font-semibold text-slate-900">
+                                    {customer.email}
+                                </p>
+                                <p className="text-[11px] text-slate-400 font-medium">
+                                    {customer.phone_number || "No phone set"}
+                                </p>
                             </div>
                         </div>
                         <div className="flex items-center gap-4">
@@ -215,8 +257,31 @@ export default function Show({ customer, categories = [], filterOptions = { year
                                 <MapPin size={20} />
                             </div>
                             <div>
-                                <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Company Address</p>
-                                <p className="text-sm font-semibold text-slate-900 truncate max-w-[250px]" title={customer.address}>{customer.address || "N/A"}</p>
+                                <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                    Company Address
+                                </p>
+                                <p
+                                    className="text-sm font-semibold text-slate-900 truncate max-w-[250px]"
+                                    title={customer.address}
+                                >
+                                    {customer.street_address ? (
+                                        <>
+                                            {customer.street_address}
+                                            {customer.unit &&
+                                                `, ${customer.unit}`}
+                                            <br />
+                                            {customer.city &&
+                                                `${customer.city}, `}
+                                            {customer.province &&
+                                                `${customer.province} `}
+                                            {customer.postcode}
+                                            <br />
+                                            {customer.country}
+                                        </>
+                                    ) : (
+                                        customer.address || "N/A"
+                                    )}
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -225,24 +290,42 @@ export default function Show({ customer, categories = [], filterOptions = { year
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Left Column: Stats & Global Discount info moved here */}
                     <div className="lg:col-span-1 space-y-6">
-                        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 text-center">
-                            <h2 className="text-lg font-bold text-slate-900 mb-4 inline-flex items-center gap-2">
-                                <Percent size={20} className="text-[#FF9F43]" />
-                                Global Discount
-                            </h2>
-                            <div className="bg-[#FF9F43]/5 rounded-2xl p-6 border border-[#FF9F43]/10">
-                                <div className="text-4xl font-black text-[#FF9F43] mb-1">
+                        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 text-center group">
+                            <div className="flex items-center justify-between mb-4">
+                                <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                                    <Percent size={20} className="text-[#FF9F43]" />
+                                    Pricing Policy
+                                </h2>
+                                {customer.is_b2b && (
+                                    <span className="px-2 py-0.5 rounded text-[10px] bg-green-50 text-green-600 font-bold border border-green-100 uppercase tracking-tighter">
+                                        B2B Active
+                                    </span>
+                                )}
+                            </div>
+                            <div className="bg-gradient-to-br from-[#FF9F43]/5 to-transparent rounded-2xl p-6 border border-slate-100 relative overflow-hidden group-hover:border-[#FF9F43]/20 transition-all flex flex-col items-center">
+                                <div className="text-5xl font-black text-[#FF9F43] mb-1 tracking-tight">
                                     {customer.discount_rate}%
                                 </div>
-                                <p className="text-slate-500 text-xs font-medium uppercase tracking-widest">Active Rate</p>
+                                <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] mb-4">
+                                    Global Discount
+                                </p>
+                                
+                                <div className="w-full pt-4 border-t border-slate-100/80 mb-4">
+                                    <p className="text-[10px] text-slate-400 font-medium leading-relaxed italic">
+                                        * This rate applies to all products by default. 
+                                        Product-specific discounts will override this value.
+                                    </p>
+                                </div>
+
                                 <button
                                     onClick={() => {
                                         setDiscountType("global");
                                         setShowDiscountModal(true);
                                     }}
-                                    className="mt-4 text-[13px] font-bold text-[#FF9F43] hover:text-[#e68a30] transition-colors flex items-center justify-center gap-1 mx-auto"
+                                    className="w-full py-2.5 bg-white border border-slate-200 text-[13px] font-bold text-slate-700 hover:text-[#FF9F43] hover:border-[#FF9F43] rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 group/btn"
                                 >
-                                    Change Rate <ArrowRight size={14} />
+                                    <Settings size={14} className="group-hover/btn:rotate-90 transition-transform duration-500" />
+                                    Adjust Global Rate
                                 </button>
                             </div>
                         </div>
@@ -252,31 +335,54 @@ export default function Show({ customer, categories = [], filterOptions = { year
                                 <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
                                     <Settings size={20} />
                                 </div>
-                                <h2 className="text-lg font-bold text-slate-900">Account Type</h2>
+                                <h2 className="text-lg font-bold text-slate-900">
+                                    Account Type
+                                </h2>
                             </div>
                             <div className="inline-flex items-center px-4 py-2 bg-blue-50 text-blue-700 rounded-xl text-sm font-bold border border-blue-100 uppercase tracking-wide">
                                 {customer.account_type || "N/A"}
                             </div>
                         </div>
-                        
+
                         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
                             <div className="flex items-center gap-3 mb-6">
                                 <div className="p-2 bg-green-50 text-green-600 rounded-lg">
                                     <CheckCircle2 size={20} />
                                 </div>
-                                <h2 className="text-lg font-bold text-slate-900">Email Preferences</h2>
+                                <h2 className="text-lg font-bold text-slate-900">
+                                    Email Preferences
+                                </h2>
                             </div>
                             <div className="space-y-2">
                                 {[
-                                    { label: "Marketing Emails", value: customer.marketing_emails },
-                                    { label: "Order Confirmation", value: customer.order_confirmation },
-                                    { label: "Order Cancellation", value: customer.order_cancellation },
-                                    { label: "Monthly Statement", value: customer.monthly_statement }
+                                    {
+                                        label: "Marketing Emails",
+                                        value: customer.marketing_emails,
+                                    },
+                                    {
+                                        label: "Order Confirmation",
+                                        value: customer.order_confirmation,
+                                    },
+                                    {
+                                        label: "Order Cancellation",
+                                        value: customer.order_cancellation,
+                                    },
+                                    {
+                                        label: "Monthly Statement",
+                                        value: customer.monthly_statement,
+                                    },
                                 ].map((pref, i) => (
-                                    <div key={i} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
-                                        <span className="text-xs font-semibold text-slate-600">{pref.label}</span>
-                                        <div className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded ${pref.value ? 'bg-green-100 text-green-700' : 'bg-slate-200 text-slate-500'}`}>
-                                            {pref.value ? 'ON' : 'OFF'}
+                                    <div
+                                        key={i}
+                                        className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100"
+                                    >
+                                        <span className="text-xs font-semibold text-slate-600">
+                                            {pref.label}
+                                        </span>
+                                        <div
+                                            className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded ${pref.value ? "bg-green-100 text-green-700" : "bg-slate-200 text-slate-500"}`}
+                                        >
+                                            {pref.value ? "ON" : "OFF"}
                                         </div>
                                     </div>
                                 ))}
@@ -291,7 +397,9 @@ export default function Show({ customer, categories = [], filterOptions = { year
                                 <div className="p-2 bg-[#FF9F43]/10 text-[#FF9F43] rounded-lg">
                                     <Clock size={20} />
                                 </div>
-                                <h2 className="text-lg font-bold text-slate-900">Store Hours</h2>
+                                <h2 className="text-lg font-bold text-slate-900">
+                                    Store Hours
+                                </h2>
                             </div>
                             {customer.store_hours ? (
                                 <>
@@ -299,81 +407,158 @@ export default function Show({ customer, categories = [], filterOptions = { year
                                     {customer.store_hours.start_day ? (
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Active Days</p>
-                                                <p className="text-sm font-bold text-slate-900">{customer.store_hours.start_day} - {customer.store_hours.end_day}</p>
+                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">
+                                                    Active Days
+                                                </p>
+                                                <p className="text-sm font-bold text-slate-900">
+                                                    {
+                                                        customer.store_hours
+                                                            .start_day
+                                                    }{" "}
+                                                    -{" "}
+                                                    {
+                                                        customer.store_hours
+                                                            .end_day
+                                                    }
+                                                </p>
                                             </div>
                                             <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Operation Times</p>
-                                                <p className="text-sm font-bold text-slate-900">{customer.store_hours.open_time} - {customer.store_hours.close_time}</p>
+                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">
+                                                    Operation Times
+                                                </p>
+                                                <p className="text-sm font-bold text-slate-900">
+                                                    {
+                                                        customer.store_hours
+                                                            .open_time
+                                                    }{" "}
+                                                    -{" "}
+                                                    {
+                                                        customer.store_hours
+                                                            .close_time
+                                                    }
+                                                </p>
                                             </div>
                                         </div>
                                     ) : (
                                         /* Per-day Format support (Seeder format) */
                                         <div className="grid grid-cols-2 gap-2">
-                                            {Object.entries(customer.store_hours).map(([day, hours]) => (
-                                                <div key={day} className="flex justify-between items-center p-2.5 bg-slate-50 rounded-xl border border-slate-100">
-                                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{day}</span>
-                                                    <span className="text-[12px] font-bold text-slate-700">{hours}</span>
+                                            {Object.entries(
+                                                customer.store_hours,
+                                            ).map(([day, hours]) => (
+                                                <div
+                                                    key={day}
+                                                    className="flex justify-between items-center p-2.5 bg-slate-50 rounded-xl border border-slate-100"
+                                                >
+                                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                                        {day}
+                                                    </span>
+                                                    <span className="text-[12px] font-bold text-slate-700">
+                                                        {hours}
+                                                    </span>
                                                 </div>
                                             ))}
                                         </div>
                                     )}
                                 </>
                             ) : (
-                                <p className="text-sm text-slate-400 italic">No hours configured</p>
+                                <p className="text-sm text-slate-400 italic">
+                                    No hours configured
+                                </p>
                             )}
                         </div>
 
                         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                            <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-                                <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                                    <Package size={20} className="text-[#FF9F43]" />
-                                    Specific Product Discounts
-                                </h2>
+                            <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/30">
+                                <div>
+                                    <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                                        <Package
+                                            size={20}
+                                            className="text-[#FF9F43]"
+                                        />
+                                        Product Specific Overrides
+                                    </h2>
+                                    <p className="text-[11px] text-slate-400 font-medium mt-1">
+                                        These discounts replace the global rate for selected items.
+                                    </p>
+                                </div>
                                 <button
                                     onClick={() => {
                                         setDiscountType("specific");
                                         setShowDiscountModal(true);
                                     }}
-                                    className="inline-flex items-center px-4 py-2 bg-[#FF9F43]/10 text-[#FF9F43] text-xs font-bold rounded-xl hover:bg-[#FF9F43] hover:text-white transition-all shadow-sm"
+                                    className="inline-flex items-center px-4 py-2.5 bg-[#FF9F43] text-white text-[11px] font-black rounded-xl hover:bg-[#e68a30] transition-all shadow-lg shadow-[#FF9F43]/20 uppercase tracking-wider"
                                 >
-                                    <Plus size={16} className="mr-1" />
+                                    <Plus size={16} className="mr-1.5" />
                                     Add Specific Discount
                                 </button>
                             </div>
 
                             <div className="divide-y divide-slate-100">
-                                {customer.product_discounts && customer.product_discounts.length > 0 ? (
-                                    customer.product_discounts.map((discount) => (
-                                        <div key={discount.id} className="p-4 hover:bg-slate-50/50 transition-all flex items-center justify-between group">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center text-slate-400">
-                                                    <Package size={24} />
-                                                </div>
-                                                <div>
-                                                    <h3 className="text-sm font-bold text-slate-900 truncate max-w-[300px]">{discount.product.description}</h3>
-                                                    <p className="text-[11px] text-slate-500 font-medium font-mono">SKU: {discount.product.sku} | List: ${discount.product.list_price}</p>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center gap-6">
-                                                <div className="text-right">
-                                                    <div className="inline-flex items-center px-3 py-1 bg-green-50 text-green-600 rounded-full text-[13px] font-black">
-                                                        {discount.discount_rate}% OFF
+                                {customer.product_discounts &&
+                                customer.product_discounts.length > 0 ? (
+                                    customer.product_discounts.map(
+                                        (discount) => (
+                                            <div
+                                                key={discount.id}
+                                                className="p-4 hover:bg-slate-50/50 transition-all flex items-center justify-between group"
+                                            >
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center text-slate-400">
+                                                        <Package size={24} />
+                                                    </div>
+                                                    <div>
+                                                        <h3 className="text-sm font-bold text-slate-900 truncate max-w-[300px]">
+                                                            {
+                                                                discount.product
+                                                                    .description
+                                                            }
+                                                        </h3>
+                                                        <p className="text-[11px] text-slate-500 font-medium font-mono">
+                                                            SKU:{" "}
+                                                            {
+                                                                discount.product
+                                                                    .sku
+                                                            }{" "}
+                                                            | List: $
+                                                            {
+                                                                discount.product
+                                                                    .list_price
+                                                            }
+                                                        </p>
                                                     </div>
                                                 </div>
-                                                <button
-                                                    onClick={() => removeSpecificDiscount(discount.product_id)}
-                                                    className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
-                                                >
-                                                    <Trash2 size={18} />
-                                                </button>
+                                                <div className="flex items-center gap-6">
+                                                    <div className="text-right">
+                                                        <div className="inline-flex items-center px-3 py-1 bg-green-50 text-green-600 rounded-full text-[13px] font-black">
+                                                            {
+                                                                discount.discount_rate
+                                                            }
+                                                            % OFF
+                                                        </div>
+                                                    </div>
+                                                    <button
+                                                        onClick={() =>
+                                                            removeSpecificDiscount(
+                                                                discount.product_id,
+                                                            )
+                                                        }
+                                                        className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                                                    >
+                                                        <Trash2 size={18} />
+                                                    </button>
+                                                </div>
                                             </div>
-                                        </div>
-                                    ))
+                                        ),
+                                    )
                                 ) : (
                                     <div className="p-16 text-center text-slate-400">
-                                        <Package size={40} className="mx-auto mb-4 opacity-20" />
-                                        <p className="text-sm font-medium">No specific product discounts found</p>
+                                        <Package
+                                            size={40}
+                                            className="mx-auto mb-4 opacity-20"
+                                        />
+                                        <p className="text-sm font-medium">
+                                            No specific product discounts found
+                                        </p>
                                     </div>
                                 )}
                             </div>
@@ -390,7 +575,7 @@ export default function Show({ customer, categories = [], filterOptions = { year
                             <h3 className="text-lg font-bold text-slate-900">
                                 Manage Discounts - {customer.name}
                             </h3>
-                            <button 
+                            <button
                                 onClick={() => setShowDiscountModal(false)}
                                 className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 text-slate-400 hover:bg-red-50 hover:text-red-500 transition-all"
                             >
@@ -436,38 +621,88 @@ export default function Show({ customer, categories = [], filterOptions = { year
                                                 max="100"
                                                 step="0.1"
                                                 value={discountRate}
-                                                onChange={(e) => setDiscountRate(e.target.value)}
+                                                onChange={(e) =>
+                                                    setDiscountRate(
+                                                        e.target.value,
+                                                    )
+                                                }
                                                 className="w-full pl-6 pr-12 py-4 bg-white border border-slate-200 rounded-2xl text-3xl font-black text-center text-[#FF9F43] focus:ring-4 focus:ring-[#FF9F43]/10 focus:border-[#FF9F43] outline-none transition-all"
-                                                required={discountType === "global"}
+                                                required={
+                                                    discountType === "global"
+                                                }
                                             />
-                                            <div className="absolute right-5 top-1/2 -translate-y-1/2 text-xl font-black text-slate-200">%</div>
+                                            <div className="absolute right-5 top-1/2 -translate-y-1/2 text-xl font-black text-slate-200">
+                                                %
+                                            </div>
                                         </div>
                                     </div>
                                 ) : (
                                     <div className="space-y-4">
                                         {/* Minimal Filters */}
                                         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-                                            {['category', 'year_from', 'make', 'model'].map((key) => (
+                                            {[
+                                                "category",
+                                                "year_from",
+                                                "make",
+                                                "model",
+                                            ].map((key) => (
                                                 <div key={key}>
-                                                    <select 
+                                                    <select
                                                         className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-[11px] font-bold text-slate-700 outline-none focus:bg-white focus:border-[#FF9F43] disabled:opacity-50"
-                                                        value={filters[key] || ""}
-                                                        onChange={(e) => handleFilterChange(key, e.target.value)}
+                                                        value={
+                                                            filters[key] || ""
+                                                        }
+                                                        onChange={(e) =>
+                                                            handleFilterChange(
+                                                                key,
+                                                                e.target.value,
+                                                            )
+                                                        }
                                                         disabled={
-                                                            (key === 'make' && !filters.year_from) || 
-                                                            (key === 'model' && !filters.make)
+                                                            (key === "make" &&
+                                                                !filters.year_from) ||
+                                                            (key === "model" &&
+                                                                !filters.make)
                                                         }
                                                     >
                                                         <option value="">
-                                                            {key === 'category' ? 'All Categories' : 
-                                                             key === 'year_from' ? 'All Years' :
-                                                             key === 'make' ? 'All Makes' : 'All Models'}
+                                                            {key === "category"
+                                                                ? "All Categories"
+                                                                : key ===
+                                                                    "year_from"
+                                                                  ? "All Years"
+                                                                  : key ===
+                                                                      "make"
+                                                                    ? "All Makes"
+                                                                    : "All Models"}
                                                         </option>
-                                                        {(key === 'category' ? categories : 
-                                                          key === 'year_from' ? filterOptions.years :
-                                                          key === 'make' ? activeFilterOptions.makes : activeFilterOptions.models)?.map(opt => (
-                                                            <option key={typeof opt === 'object' ? opt.id : opt} value={typeof opt === 'object' ? opt.name : opt}>
-                                                                {typeof opt === 'object' ? opt.name : opt}
+                                                        {(key === "category"
+                                                            ? categories
+                                                            : key ===
+                                                                "year_from"
+                                                              ? filterOptions.years
+                                                              : key === "make"
+                                                                ? activeFilterOptions.makes
+                                                                : activeFilterOptions.models
+                                                        )?.map((opt) => (
+                                                            <option
+                                                                key={
+                                                                    typeof opt ===
+                                                                    "object"
+                                                                        ? opt.id
+                                                                        : opt
+                                                                }
+                                                                value={
+                                                                    typeof opt ===
+                                                                    "object"
+                                                                        ? opt.name
+                                                                        : opt
+                                                                }
+                                                            >
+                                                                {typeof opt ===
+                                                                "object"
+                                                                    ? opt.name
+                                                                    : opt}
                                                             </option>
                                                         ))}
                                                     </select>
@@ -477,20 +712,27 @@ export default function Show({ customer, categories = [], filterOptions = { year
 
                                         <div className="flex gap-2">
                                             <div className="relative flex-1">
-                                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                                                <Search
+                                                    className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+                                                    size={16}
+                                                />
                                                 <input
                                                     type="text"
                                                     value={searchQuery}
                                                     onChange={(e) => {
-                                                        setSearchQuery(e.target.value);
-                                                        debouncedSearch(e.target.value);
+                                                        setSearchQuery(
+                                                            e.target.value,
+                                                        );
+                                                        debouncedSearch(
+                                                            e.target.value,
+                                                        );
                                                     }}
                                                     placeholder="Search SKU, Part Number or Description..."
                                                     className="w-full pl-12 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium outline-none focus:bg-white focus:border-[#FF9F43] transition-all"
                                                 />
                                             </div>
                                             {searchResults.length > 0 && (
-                                                <button 
+                                                <button
                                                     type="button"
                                                     onClick={addAllSelected}
                                                     className="px-4 py-2.5 bg-slate-900 text-white rounded-xl text-xs font-black hover:bg-slate-800 transition-all flex items-center gap-2"
@@ -508,33 +750,86 @@ export default function Show({ customer, categories = [], filterOptions = { year
                                             ) : searchResults.length > 0 ? (
                                                 <table className="w-full text-left text-[12px]">
                                                     <tbody className="divide-y divide-slate-50">
-                                                        {searchResults.map(product => (
-                                                            <tr key={product.id} className="hover:bg-slate-50/50 transition-colors">
-                                                                <td className="px-4 py-3">
-                                                                    <div className="font-bold text-slate-800">{product.description}</div>
-                                                                    <div className="text-[10px] text-slate-400 font-mono mt-0.5">{product.sku}</div>
-                                                                </td>
-                                                                <td className="px-4 py-3 text-right">
-                                                                    <button
-                                                                        type="button"
-                                                                        onClick={() => addProduct(product)}
-                                                                        className={`p-2 rounded-lg transition-all ${
-                                                                            selectedProducts.find(p => p.id === product.id)
-                                                                            ? "bg-green-100 text-green-600"
-                                                                            : "bg-slate-50 text-slate-300 hover:text-[#FF9F43] hover:bg-[#FF9F43]/10"
-                                                                        }`}
-                                                                    >
-                                                                        <Plus size={20} className={selectedProducts.find(p => p.id === product.id) ? "hidden" : "block"} />
-                                                                        <CheckCircle2 className={selectedProducts.find(p => p.id === product.id) ? "block w-5 h-5" : "hidden"} />
-                                                                    </button>
-                                                                </td>
-                                                            </tr>
-                                                        ))}
+                                                        {searchResults.map(
+                                                            (product) => (
+                                                                <tr
+                                                                    key={
+                                                                        product.id
+                                                                    }
+                                                                    className="hover:bg-slate-50/50 transition-colors"
+                                                                >
+                                                                    <td className="px-4 py-3">
+                                                                        <div className="font-bold text-slate-800">
+                                                                            {
+                                                                                product.description
+                                                                            }
+                                                                        </div>
+                                                                        <div className="text-[10px] text-slate-400 font-mono mt-0.5">
+                                                                            {
+                                                                                product.sku
+                                                                            }
+                                                                        </div>
+                                                                    </td>
+                                                                    <td className="px-4 py-3 text-right">
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() =>
+                                                                                addProduct(
+                                                                                    product,
+                                                                                )
+                                                                            }
+                                                                            className={`p-2 rounded-lg transition-all ${
+                                                                                selectedProducts.find(
+                                                                                    (
+                                                                                        p,
+                                                                                    ) =>
+                                                                                        p.id ===
+                                                                                        product.id,
+                                                                                )
+                                                                                    ? "bg-green-100 text-green-600"
+                                                                                    : "bg-slate-50 text-slate-300 hover:text-[#FF9F43] hover:bg-[#FF9F43]/10"
+                                                                            }`}
+                                                                        >
+                                                                            <Plus
+                                                                                size={
+                                                                                    20
+                                                                                }
+                                                                                className={
+                                                                                    selectedProducts.find(
+                                                                                        (
+                                                                                            p,
+                                                                                        ) =>
+                                                                                            p.id ===
+                                                                                            product.id,
+                                                                                    )
+                                                                                        ? "hidden"
+                                                                                        : "block"
+                                                                                }
+                                                                            />
+                                                                            <CheckCircle2
+                                                                                className={
+                                                                                    selectedProducts.find(
+                                                                                        (
+                                                                                            p,
+                                                                                        ) =>
+                                                                                            p.id ===
+                                                                                            product.id,
+                                                                                    )
+                                                                                        ? "block w-5 h-5"
+                                                                                        : "hidden"
+                                                                                }
+                                                                            />
+                                                                        </button>
+                                                                    </td>
+                                                                </tr>
+                                                            ),
+                                                        )}
                                                     </tbody>
                                                 </table>
                                             ) : (
                                                 <div className="p-12 text-center text-slate-300 font-bold uppercase tracking-widest text-xs italic">
-                                                    Use filters or search to begin
+                                                    Use filters or search to
+                                                    begin
                                                 </div>
                                             )}
                                         </div>
@@ -543,37 +838,72 @@ export default function Show({ customer, categories = [], filterOptions = { year
                                             <div className="space-y-2 pt-4 border-t border-slate-100">
                                                 <div className="flex items-center justify-between mb-2">
                                                     <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">
-                                                        Selected Items ({selectedProducts.length})
+                                                        Selected Items (
+                                                        {
+                                                            selectedProducts.length
+                                                        }
+                                                        )
                                                     </h4>
                                                 </div>
                                                 <div className="max-h-48 overflow-y-auto space-y-2">
-                                                    {selectedProducts.map(product => (
-                                                        <div key={product.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200/50">
-                                                            <div className="flex-1 min-w-0 pr-4">
-                                                                <p className="text-xs font-bold text-slate-700 truncate">{product.description}</p>
-                                                            </div>
-                                                            <div className="flex items-center gap-3">
-                                                                <div className="relative w-24">
-                                                                    <input
-                                                                        type="number"
-                                                                        value={product.discount_rate}
-                                                                        onChange={(e) => updateProductDiscountRate(product.id, e.target.value)}
-                                                                        className="w-full pl-3 pr-8 py-2 bg-white border border-slate-200 rounded-lg text-xs font-black outline-none focus:border-[#FF9F43]"
-                                                                        placeholder="Rate"
-                                                                        required
-                                                                    />
-                                                                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-300 font-black">%</span>
+                                                    {selectedProducts.map(
+                                                        (product) => (
+                                                            <div
+                                                                key={product.id}
+                                                                className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200/50"
+                                                            >
+                                                                <div className="flex-1 min-w-0 pr-4">
+                                                                    <p className="text-xs font-bold text-slate-700 truncate">
+                                                                        {
+                                                                            product.description
+                                                                        }
+                                                                    </p>
                                                                 </div>
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => removeProduct(product.id)}
-                                                                    className="w-8 h-8 flex items-center justify-center text-slate-300 hover:text-red-500 rounded-lg transition-colors"
-                                                                >
-                                                                    <Plus size={18} className="rotate-45" />
-                                                                </button>
+                                                                <div className="flex items-center gap-3">
+                                                                    <div className="relative w-24">
+                                                                        <input
+                                                                            type="number"
+                                                                            value={
+                                                                                product.discount_rate
+                                                                            }
+                                                                            onChange={(
+                                                                                e,
+                                                                            ) =>
+                                                                                updateProductDiscountRate(
+                                                                                    product.id,
+                                                                                    e
+                                                                                        .target
+                                                                                        .value,
+                                                                                )
+                                                                            }
+                                                                            className="w-full pl-3 pr-8 py-2 bg-white border border-slate-200 rounded-lg text-xs font-black outline-none focus:border-[#FF9F43]"
+                                                                            placeholder="Rate"
+                                                                            required
+                                                                        />
+                                                                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-300 font-black">
+                                                                            %
+                                                                        </span>
+                                                                    </div>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() =>
+                                                                            removeProduct(
+                                                                                product.id,
+                                                                            )
+                                                                        }
+                                                                        className="w-8 h-8 flex items-center justify-center text-slate-300 hover:text-red-500 rounded-lg transition-colors"
+                                                                    >
+                                                                        <Plus
+                                                                            size={
+                                                                                18
+                                                                            }
+                                                                            className="rotate-45"
+                                                                        />
+                                                                    </button>
+                                                                </div>
                                                             </div>
-                                                        </div>
-                                                    ))}
+                                                        ),
+                                                    )}
                                                 </div>
                                             </div>
                                         )}
@@ -583,7 +913,9 @@ export default function Show({ customer, categories = [], filterOptions = { year
                                 <div className="flex gap-3 pt-6">
                                     <button
                                         type="button"
-                                        onClick={() => setShowDiscountModal(false)}
+                                        onClick={() =>
+                                            setShowDiscountModal(false)
+                                        }
                                         className="flex-1 py-3.5 px-6 border-2 border-slate-50 rounded-2xl text-slate-500 text-sm font-bold hover:bg-slate-50 transition-all"
                                     >
                                         Cancel

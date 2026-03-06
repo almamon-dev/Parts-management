@@ -23,8 +23,15 @@ return new class extends Migration
             $table->enum('status', ['Processing', 'Fulfilled', 'Canceled'])->default('Processing');
             $table->enum('order_type', ['Pick up', 'Delivery', 'Ship'])->default('Pick up');
             $table->text('shipping_address')->nullable();
+            $table->text('billing_address')->nullable();
+            $table->string('address_type')->default('Standard');
             $table->text('notes')->nullable();
             $table->timestamps();
+
+            // Indexes
+            $table->index('order_number');
+            $table->index('status');
+            $table->index('created_at');
         });
     }
 

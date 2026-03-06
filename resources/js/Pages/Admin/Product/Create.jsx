@@ -21,19 +21,12 @@ import { YEARS as YEARS_LIST } from "@/Constants/years";
 const MAKES = MAKES_LIST.map((make) => ({ value: make, label: make }));
 const YEARS = YEARS_LIST.map((year) => ({ value: year, label: year }));
 
-const POSITIONS = [
-    { value: "Front", label: "Front" },
-    { value: "Driver Side", label: "Driver Side" },
-    { value: "Passenger Side", label: "Passenger Side" },
-    { value: "Rear", label: "Rear" },
-    { value: "Inside", label: "Inside" },
-];
-
 const VISIBILITY_OPTIONS = [
     { value: "public", label: "Public" },
     { value: "private", label: "Private" },
     { value: "draft", label: "Draft" },
 ];
+
 
 const getModelsForMake = (make) => {
     if (!make || !MODELS[make]) return [];
@@ -127,6 +120,14 @@ export default function Create({
 
                 <form
                     onSubmit={handleSubmit}
+                    onKeyDown={(e) => {
+                        if (
+                            e.key === "Enter" &&
+                            e.target.tagName !== "TEXTAREA"
+                        ) {
+                            e.preventDefault();
+                        }
+                    }}
                     className="grid grid-cols-1 lg:grid-cols-12 gap-4"
                 >
                     {/* LEFT COLUMN */}
@@ -353,21 +354,26 @@ export default function Create({
                             </div>
                         </div>
 
-                        {/* Part Numbers Section */}
-                        <div className="bg-white p-3 rounded-xl border border-slate-200/60 shadow-sm">
+                        {/* PP ID Section */}
+                        <div className="bg-white p-3 rounded-xl border border-slate-200/60 shadow-sm transition-all hover:shadow-md">
                             <h3 className="text-[13px] font-bold text-slate-800 mb-3 flex items-center gap-2 border-b border-slate-50 pb-2">
                                 <Tag size={16} className="text-[#FF9F43]" />
-                                Alternate Part Numbers & PP ID
+                                Product Identity (PP ID)
                             </h3>
-                            <div className="mb-4 bg-orange-50/50 p-3 rounded-xl border border-orange-100 flex items-center justify-between">
-                                <span className="text-[12px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-2">
-                                    <Tag size={14} className="text-[#FF9F43]" />
-                                    PP ID:
-                                </span>
-                                <div className="w-1/2 sm:w-1/3">
+                            <div className="bg-orange-50/20 p-3 rounded-xl border border-orange-100/50 flex flex-col sm:flex-row items-center justify-between gap-4">
+                                <div className="flex flex-col text-center sm:text-left">
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">
+                                        Custom PP ID
+                                    </span>
+                                    <span className="text-[12px] text-slate-500 leading-tight">
+                                        Leave blank to auto-generate a unique PP
+                                        ID
+                                    </span>
+                                </div>
+                                <div className="w-full sm:max-w-[180px]">
                                     <Input
-                                        placeholder="Auto-generated if empty"
-                                        className="bg-white border-orange-200 focus:border-[#FF9F43] text-[13px] h-9 text-right font-black text-[#FF9F43] placeholder:text-slate-300 placeholder:font-normal"
+                                        placeholder="Enter PP ID"
+                                        className="bg-white border-orange-200 focus:border-[#FF9F43] text-[15px] h-10 text-center font-black text-[#FF9F43] placeholder:text-slate-300 placeholder:font-normal shadow-sm rounded-lg"
                                         value={data.pp_id}
                                         error={errors.pp_id}
                                         onChange={(e) =>
@@ -379,12 +385,34 @@ export default function Create({
                                     />
                                 </div>
                             </div>
+                        </div>
+
+                        {/* Alternate Part Numbers Section */}
+                        <div className="bg-white p-3 rounded-xl border border-slate-200/60 shadow-sm transition-all hover:shadow-md">
+                            <div className="flex justify-between items-center mb-3 border-b border-slate-50 pb-2">
+                                <h3 className="text-[13px] font-bold text-slate-800 flex items-center gap-2">
+                                    <Tag size={16} className="text-[#FF9F43]" />
+                                    Alternate Part Numbers
+                                </h3>
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        setData("part_numbers", [
+                                            ...data.part_numbers,
+                                            "",
+                                        ])
+                                    }
+                                    className="text-[10px] font-bold text-[#FF9F43] bg-orange-50 border border-orange-100 px-2.5 py-1.5 rounded-lg hover:bg-orange-100 transition-colors flex items-center gap-1.5"
+                                >
+                                    <Plus size={12} /> Add Alternate
+                                </button>
+                            </div>
                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
                                 {data.part_numbers.map((part, idx) => (
                                     <div key={idx} className="relative group">
                                         <Input
-                                            placeholder="OEM-PN-..."
-                                            className="bg-slate-50 border-slate-100 focus:bg-white text-[12px] h-9"
+                                            placeholder="Enter number..."
+                                            className="bg-slate-50 border-slate-100 focus:bg-white text-[12px] h-9 rounded-lg"
                                             value={part}
                                             error={
                                                 errors[`part_numbers.${idx}`]
@@ -414,18 +442,13 @@ export default function Create({
                                         )}
                                     </div>
                                 ))}
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        setData("part_numbers", [
-                                            ...data.part_numbers,
-                                            "",
-                                        ])
-                                    }
-                                    className="h-9 border-2 border-dashed border-slate-200 text-slate-400 rounded-lg flex items-center justify-center hover:border-[#FF9F43]/50 hover:text-[#FF9F43] transition-all bg-slate-50/10"
-                                >
-                                    <Plus size={16} />
-                                </button>
+                                {data.part_numbers.length === 0 && (
+                                    <div className="col-span-full py-6 text-center bg-slate-50/50 rounded-xl border-2 border-dashed border-slate-100">
+                                        <p className="text-[11px] text-slate-400 font-medium italic">
+                                            No alternate part numbers added.
+                                        </p>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -433,10 +456,9 @@ export default function Create({
                     {/* RIGHT COLUMN */}
                     <div className="lg:col-span-4 space-y-4">
                         {/* Part Type Category */}
-                        <div className="bg-white p-3 rounded-xl border border-slate-200/60 shadow-sm">
-                            <h3 className="text-[13px] font-bold text-slate-800 mb-3 flex items-center gap-2">
-                                <Tag size={14} className="text-[#FF9F43]" />
-                                Part Type (Category 1){" "}
+                        <div className="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm">
+                            <h3 className="text-[14px] font-bold text-slate-800 mb-4">
+                                Category (Part Type){" "}
                                 <span className="text-rose-500">*</span>
                             </h3>
                             <div className="flex flex-wrap gap-2">
@@ -450,7 +472,7 @@ export default function Create({
                                                 cat.id,
                                             )
                                         }
-                                        className={`py-1.5 px-3 text-[11px] font-bold rounded-full border transition-all ${
+                                        className={`py-2 px-3 text-[11px] font-bold rounded-full border transition-all ${
                                             Number(data.part_type_id) ===
                                             Number(cat.id)
                                                 ? "bg-[#FF9F43] text-white border-[#FF9F43] shadow-md shadow-orange-100"
@@ -469,10 +491,9 @@ export default function Create({
                         </div>
 
                         {/* Shop View Category */}
-                        <div className="bg-white p-3 rounded-xl border border-slate-200/60 shadow-sm animate-in fade-in slide-in-from-top-2 duration-300">
-                            <h3 className="text-[13px] font-bold text-slate-800 mb-3 flex items-center gap-2">
-                                <Tag size={14} className="text-[#FF9F43]" />
-                                Shop View (Category 2){" "}
+                        <div className="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm animate-in fade-in slide-in-from-top-2 duration-300">
+                            <h3 className="text-[14px] font-bold text-slate-800 mb-4">
+                                Category (Shop View){" "}
                                 <span className="text-rose-500">*</span>
                             </h3>
                             <div className="flex flex-wrap gap-2">
@@ -486,7 +507,7 @@ export default function Create({
                                                 cat.id,
                                             )
                                         }
-                                        className={`py-1.5 px-3 text-[11px] font-bold rounded-full border transition-all ${
+                                        className={`py-2 px-3 text-[11px] font-bold rounded-full border transition-all ${
                                             Number(data.shop_view_id) ===
                                             Number(cat.id)
                                                 ? "bg-[#FF9F43] text-white border-[#FF9F43] shadow-md shadow-orange-100"
@@ -505,10 +526,9 @@ export default function Create({
                         </div>
 
                         {/* Sorting Category */}
-                        <div className="bg-white p-3 rounded-xl border border-slate-200/60 shadow-sm animate-in fade-in slide-in-from-top-2 duration-300">
-                            <h3 className="text-[13px] font-bold text-slate-800 mb-3 flex items-center gap-2">
-                                <Tag size={14} className="text-[#FF9F43]" />
-                                Sorting (Category 3){" "}
+                        <div className="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm animate-in fade-in slide-in-from-top-2 duration-300">
+                            <h3 className="text-[14px] font-bold text-slate-800 mb-4">
+                                Category (Sorting){" "}
                                 <span className="text-rose-500">*</span>
                             </h3>
                             <div className="flex flex-wrap gap-2">
@@ -522,7 +542,7 @@ export default function Create({
                                                 cat.id,
                                             )
                                         }
-                                        className={`py-1.5 px-3 text-[11px] font-bold rounded-full border transition-all ${
+                                        className={`py-2 px-3 text-[11px] font-bold rounded-full border transition-all ${
                                             Number(data.sorting_id) ===
                                             Number(cat.id)
                                                 ? "bg-[#FF9F43] text-white border-[#FF9F43] shadow-md shadow-orange-100"
@@ -541,12 +561,12 @@ export default function Create({
                         </div>
 
                         {/* Inventory & Specs */}
-                        <div className="bg-white p-3 rounded-xl border border-slate-200/60 shadow-sm space-y-3">
-                            <div className="space-y-2 pb-2 border-b border-slate-50">
-                                <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                        <div className="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm space-y-3">
+                            <div className="space-y-3 pb-3 border-b border-slate-50">
+                                <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
                                     Pricing (USD)
                                 </h4>
-                                <div className="grid grid-cols-1 gap-2">
+                                <div className="grid grid-cols-1 gap-3">
                                     <Input
                                         label="List Price"
                                         type="number"
@@ -564,13 +584,13 @@ export default function Create({
                                 </div>
                             </div>
 
-                            <div className="space-y-2 pb-2 border-b border-slate-50">
-                                <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                            <div className="space-y-3 pb-3 border-b border-slate-50">
+                                <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
                                     Inventory Status
                                 </h4>
                                 <div className="grid grid-cols-3 gap-2">
                                     <Input
-                                        label="OKV"
+                                        label="Oakville"
                                         type="number"
                                         className="text-[12px] h-9"
                                         value={data.stock_oakville}
@@ -582,7 +602,7 @@ export default function Create({
                                         }
                                     />
                                     <Input
-                                        label="MSA"
+                                        label="Mississauga"
                                         type="number"
                                         className="text-[12px] h-9"
                                         value={data.stock_mississauga}
@@ -594,7 +614,7 @@ export default function Create({
                                         }
                                     />
                                     <Input
-                                        label="SKT"
+                                        label="Saskatoon"
                                         type="number"
                                         className="text-[12px] h-9"
                                         value={data.stock_saskatoon}
@@ -612,7 +632,7 @@ export default function Create({
                                 <Select
                                     label="Visibility"
                                     placeholder="Select visibility"
-                                    className="bg-white text-[12px] h-9"
+                                    className="col-span-2 bg-white text-[12px] h-9"
                                     options={VISIBILITY_OPTIONS}
                                     value={data.visibility}
                                     error={errors.visibility}

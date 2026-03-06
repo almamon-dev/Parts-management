@@ -59,7 +59,6 @@ export default function Index({
     const currentSort = filters.sort || "created_at";
     const currentDirection = filters.direction || "desc";
     const currentStatus = filters.status || "all";
-    const currentUser = filters.user_id || "all";
     const currentCity = filters.city || "all";
 
     const updateParams = (newParams) => {
@@ -176,28 +175,6 @@ export default function Index({
                             </div>
                             <div className="space-y-2">
                                 <label className="text-xs font-bold text-slate-600">
-                                    Employee
-                                </label>
-                                <select
-                                    value={currentUser}
-                                    onChange={(e) =>
-                                        handleFilterChange(
-                                            "user_id",
-                                            e.target.value,
-                                        )
-                                    }
-                                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 focus:border-[#FF9F43] focus:ring-2 focus:ring-[#FF9F43]/10 outline-none"
-                                >
-                                    <option value="all">All Employees</option>
-                                    {users.map((user) => (
-                                        <option key={user.id} value={user.id}>
-                                            {user.name}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-xs font-bold text-slate-600">
                                     City
                                 </label>
                                 <select
@@ -220,7 +197,6 @@ export default function Index({
                             </div>
                             {(search ||
                                 currentStatus !== "all" ||
-                                currentUser !== "all" ||
                                 currentCity !== "all") && (
                                 <button
                                     onClick={handleClearFilters}
@@ -295,19 +271,6 @@ export default function Index({
                                         ]}
                                     />
                                     <FilterSelect
-                                        value={currentUser}
-                                        onChange={(v) =>
-                                            handleFilterChange("user_id", v)
-                                        }
-                                        options={[
-                                            {
-                                                id: "all",
-                                                name: "All Employees",
-                                            },
-                                            ...users,
-                                        ]}
-                                    />
-                                    <FilterSelect
                                         value={currentCity}
                                         onChange={(v) =>
                                             handleFilterChange("city", v)
@@ -326,7 +289,6 @@ export default function Index({
                                 <div className="hidden sm:block">
                                     {(search ||
                                         currentStatus !== "all" ||
-                                        currentUser !== "all" ||
                                         currentCity !== "all") && (
                                         <button
                                             onClick={handleClearFilters}
@@ -354,7 +316,6 @@ export default function Index({
                                         search={search}
                                         filters={{
                                             status: filters.status,
-                                            user_id: filters.user_id,
                                             city: filters.city,
                                         }}
                                         routeName="admin.leads.bulk-destroy"
@@ -552,11 +513,11 @@ export default function Index({
 
                                     <th
                                         className="py-4 px-4 whitespace-nowrap cursor-pointer hover:bg-slate-100/80 transition-colors"
-                                        onClick={() => handleSort("created_by")}
+                                        onClick={() => handleSort("name")}
                                     >
                                         <div className="flex items-center gap-1.5 text-slate-800">
-                                            Assignee{" "}
-                                            <SortIcon column="created_by" />
+                                            Customer Name{" "}
+                                            <SortIcon column="name" />
                                         </div>
                                     </th>
 
@@ -635,18 +596,9 @@ export default function Index({
                                             </td>
 
                                             <td className="py-4 px-4 whitespace-nowrap">
-                                                <div className="flex items-center gap-2">
-                                                    <div className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-[8.5px] font-black text-slate-500">
-                                                        {lead.user?.first_name?.charAt(
-                                                            0,
-                                                        ) || "S"}
-                                                    </div>
-                                                    <span className="font-semibold text-slate-700">
-                                                        {lead.user
-                                                            ?.first_name ||
-                                                            "System"}
-                                                    </span>
-                                                </div>
+                                                <span className="font-semibold text-slate-700">
+                                                    {lead.name}
+                                                </span>
                                             </td>
 
                                             <td className="py-4 px-4 whitespace-nowrap text-center">
@@ -670,7 +622,6 @@ export default function Index({
                                                         "QUOTE"}
                                                 </div>
                                             </td>
-
                                             <td className="py-4 px-4">
                                                 <div className="flex flex-col">
                                                     <span
@@ -678,9 +629,6 @@ export default function Index({
                                                         title={lead.shop_name}
                                                     >
                                                         {lead.shop_name}
-                                                    </span>
-                                                    <span className="text-[9px] font-bold text-slate-500">
-                                                        {lead.name}
                                                     </span>
                                                 </div>
                                             </td>

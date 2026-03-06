@@ -10,16 +10,29 @@ import {
     FileText,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
+import { COUNTRIES, PROVINCES } from "@/Constants/locations";
 
 export default function Checkout() {
     const { auth, cart, userAddresses, user, errors } = usePage().props;
     const {
         items: cartItems,
+        list_subtotal,
+        discount_amount,
+        discount_percentage,
         subtotal,
         tax,
         tax_label,
         total,
-    } = cart || { items: [], subtotal: 0, tax: 0, tax_label: "Tax", total: 0 };
+    } = cart || {
+        items: [],
+        list_subtotal: 0,
+        discount_amount: 0,
+        discount_percentage: 0,
+        subtotal: 0,
+        tax: 0,
+        tax_label: "Tax",
+        total: 0,
+    };
 
     const [processing, setProcessing] = useState(false);
     const [deliveryType, setDeliveryType] = useState("store_pickup");
@@ -28,7 +41,6 @@ export default function Checkout() {
     const [paymentMethod, setPaymentMethod] = useState("");
     const [validationErrors, setValidationErrors] = useState({});
 
-    // Merge backend errors with frontend validation errors
     const allErrors = { ...validationErrors, ...errors };
 
     const [formData, setFormData] = useState({
@@ -38,9 +50,11 @@ export default function Checkout() {
         manager_name: "",
         contact_number: "",
         street_address: "",
+        unit_number: "",
         city: "",
         province: "",
         post_code: "",
+        country: "Canada",
         address_type: "Business",
         save_to_address_book: false,
     });
@@ -52,6 +66,55 @@ export default function Checkout() {
             [name]: type === "checkbox" ? checked : value,
         }));
     };
+
+    // Restore dynamic tax calculation
+    React.useEffect(() => {
+        let effectiveProvince = "";
+        let effectiveCountry = "";
+
+        if (deliveryType === "store_pickup") {
+            effectiveProvince = "";
+            effectiveCountry = "";
+        } else {
+            if (addressOption === "my_address") {
+                effectiveProvince = user.province || "";
+                effectiveCountry = user.country || "";
+            } else if (addressOption === "different_address") {
+                effectiveProvince = formData.province || "";
+                effectiveCountry = formData.country || "";
+            }
+        }
+
+        const params = new URLSearchParams(window.location.search);
+        const currentProvince = params.get("province") || "";
+        const currentCountry = params.get("country") || "";
+
+        if (
+            effectiveProvince !== currentProvince ||
+            effectiveCountry !== currentCountry
+        ) {
+            router.get(
+                route("checkout.index"),
+                {
+                    province: effectiveProvince,
+                    country: effectiveCountry,
+                },
+                {
+                    preserveState: true,
+                    preserveScroll: true,
+                    only: ["cart"],
+                    replace: true,
+                },
+            );
+        }
+    }, [
+        deliveryType,
+        addressOption,
+        formData.province,
+        formData.country,
+        user.province,
+        user.country,
+    ]);
 
     const handleAddressSelect = (e) => {
         const addrId = e.target.value;
@@ -65,9 +128,11 @@ export default function Checkout() {
                     manager_name: addr.manager_name || "",
                     contact_number: addr.contact_number || "",
                     street_address: addr.street_address || "",
+                    unit_number: addr.unit_number || "",
                     city: addr.city || "",
                     province: addr.province || "",
                     post_code: addr.post_code || "",
+                    country: addr.country || "Canada",
                 }));
             }
         }
@@ -166,14 +231,14 @@ export default function Checkout() {
             if (addressOption === "my_address") {
                 shipping_address = user.address || "Default Address";
             } else {
-                shipping_address = `${formData.shop_name}, ${formData.manager_name}, ${formData.contact_number}, ${formData.street_address}, ${formData.city}, ${formData.province}, ${formData.post_code}`;
+                shipping_address = `${formData.shop_name}, ${formData.manager_name}, ${formData.contact_number}, ${formData.street_address}${formData.unit_number ? " Unit " + formData.unit_number : ""}, ${formData.city}, ${formData.province}, ${formData.post_code}, ${formData.country}`;
             }
         } else if (deliveryType === "ship_it") {
             order_type = "Ship";
             if (addressOption === "my_address") {
                 shipping_address = user.address || "Default Address";
             } else {
-                shipping_address = `${formData.shop_name}, ${formData.manager_name}, ${formData.contact_number}, ${formData.street_address}, ${formData.city}, ${formData.province}, ${formData.post_code}`;
+                shipping_address = `${formData.shop_name}, ${formData.manager_name}, ${formData.contact_number}, ${formData.street_address}${formData.unit_number ? " Unit " + formData.unit_number : ""}, ${formData.city}, ${formData.province}, ${formData.post_code}, ${formData.country}`;
             }
         }
 
@@ -198,9 +263,11 @@ export default function Checkout() {
                 dataToSend.manager_name = formData.manager_name;
                 dataToSend.contact_number = formData.contact_number;
                 dataToSend.street_address = formData.street_address;
+                dataToSend.unit_number = formData.unit_number;
                 dataToSend.city = formData.city;
                 dataToSend.province = formData.province;
                 dataToSend.post_code = formData.post_code;
+                dataToSend.country = formData.country;
                 dataToSend.address_type = formData.address_type;
                 dataToSend.save_to_address_book = formData.save_to_address_book;
             }
@@ -355,64 +422,67 @@ export default function Checkout() {
                                                 </p>
                                             </div>
                                         )}
-
                                         {/* Address Type Selection */}
-                                        <div className="pt-4 border-t border-gray-100">
-                                            <label className="text-[11px] font-black text-slate-500 uppercase tracking-wider mb-3 block">
-                                                Confirm Address Type
-                                            </label>
-                                            <div className="flex gap-6">
-                                                <label className="flex items-center gap-2 cursor-pointer group">
-                                                    <input
-                                                        type="radio"
-                                                        name="address_type"
-                                                        value="Business"
-                                                        checked={
-                                                            formData.address_type ===
-                                                            "Business"
-                                                        }
-                                                        onChange={
-                                                            handleInputChange
-                                                        }
-                                                        className="w-4 h-4 text-red-600 focus:ring-red-500 border-gray-300"
-                                                    />
-                                                    <span
-                                                        className={`text-sm font-bold ${formData.address_type === "Business" ? "text-red-600" : "text-slate-600 group-hover:text-slate-900"}`}
-                                                    >
-                                                        Business Address
-                                                    </span>
+                                        {addressOption ===
+                                            "different_address" && (
+                                            <div className="pt-4 border-t border-gray-100">
+                                                <label className="text-[11px] font-black text-slate-500 uppercase tracking-wider mb-3 block">
+                                                    Confirm Address Type
                                                 </label>
-                                                <label className="flex items-center gap-2 cursor-pointer group">
-                                                    <input
-                                                        type="radio"
-                                                        name="address_type"
-                                                        value="Residential"
-                                                        checked={
-                                                            formData.address_type ===
-                                                            "Residential"
-                                                        }
-                                                        onChange={
-                                                            handleInputChange
-                                                        }
-                                                        className="w-4 h-4 text-red-600 focus:ring-red-500 border-gray-300"
-                                                    />
-                                                    <span
-                                                        className={`text-sm font-bold ${formData.address_type === "Residential" ? "text-red-600" : "text-slate-600 group-hover:text-slate-900"}`}
-                                                    >
-                                                        Residential Address
-                                                    </span>
-                                                </label>
+                                                <div className="flex gap-6">
+                                                    <label className="flex items-center gap-2 cursor-pointer group">
+                                                        <input
+                                                            type="radio"
+                                                            name="address_type"
+                                                            value="Business"
+                                                            checked={
+                                                                formData.address_type ===
+                                                                "Business"
+                                                            }
+                                                            onChange={
+                                                                handleInputChange
+                                                            }
+                                                            className="w-4 h-4 text-red-600 focus:ring-red-500 border-gray-300"
+                                                        />
+                                                        <span
+                                                            className={`text-sm font-bold ${formData.address_type === "Business" ? "text-red-600" : "text-slate-600 group-hover:text-slate-900"}`}
+                                                        >
+                                                            Business Address
+                                                        </span>
+                                                    </label>
+                                                    <label className="flex items-center gap-2 cursor-pointer group">
+                                                        <input
+                                                            type="radio"
+                                                            name="address_type"
+                                                            value="Residential"
+                                                            checked={
+                                                                formData.address_type ===
+                                                                "Residential"
+                                                            }
+                                                            onChange={
+                                                                handleInputChange
+                                                            }
+                                                            className="w-4 h-4 text-red-600 focus:ring-red-500 border-gray-300"
+                                                        />
+                                                        <span
+                                                            className={`text-sm font-bold ${formData.address_type === "Residential" ? "text-red-600" : "text-slate-600 group-hover:text-slate-900"}`}
+                                                        >
+                                                            Residential Address
+                                                        </span>
+                                                    </label>
+                                                </div>
+                                                {formData.address_type ===
+                                                    "Residential" && (
+                                                    <p className="mt-2 text-[10px] text-red-500 font-bold italic">
+                                                        * Note: Delivery to
+                                                        residential addresses
+                                                        may involve additional
+                                                        handling or
+                                                        restrictions.
+                                                    </p>
+                                                )}
                                             </div>
-                                            {formData.address_type ===
-                                                "Residential" && (
-                                                <p className="mt-2 text-[10px] text-red-500 font-bold italic">
-                                                    * Note: Delivery to
-                                                    residential addresses may
-                                                    involve additional handling
-                                                    or restrictions.
-                                                </p>
-                                            )}
-                                        </div>
+                                        )}
                                     </div>
                                 )}
                             </div>
@@ -563,21 +633,41 @@ export default function Checkout() {
                                                 </h3>
 
                                                 <div className="space-y-3 pt-1">
-                                                    <div>
-                                                        <label className="text-xs text-gray-700 mb-1 block">
-                                                            Street Address
-                                                        </label>
-                                                        <input
-                                                            type="text"
-                                                            name="street_address"
-                                                            value={
-                                                                formData.street_address
-                                                            }
-                                                            onChange={
-                                                                handleInputChange
-                                                            }
-                                                            className={`w-full border rounded px-3 py-1.5 text-sm focus:ring-1 focus:ring-blue-400 focus:border-blue-400 ${allErrors.street_address ? "border-red-500" : "border-gray-300"}`}
-                                                        />
+                                                    <div className="grid grid-cols-4 gap-3">
+                                                        <div className="col-span-3">
+                                                            <label className="text-xs text-gray-700 mb-1 block">
+                                                                Street Address
+                                                            </label>
+                                                            <input
+                                                                type="text"
+                                                                name="street_address"
+                                                                value={
+                                                                    formData.street_address
+                                                                }
+                                                                onChange={
+                                                                    handleInputChange
+                                                                }
+                                                                placeholder="Street address"
+                                                                className={`w-full border rounded px-3 py-1.5 text-sm focus:ring-1 focus:ring-blue-400 focus:border-blue-400 ${allErrors.street_address ? "border-red-500" : "border-gray-300"}`}
+                                                            />
+                                                        </div>
+                                                        <div className="col-span-1">
+                                                            <label className="text-xs text-gray-700 mb-1 block">
+                                                                Unit #
+                                                            </label>
+                                                            <input
+                                                                type="text"
+                                                                name="unit_number"
+                                                                value={
+                                                                    formData.unit_number
+                                                                }
+                                                                onChange={
+                                                                    handleInputChange
+                                                                }
+                                                                placeholder="Unit #"
+                                                                className={`w-full border border-gray-300 rounded px-3 py-1.5 text-sm focus:ring-1 focus:ring-blue-400 focus:border-blue-400`}
+                                                            />
+                                                        </div>
                                                     </div>
 
                                                     <div className="grid grid-cols-2 gap-3">
@@ -594,12 +684,65 @@ export default function Checkout() {
                                                                 onChange={
                                                                     handleInputChange
                                                                 }
+                                                                placeholder="City"
                                                                 className={`w-full border rounded px-3 py-1.5 text-sm focus:ring-1 focus:ring-blue-400 focus:border-blue-400 ${allErrors.city ? "border-red-500" : "border-gray-300"}`}
                                                             />
                                                         </div>
                                                         <div>
                                                             <label className="text-xs text-gray-700 mb-1 block">
-                                                                Province
+                                                                Postcode
+                                                            </label>
+                                                            <input
+                                                                type="text"
+                                                                name="post_code"
+                                                                value={
+                                                                    formData.post_code
+                                                                }
+                                                                onChange={
+                                                                    handleInputChange
+                                                                }
+                                                                placeholder="Postcode"
+                                                                className={`w-full border rounded px-3 py-1.5 text-sm focus:ring-1 focus:ring-blue-400 focus:border-blue-400 ${allErrors.post_code ? "border-red-500" : "border-gray-300"}`}
+                                                            />
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="grid grid-cols-2 gap-3">
+                                                        <div>
+                                                            <label className="text-xs text-gray-700 mb-1 block">
+                                                                Country
+                                                            </label>
+                                                            <select
+                                                                name="country"
+                                                                value={
+                                                                    formData.country
+                                                                }
+                                                                onChange={
+                                                                    handleInputChange
+                                                                }
+                                                                className="w-full border border-gray-300 rounded px-3 py-1.5 text-sm focus:ring-1 focus:ring-blue-400 focus:border-blue-400"
+                                                            >
+                                                                {COUNTRIES.map(
+                                                                    (c) => (
+                                                                        <option
+                                                                            key={
+                                                                                c.value
+                                                                            }
+                                                                            value={
+                                                                                c.value
+                                                                            }
+                                                                        >
+                                                                            {
+                                                                                c.label
+                                                                            }
+                                                                        </option>
+                                                                    ),
+                                                                )}
+                                                            </select>
+                                                        </div>
+                                                        <div>
+                                                            <label className="text-xs text-gray-700 mb-1 block">
+                                                                Province/State
                                                             </label>
                                                             <select
                                                                 name="province"
@@ -609,52 +752,30 @@ export default function Checkout() {
                                                                 onChange={
                                                                     handleInputChange
                                                                 }
-                                                                className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-1 focus:ring-blue-400 focus:border-blue-400"
+                                                                className={`w-full border rounded px-3 py-1.5 text-sm focus:ring-1 focus:ring-blue-400 focus:border-blue-400 ${allErrors.province ? "border-red-500" : "border-gray-300"}`}
                                                             >
                                                                 <option value="">
                                                                     Select
                                                                 </option>
-                                                                <option value="ON">
-                                                                    Ontario (ON)
-                                                                </option>
-                                                                <option value="QC">
-                                                                    Quebec (QC)
-                                                                </option>
-                                                                <option value="BC">
-                                                                    British
-                                                                    Columbia
-                                                                    (BC)
-                                                                </option>
-                                                                <option value="AB">
-                                                                    Alberta (AB)
-                                                                </option>
-                                                                <option value="MB">
-                                                                    Manitoba
-                                                                    (MB)
-                                                                </option>
-                                                                <option value="SK">
-                                                                    Saskatchewan
-                                                                    (SK)
-                                                                </option>
+                                                                {PROVINCES[
+                                                                    formData
+                                                                        .country
+                                                                ]?.map((p) => (
+                                                                    <option
+                                                                        key={
+                                                                            p.value
+                                                                        }
+                                                                        value={
+                                                                            p.value
+                                                                        }
+                                                                    >
+                                                                        {
+                                                                            p.label
+                                                                        }
+                                                                    </option>
+                                                                ))}
                                                             </select>
                                                         </div>
-                                                    </div>
-
-                                                    <div>
-                                                        <label className="text-xs text-gray-700 mb-1 block">
-                                                            Post Code
-                                                        </label>
-                                                        <input
-                                                            type="text"
-                                                            name="post_code"
-                                                            value={
-                                                                formData.post_code
-                                                            }
-                                                            onChange={
-                                                                handleInputChange
-                                                            }
-                                                            className={`w-full border rounded px-3 py-2 text-sm focus:ring-1 focus:ring-blue-400 focus:border-blue-400 ${allErrors.post_code ? "border-red-500" : "border-gray-300"}`}
-                                                        />
                                                     </div>
                                                 </div>
                                             </div>
@@ -691,8 +812,8 @@ export default function Checkout() {
                                 Payment & Additional Info
                             </div>
 
-                            <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-3">
+                            <div className="p-4 space-y-6 max-w-4xl">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
                                         <label className="text-xs font-semibold text-gray-700 mb-1 block">
                                             Payment Method
@@ -702,7 +823,7 @@ export default function Checkout() {
                                             onChange={(e) =>
                                                 setPaymentMethod(e.target.value)
                                             }
-                                            className={`w-full border rounded px-3 py-1.5 text-sm focus:ring-1 focus:ring-blue-400 focus:border-blue-400 ${allErrors.payment_method ? "border-red-500" : "border-gray-300"}`}
+                                            className={`w-full border rounded-sm px-3 py-1.5 text-sm focus:ring-1 focus:ring-blue-400 focus:border-blue-400 ${allErrors.payment_method ? "border-red-500" : "border-gray-300"}`}
                                         >
                                             <option value="">
                                                 -Select Payment Type-
@@ -727,7 +848,7 @@ export default function Checkout() {
                                             value={formData.po_number || ""}
                                             onChange={handleInputChange}
                                             placeholder="Max 15 characters"
-                                            className={`w-full border rounded px-3 py-1.5 text-sm focus:ring-1 focus:ring-blue-400 focus:border-blue-400 ${allErrors.po_number ? "border-red-500" : "border-gray-300"}`}
+                                            className={`w-full border rounded-sm px-3 py-1.5 text-sm focus:ring-1 focus:ring-blue-400 focus:border-blue-400 ${allErrors.po_number ? "border-red-500" : "border-gray-300"}`}
                                         />
                                         {allErrors.po_number && (
                                             <p className="text-red-500 text-[10px] mt-1 font-bold">
@@ -737,7 +858,7 @@ export default function Checkout() {
                                     </div>
                                 </div>
 
-                                <div className="space-y-6">
+                                <div className="space-y-4">
                                     <div className="relative">
                                         <div className="flex items-center gap-2 mb-1.5">
                                             <FileText
@@ -753,12 +874,12 @@ export default function Checkout() {
                                         </div>
                                         <textarea
                                             name="notes"
-                                            maxLength={100}
+                                            maxLength={255}
                                             value={formData.notes || ""}
                                             onChange={handleInputChange}
                                             rows={2}
                                             placeholder="Add any special instructions..."
-                                            className={`w-full border rounded-sm px-3 py-2 text-xs focus:ring-2 focus:ring-red-100 focus:border-red-500 transition-all resize-none placeholder:text-gray-300 ${allErrors.notes ? "border-red-500" : "border-gray-200"}`}
+                                            className={`w-full h-[120px] border rounded-sm px-3 py-2 text-xs focus:ring-2 focus:ring-red-100 focus:border-red-500 transition-all resize-none placeholder:text-gray-300 ${allErrors.notes ? "border-red-500" : "border-gray-200"}`}
                                         />
                                         <div className="absolute top-2 right-3">
                                             <span
@@ -770,57 +891,52 @@ export default function Checkout() {
                                         </div>
                                     </div>
 
-                                    {/* Premium Info Box for Shipping Notes */}
+                                    {/* Premium Info Box for Shipping Notes - Full Text */}
                                     <div className="bg-blue-50/50 rounded-xl border border-blue-100 p-4 space-y-3">
-                                        <div className="flex items-start gap-3">
-                                            <div className="mt-0.5 p-1.5 bg-blue-100 rounded-lg text-blue-600">
-                                                <Info size={14} />
+                                        <div className="space-y-3">
+                                            <div className="flex items-start gap-2.5">
+                                                <Clock
+                                                    size={12}
+                                                    className="text-blue-500 mt-0.5 flex-shrink-0"
+                                                />
+                                                <p className="text-[11px] leading-relaxed text-blue-800/80 font-medium uppercase tracking-wide italic">
+                                                    - Please allow{" "}
+                                                    <span className="text-blue-900 font-bold underline">
+                                                        1 additional day
+                                                    </span>{" "}
+                                                    for delivery if part is
+                                                    coming from another Ontario
+                                                    branch.
+                                                </p>
                                             </div>
-                                            <div className="space-y-3">
-                                                <div className="flex items-start gap-2">
-                                                    <Clock
-                                                        size={12}
-                                                        className="text-blue-500 mt-0.5 flex-shrink-0"
-                                                    />
-                                                    <p className="text-[11px] leading-relaxed text-blue-800/80 font-medium uppercase tracking-wide italic">
-                                                        - Please allow{" "}
-                                                        <span className="text-blue-900 font-bold underline">
-                                                            1 additional day
-                                                        </span>{" "}
-                                                        for delivery if part is
-                                                        coming from another
-                                                        Ontario branch.
-                                                    </p>
-                                                </div>
-                                                <div className="flex items-start gap-2">
-                                                    <Clock
-                                                        size={12}
-                                                        className="text-blue-500 mt-0.5 flex-shrink-0"
-                                                    />
-                                                    <p className="text-[11px] leading-relaxed text-blue-800/80 font-medium uppercase tracking-wide italic">
-                                                        - Please allow{" "}
-                                                        <span className="text-blue-900 font-bold underline">
-                                                            7 days
-                                                        </span>{" "}
-                                                        for delivery if part is
-                                                        coming from another
-                                                        branch located in a
-                                                        different province.
-                                                    </p>
-                                                </div>
-                                                <div className="flex items-start gap-2">
-                                                    <Truck
-                                                        size={12}
-                                                        className="text-blue-500 mt-0.5 flex-shrink-0"
-                                                    />
-                                                    <p className="text-[11px] leading-relaxed text-blue-800/80 font-medium uppercase tracking-wide italic">
-                                                        - Shipping charges are
-                                                        additional and you will
-                                                        get quote once you place
-                                                        your order with your
-                                                        shipping address.
-                                                    </p>
-                                                </div>
+                                            <div className="flex items-start gap-2.5">
+                                                <Clock
+                                                    size={12}
+                                                    className="text-blue-500 mt-0.5 flex-shrink-0"
+                                                />
+                                                <p className="text-[11px] leading-relaxed text-blue-800/80 font-medium uppercase tracking-wide italic">
+                                                    - Please allow{" "}
+                                                    <span className="text-blue-900 font-bold underline">
+                                                        7 days
+                                                    </span>{" "}
+                                                    for delivery if part is
+                                                    coming from another branch
+                                                    located in a different
+                                                    province.
+                                                </p>
+                                            </div>
+                                            <div className="flex items-start gap-2.5">
+                                                <Truck
+                                                    size={12}
+                                                    className="text-blue-500 mt-0.5 flex-shrink-0"
+                                                />
+                                                <p className="text-[11px] leading-relaxed text-blue-800/80 font-medium uppercase tracking-wide italic">
+                                                    - Shipping charges are
+                                                    additional and you will get
+                                                    quote once you place your
+                                                    order with your shipping
+                                                    address.
+                                                </p>
                                             </div>
                                         </div>
                                     </div>
@@ -837,47 +953,77 @@ export default function Checkout() {
 
                         {/* Summary & Submit */}
                         <div className="p-6 bg-white border border-gray-200 rounded-lg shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
-                            <div className="flex-1 space-y-2">
-                                <div className="flex items-center justify-between max-w-[200px] text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                                    <span>Subtotal</span>
-                                    <span>${Number(subtotal).toFixed(2)}</span>
-                                </div>
-                                <div className="flex items-center justify-between max-w-[200px] text-[10px] font-bold text-gray-400 uppercase tracking-widest border-b pb-2">
-                                    <span>Tax ({tax_label})</span>
-                                    <span>${Number(tax).toFixed(2)}</span>
-                                </div>
-                                <div>
-                                    <span className="text-xs text-gray-500 uppercase font-bold tracking-wider">
-                                        Estimated Total
-                                    </span>
-                                    <div className="text-3xl font-black text-gray-900 leading-tight">
-                                        $
-                                        {Number(total).toLocaleString(
-                                            undefined,
-                                            {
-                                                minimumFractionDigits: 2,
-                                            },
-                                        )}{" "}
-                                        <span className="text-sm text-gray-400 font-bold uppercase">
-                                            USD
+                            <div className="flex-1 space-y-4">
+                                <div className="max-w-[240px] space-y-4">
+                                    <div className="space-y-2">
+                                        <div className="flex items-center justify-between text-[11px] font-medium text-gray-500 tracking-tight">
+                                            <span>Subtotal</span>
+                                            <span>
+                                                $
+                                                {Number(list_subtotal).toFixed(
+                                                    2,
+                                                )}
+                                            </span>
+                                        </div>
+                                        <div
+                                            className={`flex items-center justify-between text-[11px] font-medium tracking-tight ${Number(discount_amount) > 0 ? "text-green-600" : "text-gray-400"}`}
+                                        >
+                                            <span>
+                                                Discount ({discount_percentage}
+                                                %)
+                                            </span>
+                                            <span>
+                                                -$
+                                                {Number(
+                                                    discount_amount,
+                                                ).toFixed(2)}
+                                            </span>
+                                        </div>
+                                        {Number(tax) > 0 && (
+                                            <div className="flex items-center justify-between text-[11px] font-medium text-gray-400 tracking-tight border-b border-gray-100 pb-2">
+                                                <span>{tax_label || "Tax"}</span>
+                                                <span>${Number(tax).toFixed(2)}</span>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="pt-1">
+                                        <span className="text-[10px] text-gray-400 uppercase font-black tracking-widest mb-1 block">
+                                            Estimated Total
                                         </span>
+                                        <div className="text-4xl font-black text-gray-900 flex items-baseline gap-1">
+                                            <span className="text-2xl font-bold opacity-30">
+                                                $
+                                            </span>
+                                            {Number(total).toLocaleString(
+                                                undefined,
+                                                { minimumFractionDigits: 2 },
+                                            )}
+                                            <span className="text-[10px] text-gray-300 font-bold ml-1 uppercase letter-spacing-widest">
+                                                USD
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="w-full md:w-auto">
+                            <div className="w-full md:w-auto text-center md:text-right space-y-3">
                                 <button
                                     type="submit"
                                     disabled={processing}
-                                    className="w-full md:w-64 bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded transition-all disabled:opacity-50 uppercase text-xs tracking-widest shadow-lg shadow-red-200"
+                                    className="w-full md:w-72 bg-red-600 hover:bg-black text-white font-black py-4 rounded-sm transition-all duration-300 disabled:opacity-50 uppercase text-xs tracking-[0.2em] shadow-2xl shadow-red-100/50 hover:shadow-gray-200 active:scale-95"
                                 >
                                     {processing
                                         ? "Processing..."
-                                        : "PROCEED TO PAYMENT"}
+                                        : "Place Order"}
                                 </button>
-                                <p className="text-center text-[10px] text-gray-400 font-bold mt-2 uppercase tracking-widest italic leading-none whitespace-nowrap">
-                                    Secure Payment Gateway Integration
-                                </p>
+                                <div className="flex items-center justify-center md:justify-end gap-3 opacity-30">
+                                    <div className="h-[1px] w-6 bg-gray-400"></div>
+                                    <span className="text-[9px] font-black uppercase tracking-widest">
+                                        Secure Checkout
+                                    </span>
+                                    <div className="h-[1px] w-6 bg-gray-400"></div>
+                                </div>
                             </div>
                         </div>
                     </form>

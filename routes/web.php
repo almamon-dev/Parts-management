@@ -146,17 +146,20 @@ Route::middleware(['auth'])->prefix('admin')->as('admin.')->group(function () {
         Route::get('/', [AdminProductController::class, 'index'])->middleware('permission:products.view')->name('index');
         Route::get('/create', [AdminProductController::class, 'create'])->middleware('permission:products.create')->name('create');
         Route::post('/', [AdminProductController::class, 'store'])->middleware('permission:products.create')->name('store');
+        Route::post('/parse-import', [AdminProductController::class, 'parseImport'])->middleware('permission:products.create')->name('parse-import');
         Route::get('/export', [AdminProductController::class, 'export'])->middleware('permission:products.view')->name('export');
-        
+        Route::get('/download-template', [AdminProductController::class, 'downloadTemplate'])->middleware('permission:products.view')->name('download-template');
+        Route::get('/import-progress', [AdminProductController::class, 'getImportProgress'])->middleware('permission:products.create')->name('import-progress');
+        Route::post('/import', [AdminProductController::class, 'import'])->middleware('permission:products.create')->name('import');
+        Route::delete('/bulk-destroy', [AdminProductController::class, 'bulkDestroy'])->middleware('permission:products.delete')->name('bulk-destroy');
+        Route::delete('/file/{file}', [AdminProductController::class, 'destroyFile'])->middleware('permission:products.edit')->name('file-destroy');
+
         Route::get('/{product}', [AdminProductController::class, 'show'])->middleware('permission:products.view')->name('show');
         Route::get('/{product}/edit', [AdminProductController::class, 'edit'])->middleware('permission:products.edit')->name('edit');
         Route::post('/{product}', [AdminProductController::class, 'update'])->middleware('permission:products.edit')->name('update'); // Using POST for update often in these projects
         Route::patch('/{product}', [AdminProductController::class, 'update'])->middleware('permission:products.edit')->name('update.patch');
         Route::put('/{product}', [AdminProductController::class, 'update'])->middleware('permission:products.edit')->name('update.put');
         Route::delete('/{product}', [AdminProductController::class, 'destroy'])->middleware('permission:products.delete')->name('destroy');
-        
-        Route::delete('/bulk-destroy', [AdminProductController::class, 'bulkDestroy'])->middleware('permission:products.delete')->name('bulk-destroy');
-        Route::delete('/file/{file}', [AdminProductController::class, 'destroyFile'])->middleware('permission:products.edit')->name('file-destroy');
     });
 
     // Admin Blogs
@@ -218,6 +221,7 @@ Route::middleware(['auth'])->prefix('admin')->as('admin.')->group(function () {
     Route::middleware(['permission:orders.manage'])->group(function () {
         Route::group(['prefix' => 'customers', 'as' => 'customers.'], function () {
             Route::get('/', [CustomerController::class, 'index'])->name('index');
+            Route::post('/', [CustomerController::class, 'store'])->name('store');
             Route::post('/global-discount', [CustomerController::class, 'applyGlobalDiscount'])->name('global-discount');
             Route::get('/search-products', [CustomerController::class, 'searchProducts'])->name('search-products');
             Route::delete('/bulk-destroy', [CustomerController::class, 'bulkDestroy'])->name('bulk-destroy');
@@ -226,6 +230,7 @@ Route::middleware(['auth'])->prefix('admin')->as('admin.')->group(function () {
             Route::patch('/{customer}/discount', [CustomerController::class, 'updateDiscount'])->name('update-discount');
             Route::delete('/{customer}/product-discount/{product_id}', [CustomerController::class, 'removeProductDiscount'])->name('remove-product-discount');
             Route::patch('/{customer}/reset-discount', [CustomerController::class, 'resetDiscount'])->name('reset-discount');
+            Route::patch('/{customer}/toggle-b2b', [CustomerController::class, 'toggleB2B'])->name('toggle-b2b');
             Route::delete('/{customer}', [CustomerController::class, 'destroy'])->name('destroy');
         });
     });

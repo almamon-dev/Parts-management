@@ -134,6 +134,7 @@ export default function Edit({ lead }) {
             color_code: lead.color_code || "",
             engine_size: lead.engine_size || "",
             status: lead.status || "Quote",
+            discount: lead.discount || "0",
             parts:
                 lead.parts.length > 0
                     ? lead.parts.map((p) => ({
@@ -206,6 +207,41 @@ export default function Edit({ lead }) {
         setData("parts", newParts);
     };
 
+    const handleKeyDown = (e, index, field) => {
+        if (e.key === "Enter") {
+            e.preventDefault();
+
+            // If we are on the last row and press enter, add a new row
+            if (index === data.parts.length - 1) {
+                setData("parts", [
+                    ...data.parts,
+                    {
+                        part_name: "",
+                        vendor: "",
+                        buy_price: "0",
+                        sell_price: "0",
+                        payment_status: "None",
+                        method: "None",
+                        status: "None",
+                    },
+                ]);
+            }
+
+            // Move focus to the same field in the next row after a short delay to allow render
+            setTimeout(() => {
+                const nextEl = document.querySelector(
+                    `[data-row="${index + 1}"][data-field="${field}"]`,
+                );
+                if (nextEl) {
+                    nextEl.focus();
+                    if (nextEl.tagName === "INPUT") {
+                        nextEl.select();
+                    }
+                }
+            }, 100);
+        }
+    };
+
     const fetchCustomerInfo = async (phone) => {
         if (phone.length < 10) return;
         try {
@@ -256,6 +292,7 @@ export default function Edit({ lead }) {
         (acc, part) => acc + (parseFloat(part.sell_price) || 0),
         0,
     );
+    const finalTotal = totalSell - (parseFloat(data.discount) || 0);
 
     return (
         <AdminLayout>
@@ -946,6 +983,8 @@ export default function Edit({ lead }) {
                                             placeholder="Part name"
                                             className={`w-full h-8 bg-white border ${errors[`parts.${idx}.part_name`] ? "border-rose-300" : "border-slate-200"} rounded-lg px-2 text-[12px] focus:ring-2 focus:ring-[#FF9F43]/20 focus:border-[#FF9F43] outline-none transition-all font-medium`}
                                             value={part.part_name}
+                                            data-row={idx}
+                                            data-field="part_name"
                                             onChange={(e) =>
                                                 handlePartChange(
                                                     idx,
@@ -953,12 +992,13 @@ export default function Edit({ lead }) {
                                                     e.target.value,
                                                 )
                                             }
-                                            onKeyDown={(e) => {
-                                                if (e.key === "Enter") {
-                                                    e.preventDefault();
-                                                    addPartRow();
-                                                }
-                                            }}
+                                            onKeyDown={(e) =>
+                                                handleKeyDown(
+                                                    e,
+                                                    idx,
+                                                    "part_name",
+                                                )
+                                            }
                                         />
                                     </div>
 
@@ -970,12 +1010,17 @@ export default function Edit({ lead }) {
                                         <select
                                             className="w-full h-8 bg-white border border-slate-200 rounded-lg px-2 text-[11px] font-medium transition-all outline-none focus:border-[#FF9F43] focus:ring-2 focus:ring-[#FF9F43]/10 appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%3E%3Cpath%20stroke%3D%22%236b7280%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%221.5%22%20d%3D%22m6%208%204%204%204-4%22%2F%3E%3C%2Fsvg%3E')] bg-[position:right_0.25rem_center] bg-[length:1.25rem_1.25rem] bg-no-repeat pr-6"
                                             value={part.vendor}
+                                            data-row={idx}
+                                            data-field="vendor"
                                             onChange={(e) =>
                                                 handlePartChange(
                                                     idx,
                                                     "vendor",
                                                     e.target.value,
                                                 )
+                                            }
+                                            onKeyDown={(e) =>
+                                                handleKeyDown(e, idx, "vendor")
                                             }
                                         >
                                             <option value="">Vendor</option>
@@ -1005,11 +1050,20 @@ export default function Edit({ lead }) {
                                             type="number"
                                             className="w-full h-8 bg-white border border-slate-200 rounded-lg px-1 text-[11px] font-bold text-slate-600 transition-all outline-none text-center focus:border-[#FF9F43] focus:ring-2 focus:ring-[#FF9F43]/10"
                                             value={part.buy_price}
+                                            data-row={idx}
+                                            data-field="buy_price"
                                             onChange={(e) =>
                                                 handlePartChange(
                                                     idx,
                                                     "buy_price",
                                                     e.target.value,
+                                                )
+                                            }
+                                            onKeyDown={(e) =>
+                                                handleKeyDown(
+                                                    e,
+                                                    idx,
+                                                    "buy_price",
                                                 )
                                             }
                                         />
@@ -1025,11 +1079,20 @@ export default function Edit({ lead }) {
                                             type="number"
                                             className="w-full h-8 bg-white border border-[#FF9F43]/30 rounded-lg px-1 text-[11px] font-black text-[#FF9F43] transition-all outline-none text-center focus:border-[#FF9F43] focus:ring-2 focus:ring-[#FF9F43]/10"
                                             value={part.sell_price}
+                                            data-row={idx}
+                                            data-field="sell_price"
                                             onChange={(e) =>
                                                 handlePartChange(
                                                     idx,
                                                     "sell_price",
                                                     e.target.value,
+                                                )
+                                            }
+                                            onKeyDown={(e) =>
+                                                handleKeyDown(
+                                                    e,
+                                                    idx,
+                                                    "sell_price",
                                                 )
                                             }
                                         />
@@ -1043,11 +1106,20 @@ export default function Edit({ lead }) {
                                         <select
                                             className="w-full h-8 bg-white border border-slate-200 rounded-lg px-2 text-[11px] font-medium transition-all outline-none focus:border-[#FF9F43] focus:ring-2 focus:ring-[#FF9F43]/10 appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%3E%3Cpath%20stroke%3D%22%236b7280%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%221.5%22%20d%3D%22m6%208%204%204%204-4%22%2F%3E%3C%2Fsvg%3E')] bg-[position:right_0.25rem_center] bg-[length:1.25rem_1.25rem] bg-no-repeat pr-6"
                                             value={part.payment_status}
+                                            data-row={idx}
+                                            data-field="payment_status"
                                             onChange={(e) =>
                                                 handlePartChange(
                                                     idx,
                                                     "payment_status",
                                                     e.target.value,
+                                                )
+                                            }
+                                            onKeyDown={(e) =>
+                                                handleKeyDown(
+                                                    e,
+                                                    idx,
+                                                    "payment_status",
                                                 )
                                             }
                                         >
@@ -1072,14 +1144,19 @@ export default function Edit({ lead }) {
                                             Method
                                         </div>
                                         <select
-                                            className="w-full h-9 bg-white border border-slate-200 rounded-lg px-2 text-[11px] font-medium transition-all outline-none focus:border-[#FF9F43] focus:ring-2 focus:ring-[#FF9F43]/10 appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%3E%3Cpath%20stroke%3D%22%236b7280%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%221.5%22%20d%3D%22m6%208%204%204%204-4%22%2F%3E%3C%2Fsvg%3E')] bg-[position:right_0.25rem_center] bg-[length:1.25rem_1.25rem] bg-no-repeat pr-6"
+                                            className="w-full h-8 bg-white border border-slate-200 rounded-lg px-2 text-[11px] font-medium transition-all outline-none focus:border-[#FF9F43] focus:ring-2 focus:ring-[#FF9F43]/10 appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%200%200%2020%2020%22%3E%3Cpath%20stroke%3D%22%236b7280%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%221.5%22%20d%3D%22m6%208%204%204%204-4%22%2F%3E%3C%2Fsvg%3E')] bg-[position:right_0.25rem_center] bg-[length:1.25rem_1.25rem] bg-no-repeat pr-6"
                                             value={part.method}
+                                            data-row={idx}
+                                            data-field="method"
                                             onChange={(e) =>
                                                 handlePartChange(
                                                     idx,
                                                     "method",
                                                     e.target.value,
                                                 )
+                                            }
+                                            onKeyDown={(e) =>
+                                                handleKeyDown(e, idx, "method")
                                             }
                                         >
                                             <option value="None">None</option>
@@ -1121,12 +1198,17 @@ export default function Edit({ lead }) {
                                         <select
                                             className="w-full h-9 bg-[#FF9F43]/5 border border-[#FF9F43]/10 text-[#FF9F43] font-bold rounded-lg px-2 text-[11px] uppercase tracking-wider transition-all outline-none"
                                             value={part.status}
+                                            data-row={idx}
+                                            data-field="status"
                                             onChange={(e) =>
                                                 handlePartChange(
                                                     idx,
                                                     "status",
                                                     e.target.value,
                                                 )
+                                            }
+                                            onKeyDown={(e) =>
+                                                handleKeyDown(e, idx, "status")
                                             }
                                         >
                                             <option value="None">None</option>
@@ -1161,28 +1243,66 @@ export default function Edit({ lead }) {
                         </div>
 
                         {/* Totals Display */}
-                        <div className="mt-4 pt-2 border-t border-slate-50 flex flex-col sm:flex-row justify-end gap-2">
-                            <div className="flex items-center gap-2 bg-slate-50/50 px-3 py-1.5 rounded-lg border border-slate-100/50">
+                        <div className="mt-4 pt-2 border-t border-slate-50 flex flex-col sm:flex-row justify-end items-end gap-3">
+                            <div className="flex flex-col items-end gap-1">
                                 <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
                                     Total Buy
                                 </span>
-                                <span className="text-sm font-black text-slate-600">
-                                    $
-                                    {totalBuy.toLocaleString(undefined, {
-                                        minimumFractionDigits: 2,
-                                    })}
-                                </span>
+                                <div className="bg-slate-50/50 px-3 py-1 rounded-lg border border-slate-100/50">
+                                    <span className="text-sm font-black text-slate-600">
+                                        $
+                                        {totalBuy.toLocaleString(undefined, {
+                                            minimumFractionDigits: 2,
+                                        })}
+                                    </span>
+                                </div>
                             </div>
-                            <div className="flex items-center gap-2 bg-[#FF9F43]/5 px-3 py-1.5 rounded-lg border border-[#FF9F43]/10">
-                                <span className="text-[9px] font-bold text-[#FF9F43] uppercase tracking-widest">
+
+                            <div className="flex flex-col items-end gap-1">
+                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
                                     Total Sell
                                 </span>
-                                <span className="text-sm font-black text-[#FF9F43]">
-                                    $
-                                    {totalSell.toLocaleString(undefined, {
-                                        minimumFractionDigits: 2,
-                                    })}
+                                <div className="bg-slate-50/50 px-3 py-1 rounded-lg border border-slate-100/50 text-slate-400">
+                                    <span className="text-sm font-black line-through">
+                                        $
+                                        {totalSell.toLocaleString(undefined, {
+                                            minimumFractionDigits: 2,
+                                        })}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div className="flex flex-col items-end gap-1">
+                                <span className="text-[9px] font-bold text-[#FF9F43] uppercase tracking-widest">
+                                    Discount
                                 </span>
+                                <div className="relative">
+                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#FF9F43] font-bold text-xs">
+                                        $
+                                    </span>
+                                    <input
+                                        type="number"
+                                        className="w-24 h-8 pl-6 pr-2 bg-[#FF9F43]/5 border border-[#FF9F43]/20 rounded-lg text-xs font-black text-[#FF9F43] focus:ring-2 focus:ring-[#FF9F43]/20 outline-none transition-all"
+                                        value={data.discount}
+                                        onChange={(e) =>
+                                            setData("discount", e.target.value)
+                                        }
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="flex flex-col items-end gap-1">
+                                <span className="text-[9px] font-bold text-emerald-500 uppercase tracking-widest">
+                                    Grand Total
+                                </span>
+                                <div className="bg-emerald-500/10 px-4 py-1 rounded-xl border border-emerald-500/20">
+                                    <span className="text-lg font-black text-emerald-600">
+                                        $
+                                        {finalTotal.toLocaleString(undefined, {
+                                            minimumFractionDigits: 2,
+                                        })}
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1194,12 +1314,10 @@ export default function Edit({ lead }) {
                                 type="button"
                                 onClick={handleSubmit}
                                 disabled={processing}
-                                className="flex-1 min-h-[38px] bg-[#FF9F43] text-white rounded-lg font-bold text-xs flex items-center justify-center gap-2 hover:bg-[#e68a30] active:scale-[0.99] transition-all shadow-md shadow-[#FF9F43]/20 disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-widest"
+                                className="w-auto px-10 min-h-[38px] bg-[#FF9F43] text-white rounded-lg font-bold text-xs flex items-center justify-center gap-2 hover:bg-[#e68a30] active:scale-[0.99] transition-all shadow-md shadow-[#FF9F43]/20 disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-widest"
                             >
                                 <Save size={16} />
-                                {processing
-                                    ? "Updating..."
-                                    : "Update Lead Info"}
+                                {processing ? "Updating..." : "Update"}
                             </button>
                             <button
                                 type="button"

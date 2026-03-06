@@ -27,9 +27,19 @@ class IndexController extends Controller
         ]);
     }
 
-    public static function getCartData($userId)
+    public static function getCartData($userId, $province = null, $country = null)
     {
         $user = \App\Models\User::find($userId);
+
+        $taxPercentage = 0;
+        if ($province) {
+            $taxInfo = \App\Helpers\Helper::getTaxInfo($country, $province);
+            $taxPercentage = $taxInfo['rate'] * 100;
+            $taxLabel = "Tax {$taxPercentage}%";
+        } else {
+            $taxLabel = '';
+        }
+
         $cartItems = Cart::where('user_id', $userId)
             ->with(['product' => function ($q) use ($userId) {
                 $q->with(['files', 'fitments', 'partsNumbers', 'partType'])
@@ -58,18 +68,25 @@ class IndexController extends Controller
                 ];
             });
 
+        $totalListPrice = $cartItems->sum(function ($item) {
+            return $item['list_price'] * $item['quantity'];
+        });
+
         $subtotal = $cartItems->sum(function ($item) {
             return $item['buy_price'] * $item['quantity'];
         });
 
-        $taxPercentage = \App\Models\Setting::where('key', 'tax_percentage')->value('value') ?? 13;
-        $taxLabel = \App\Models\Setting::where('key', 'tax_label')->value('value') ?? 'Tax';
+        $discountAmount = $totalListPrice - $subtotal;
+        $discountPercentage = $totalListPrice > 0 ? round(($discountAmount / $totalListPrice) * 100, 2) : 0;
 
         $tax = round($subtotal * ($taxPercentage / 100), 2);
         $total = $subtotal + $tax;
 
         return [
             'items' => $cartItems,
+            'list_subtotal' => number_format($totalListPrice, 2, '.', ''),
+            'discount_amount' => number_format($discountAmount, 2, '.', ''),
+            'discount_percentage' => $discountPercentage,
             'subtotal' => number_format($subtotal, 2, '.', ''),
             'tax' => number_format($tax, 2, '.', ''),
             'tax_label' => $taxLabel,

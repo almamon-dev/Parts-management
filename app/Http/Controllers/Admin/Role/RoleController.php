@@ -134,6 +134,7 @@ class RoleController extends Controller
             'last_name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:8',
+            'shop_name' => 'nullable|string|max:255',
             'roles' => 'array',
             'permissions' => 'array',
         ]);
@@ -142,6 +143,7 @@ class RoleController extends Controller
             'first_name' => $request->first_name,
             'last_name' => $request->last_name,
             'email' => $request->email,
+            'company_name' => $request->shop_name,
             'password' => Hash::make($request->password),
             'user_type' => 'staff',
             'is_verified' => true, // Auto-verify staff

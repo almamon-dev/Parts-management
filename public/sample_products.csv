@@ -1,0 +1,11 @@
+SKU,Description,List Price,Buy Price,Stock Oakville,Stock Mississauga,Stock Saskatoon,Location ID,Visibility,Is Clearance,Interchange Numbers,Fitments,Image Source
+SKU-001,Brake Rotor Front,85.00,45.00,20,15,5,A1,public,0,PN-101,"2010-2015|Toyota|Camry",img/Parts/1.png
+SKU-002,Brake Pad Set,45.00,20.00,50,40,10,A2,public,0,PN-102,"2012-2018|Honda|Civic",img/Parts/2.png
+SKU-003,Air Filter,15.00,7.00,100,80,20,B1,public,0,PN-103,"2015-2022|Ford|F-150",img/Parts/3.png
+SKU-004,Oil Filter,10.00,4.00,200,150,50,B2,public,0,PN-104,"2010-2023|Multiple|Models",img/Parts/4.png
+SKU-005,Spark Plug High Perf,12.00,5.00,400,300,100,C1,public,0,PN-105,"2014-2020|BMW|330i",img/Parts/5.png
+SKU-006,Radiator Assembly,150.00,90.00,5,3,2,D1,public,0,PN-106,"2008-2014|Nissan|Altima",img/Parts/6.png
+SKU-007,Shock Absorber Rear,65.00,35.00,12,10,4,E1,public,0,PN-107,"2011-2017|Jeep|Grand Cherokee",img/Parts/7.jpg
+SKU-008,Alternator 120A,180.00,110.00,8,5,3,F1,public,0,PN-108,"2013-2019|Hyundai|Elantra",img/Parts/8.png
+SKU-009,Fuel Pump Module,120.00,70.00,15,12,6,G1,public,0,PN-109,"2012-2016|Mazda|CX-5",img/Parts/9.jpg
+SKU-010,Headlight Bulb LED,40.00,18.00,60,45,15,H1,public,0,PN-110,"2015-2021|Subaru|Outback",img/Parts/10.jpg

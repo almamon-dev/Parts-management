@@ -46,7 +46,7 @@ class PaymentController extends Controller
     public function checkoutPage(Request $request)
     {
         $user = $request->user();
-        $cart = UserCartController::getCartData($user->id);
+        $cart = UserCartController::getCartData($user->id, $request->province, $request->country);
 
         if (empty($cart['items'])) {
             return redirect()->route('carts.index')->with('warning', 'Your cart is empty.');
@@ -76,9 +76,11 @@ class PaymentController extends Controller
             'manager_name' => 'nullable|required_if:address_option,different_address|string|max:255',
             'contact_number' => 'nullable|required_if:address_option,different_address|string|max:20',
             'street_address' => 'nullable|required_if:address_option,different_address|string|max:500',
+            'unit_number' => 'nullable|string|max:50',
             'city' => 'nullable|required_if:address_option,different_address|string|max:100',
             'province' => 'nullable|required_if:address_option,different_address|string|max:50',
             'post_code' => 'nullable|required_if:address_option,different_address|string|max:10',
+            'country' => 'nullable|required_if:address_option,different_address|string|max:100',
             'address_type' => 'nullable|in:Business,Residential',
             'save_to_address_book' => 'nullable|boolean',
         ], [
@@ -94,6 +96,7 @@ class PaymentController extends Controller
             'city.required_if' => 'City is required for delivery/shipping',
             'province.required_if' => 'Province is required for delivery/shipping',
             'post_code.required_if' => 'Postal code is required for delivery/shipping',
+            'country.required_if' => 'Country is required for delivery/shipping',
             'po_number.max' => 'PO number cannot exceed 15 characters',
             'notes.max' => 'Comments cannot exceed 100 characters',
         ]);
@@ -102,7 +105,7 @@ class PaymentController extends Controller
             // Optional: Save address to address book if requested
             if ($request->boolean('save_to_address_book')) {
                 $request->user()->userAddresses()->create($request->only([
-                    'shop_name', 'manager_name', 'contact_number', 'street_address', 'city', 'province', 'post_code',
+                    'shop_name', 'manager_name', 'contact_number', 'street_address', 'unit_number', 'city', 'province', 'post_code', 'country',
                 ]));
             }
 
@@ -124,13 +127,29 @@ class PaymentController extends Controller
 
             $lineItems = [];
             foreach ($order->items as $item) {
+                $originalPrice = (float) $item->product->list_price;
+                $buyPrice = (float) $item->price;
+
+                $description = '';
+                if ($originalPrice > 0 && $originalPrice > $buyPrice) {
+                    $discountAmt = $originalPrice - $buyPrice;
+                    $discountPct = round(($discountAmt / $originalPrice) * 100);
+                    $description = "Discount applied: {$discountPct}% (\$" . number_format($discountAmt, 2) . " off)";
+                }
+
+                $productData = [
+                    'name' => $item->product->name ?? 'Part #'.($item->product->sku ?? $item->product->id),
+                ];
+
+                if ($description !== '') {
+                    $productData['description'] = $description;
+                }
+
                 $lineItems[] = [
                     'price_data' => [
                         'currency' => 'usd',
-                        'product_data' => [
-                            'name' => $item->product->name ?? 'Part #'.($item->product->sku ?? $item->product->id),
-                        ],
-                        'unit_amount' => (int) ($item->price * 100), // Stripe expects amounts in cents
+                        'product_data' => $productData,
+                        'unit_amount' => (int) ($buyPrice * 100), // Stripe expects amounts in cents
                     ],
                     'quantity' => $item->quantity,
                 ];
@@ -138,12 +157,34 @@ class PaymentController extends Controller
 
             // Add tax if exists
             if ($order->tax > 0) {
-                $taxLabel = \App\Models\Setting::where('key', 'tax_label')->value('value') ?? 'Tax';
+                // Determine tax name dynamically based on request
+                $effectiveProvince = null;
+                $effectiveCountry = null;
+                if ($request->delivery_type === 'store_pickup') {
+                    $effectiveProvince = '';
+                    $effectiveCountry = '';
+                } else {
+                    if ($request->address_option === 'my_address') {
+                        $effectiveProvince = $request->user()->province ?? '';
+                        $effectiveCountry = $request->user()->country ?? '';
+                    } else {
+                        $effectiveProvince = $request->province ?? '';
+                        $effectiveCountry = $request->country ?? '';
+                    }
+                }
+                
+                $taxName = 'Tax';
+                if ($effectiveProvince) {
+                    $taxInfo = \App\Helpers\Helper::getTaxInfo($effectiveCountry, $effectiveProvince);
+                    $taxPercentage = $taxInfo['rate'] * 100;
+                    $taxName = "Tax {$taxPercentage}%";
+                }
+
                 $lineItems[] = [
                     'price_data' => [
                         'currency' => 'usd',
                         'product_data' => [
-                            'name' => $taxLabel,
+                            'name' => $taxName,
                         ],
                         'unit_amount' => (int) ($order->tax * 100),
                     ],
@@ -194,6 +235,12 @@ class PaymentController extends Controller
                         'status' => 'succeeded',
                         'payment_details' => $session->toArray(),
                     ]);
+
+                    // Update user total purchases
+                    if ($order->user) {
+                        $order->user->increment('total_purchases', $order->total_amount);
+                    }
+
                     AdminOrderSnapshot::flush();
                 }
             } catch (\Exception $e) {
@@ -242,6 +289,12 @@ class PaymentController extends Controller
                     'status' => 'succeeded',
                     'payment_details' => $session->toArray(),
                 ]);
+
+                // Update user total purchases
+                if ($order->user) {
+                    $order->user->increment('total_purchases', $order->total_amount);
+                }
+
                 AdminOrderSnapshot::flush();
             }
         }

@@ -4,8 +4,8 @@ namespace App\Http\Controllers\User;
 
 use App\Helpers\Helper;
 use App\Http\Controllers\Controller;
-use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
@@ -14,9 +14,8 @@ class ProfileController extends Controller
 {
     public function index()
     {
-        /** @var \App\Models\User $user */
-        $user = auth()->user();
-        
+        $user = Auth::user();
+
         return Inertia::render('User/Profile/Settings', [
             'user' => $user,
         ]);
@@ -24,8 +23,7 @@ class ProfileController extends Controller
 
     public function updateAccount(Request $request)
     {
-        /** @var \App\Models\User $user */
-        $user = auth()->user();
+        $user = Auth::user();
 
         $validated = $request->validate([
             'first_name' => 'required|string|max:255',
@@ -40,18 +38,32 @@ class ProfileController extends Controller
 
     public function updateCompany(Request $request)
     {
-        /** @var \App\Models\User $user */
-        $user = auth()->user();
+        $user = Auth::user();
 
         $validated = $request->validate([
             'company_name' => 'required|string|max:255',
             'position' => 'nullable|string|max:255',
-            'address' => 'nullable|string|max:500',
-            'account_type' => ['nullable', 'in:Bodyshop,Towing / Fleet Services,Auto Part Store,Dealership,Mechanic'],
+            'street_address' => 'nullable|string|max:255',
+            'unit_number' => 'nullable|string|max:255',
+            'city' => 'nullable|string|max:255',
+            'postcode' => 'nullable|string|max:20',
+            'country' => 'nullable|string|max:100',
+            'province' => 'nullable|string|max:100',
+            'account_type' => ['nullable', 'string'],
         ]);
 
-        // Note: Image shows "Request to Change" button for company info,
-        // but user model has these fields directly. We'll update them for now.
+        // Automatically sync the legacy 'address' field for backward compatibility
+        $parts = array_filter([
+            $validated['street_address'] ?? null,
+            $validated['unit_number'] ?? null,
+            $validated['city'] ?? null,
+            $validated['province'] ?? null,
+            $validated['postcode'] ?? null,
+            $validated['country'] ?? null
+        ]);
+        
+        $validated['address'] = implode(', ', $parts);
+
         $user->update($validated);
 
         return back()->with('success', 'Company information updated successfully.');
@@ -73,8 +85,7 @@ class ProfileController extends Controller
 
     public function updatePreferences(Request $request)
     {
-        /** @var \App\Models\User $user */
-        $user = auth()->user();
+        $user = Auth::user();
 
         $validated = $request->validate([
             'store_hours' => 'nullable|array',
@@ -95,8 +106,7 @@ class ProfileController extends Controller
             'photo' => 'required|image|max:2048',
         ]);
 
-        /** @var \App\Models\User $user */
-        $user = auth()->user();
+        $user = Auth::user();
 
         // Delete old photo
         if ($user->profile_photo) {
@@ -105,9 +115,10 @@ class ProfileController extends Controller
 
         // Upload new photo
         $upload = Helper::uploadFile('profile-photos', $request->file('photo'));
-        
+
         if ($upload) {
             $user->update(['profile_photo' => $upload['original']]);
+
             return back()->with('success', 'Profile photo updated successfully.');
         }
 

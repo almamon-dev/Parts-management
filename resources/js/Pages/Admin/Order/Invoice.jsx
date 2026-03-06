@@ -69,21 +69,23 @@ export default function Invoice({ order }) {
                                     alt="Logo"
                                     style={{ mixBlendMode: "multiply" }}
                                 />
-                                <div className="mt-2 text-[10px] font-black text-black uppercase leading-tight tracking-wider">
-                                    QUALITY SUPPLY, TRUSTED SERVICE
-                                    <div className="text-[9px] font-bold normal-case text-slate-500 mt-0.5">
-                                        OEM & Aftermarket Auto Parts
+                                <div className="mt-2 text-[9px] font-black text-black uppercase leading-tight tracking-wider">
+                                    {settings.site_slogan ||
+                                        "AUTOMOTIVE PRECISION • PROFESSIONAL INTEGRITY"}
+                                    <div className="text-[8px] font-bold normal-case text-slate-500 mt-0.5">
+                                        {settings.site_description ||
+                                            "Premium OEM & Aftermarket Solutions"}
                                     </div>
                                 </div>
                             </div>
-                            <div className="flex flex-col text-[12px] pt-0.5">
-                                <span className="text-[22px] font-black text-black leading-none mb-2 uppercase italic tracking-tighter">
+                            <div className="flex flex-col text-[10px] pt-0.5">
+                                <span className="text-[18px] font-black text-black leading-none mb-2 uppercase italic tracking-tighter">
                                     {settings.site_name || "PARTS PANEL"}
                                 </span>
-                                <div className="space-y-1 font-bold text-black text-[11px]">
+                                <div className="space-y-1 font-bold text-black text-[9px]">
                                     <p className="flex items-center gap-2">
                                         <MapPin
-                                            size={12}
+                                            size={10}
                                             className="text-slate-400"
                                         />
                                         {settings.address ||
@@ -91,7 +93,7 @@ export default function Invoice({ order }) {
                                     </p>
                                     <p className="flex items-center gap-2">
                                         <Phone
-                                            size={12}
+                                            size={10}
                                             className="text-slate-400"
                                         />
                                         {settings.contact_phone ||
@@ -99,7 +101,7 @@ export default function Invoice({ order }) {
                                     </p>
                                     <p className="flex items-center gap-2">
                                         <Mail
-                                            size={12}
+                                            size={10}
                                             className="text-slate-400"
                                         />
                                         {settings.contact_email ||
@@ -107,7 +109,7 @@ export default function Invoice({ order }) {
                                     </p>
                                     <p className="flex items-center gap-2 underline">
                                         <Eye
-                                            size={12}
+                                            size={10}
                                             className="text-slate-400"
                                         />
                                         <a
@@ -128,7 +130,7 @@ export default function Invoice({ order }) {
                         </div>
 
                         <div className="flex flex-col items-end">
-                            <table className="border-collapse border-2 border-black text-[11px] w-72">
+                            <table className="border-collapse border-2 border-black text-[9px] w-72">
                                 <tbody>
                                     <tr className="border-b-2 border-black">
                                         <td className="border-r-2 border-black bg-slate-100 p-1 font-black text-black text-center uppercase w-1/2 italic leading-tight">
@@ -181,17 +183,17 @@ export default function Invoice({ order }) {
                     </div>
 
                     {/* Bill To / Ship To */}
-                    <div className="grid grid-cols-2 border-2 border-black text-[11px] mb-4">
+                    <div className="grid grid-cols-2 border-2 border-black text-[9px] mb-4">
                         <div className="border-r-2 border-black">
-                            <div className="font-black text-black bg-slate-100 p-1.5 mb-1.5 border-b-2 border-black text-center uppercase italic tracking-widest text-[11px]">
+                            <div className="font-black text-black bg-slate-100 p-1.5 mb-1.5 border-b-2 border-black text-center uppercase italic tracking-widest text-[9px]">
                                 Bill To
                             </div>
-                            <div className="p-3 pt-0 space-y-0.5 text-[11px]">
+                            <div className="p-3 pt-0 space-y-0.5 text-[9px]">
                                 <div className="flex gap-1">
                                     <span className="font-bold text-slate-500 whitespace-nowrap">
                                         Name:
                                     </span>
-                                    <span className="font-black text-[13px] text-black">
+                                    <span className="font-black text-[11px] text-black">
                                         {order.user.first_name}{" "}
                                         {order.user.last_name}
                                     </span>
@@ -232,18 +234,18 @@ export default function Invoice({ order }) {
                             </div>
                         </div>
                         <div>
-                            <div className="font-black text-black bg-slate-100 p-1.5 mb-1.5 border-b-2 border-black text-center uppercase italic tracking-widest text-[11px] flex items-center justify-center gap-2">
+                            <div className="font-black text-black bg-slate-100 p-1.5 mb-1.5 border-b-2 border-black text-center uppercase italic tracking-widest text-[9px] flex items-center justify-center gap-2">
                                 Ship To
-                                <span className="text-[9px] bg-black text-white px-2 py-0.5 rounded-sm not-italic normal-case tracking-normal">
+                                <span className="text-[8px] bg-black text-white px-2 py-0.5 rounded-sm not-italic normal-case tracking-normal">
                                     {order.address_type || "Business"}
                                 </span>
                             </div>
-                            <div className="p-3 pt-0 space-y-0.5 text-[11px]">
+                            <div className="p-3 pt-0 space-y-0.5 text-[9px]">
                                 <div className="flex gap-1">
                                     <span className="font-bold text-slate-500 whitespace-nowrap">
                                         Name:
                                     </span>
-                                    <span className="font-black text-[13px] text-black">
+                                    <span className="font-black text-[11px] text-black">
                                         {order.user.first_name}{" "}
                                         {order.user.last_name}
                                     </span>
@@ -289,12 +291,12 @@ export default function Invoice({ order }) {
                     </div>
 
                     {/* Delivery Info Bar */}
-                    <div className="grid grid-cols-3 border-2 border-black text-[11px] mb-4 text-center">
+                    <div className="grid grid-cols-3 border-2 border-black text-[9px] mb-4 text-center">
                         <div className="border-r-2 border-black">
                             <div className="bg-slate-100 p-1.5 font-black border-b-2 border-black uppercase italic tracking-widest">
                                 Method
                             </div>
-                            <div className="p-2 font-black text-[12px] text-black italic">
+                            <div className="p-2 font-black text-[10px] text-black italic leading-tight uppercase">
                                 {order.order_type}
                             </div>
                         </div>
@@ -302,15 +304,22 @@ export default function Invoice({ order }) {
                             <div className="bg-slate-100 p-1.5 font-black border-b-2 border-black uppercase italic tracking-widest">
                                 Store
                             </div>
-                            <div className="p-2 font-black text-[12px] text-black italic">
-                                Oakville Warehouse
+                            <div className="p-2 font-black text-[10px] text-black italic leading-tight uppercase">
+                                {settings.address
+                                    ? settings.address.split(", ").length >= 3
+                                        ? settings.address.split(", ")[
+                                              settings.address.split(", ")
+                                                  .length - 3
+                                          ]
+                                        : settings.address.split(", ")[0]
+                                    : "Oakville Warehouse"}
                             </div>
                         </div>
                         <div>
                             <div className="bg-slate-100 p-1.5 font-black border-b-2 border-black uppercase italic tracking-widest">
                                 Payment
                             </div>
-                            <div className="p-2 font-black text-[12px] text-black uppercase italic">
+                            <div className="p-2 font-black text-[10px] text-black uppercase italic leading-tight uppercase">
                                 {order.payment?.status === "succeeded"
                                     ? "PAID"
                                     : "DUE"}
@@ -320,9 +329,9 @@ export default function Invoice({ order }) {
 
                     {/* Items Table */}
                     <div className="border-2 border-black mb-4">
-                        <table className="w-full border-collapse text-[11px]">
+                        <table className="w-full border-collapse text-[9px]">
                             <thead>
-                                <tr className="bg-slate-100 font-black uppercase italic tracking-widest text-[11px] border-b-2 border-black">
+                                <tr className="bg-slate-100 font-black uppercase italic tracking-widest text-[9px] border-b-2 border-black">
                                     <th className="p-2 text-left border-r-2 border-black w-32">
                                         SKU
                                     </th>
@@ -346,10 +355,10 @@ export default function Invoice({ order }) {
                                         <td className="p-2 text-blue-700 underline uppercase tracking-tighter border-r-2 border-black">
                                             {item.product.sku}
                                         </td>
-                                        <td className="p-2 text-[11px] leading-tight border-r-2 border-black uppercase px-3">
+                                        <td className="p-2 text-[10px] leading-tight border-r-2 border-black uppercase px-3">
                                             {item.product.description}
                                         </td>
-                                        <td className="p-2 text-center text-[13px] font-black border-r-2 border-black">
+                                        <td className="p-2 text-center text-[11px] font-black border-r-2 border-black">
                                             {item.quantity}
                                         </td>
                                         <td className="p-2 text-right border-r-2 border-black">
@@ -384,40 +393,70 @@ export default function Invoice({ order }) {
 
                     {/* Totals Section */}
                     <div className="flex justify-end mb-4">
-                        <table className="border-collapse border-2 border-black text-[12px] w-[300px]">
+                        <table className="border-collapse border-2 border-black text-[10px] w-[300px]">
                             <tbody>
-                                <tr>
-                                    <td className="bg-slate-100 p-2 font-black text-black uppercase w-40 border-r-2 border-black italic">
-                                        Subtotal
-                                    </td>
-                                    <td className="p-2 text-right font-black">
-                                        ${parseFloat(order.subtotal).toFixed(2)}
-                                    </td>
-                                </tr>
+                                {(() => {
+                                    const totalDiscount = order.items.reduce(
+                                        (acc, item) => {
+                                            const listPrice = parseFloat(
+                                                item.product.list_price,
+                                            );
+                                            const paidPrice = parseFloat(
+                                                item.price,
+                                            );
+                                            return (
+                                                acc +
+                                                Math.max(
+                                                    0,
+                                                    listPrice - paidPrice,
+                                                ) *
+                                                    item.quantity
+                                            );
+                                        },
+                                        0,
+                                    );
+                                    const originalSubtotal =
+                                        parseFloat(order.subtotal) +
+                                        totalDiscount;
+
+                                    return (
+                                        <>
+                                            <tr>
+                                                <td className="bg-slate-100 p-2 font-black text-black uppercase w-40 border-r-2 border-black italic">
+                                                    Subtotal
+                                                </td>
+                                                <td className="p-2 text-right font-black">
+                                                    $
+                                                    {originalSubtotal.toFixed(
+                                                        2,
+                                                    )}
+                                                </td>
+                                            </tr>
+                                            <tr className="border-t-2 border-black">
+                                                <td className="bg-slate-100 p-2 font-black text-black uppercase border-r-2 border-black italic">
+                                                    Discount
+                                                </td>
+                                                <td className="p-2 text-right font-black text-emerald-600">
+                                                    $({totalDiscount.toFixed(2)}
+                                                    )
+                                                </td>
+                                            </tr>
+                                        </>
+                                    );
+                                })()}
                                 <tr className="border-t-2 border-black">
                                     <td className="bg-slate-100 p-2 font-black text-black uppercase border-r-2 border-black italic">
-                                        Discount
-                                    </td>
-                                    <td className="p-2 text-right font-black">
-                                        (0.00)
-                                    </td>
-                                </tr>
-                                <tr className="border-t-2 border-black">
-                                    <td className="bg-slate-100 p-2 font-black text-black uppercase border-r-2 border-black italic flex items-center justify-between">
-                                        <span>Tax</span>
-                                        <span className="text-[10px] font-bold opacity-70 normal-case">
-                                            ON 13%
-                                        </span>
+                                        Tax
                                     </td>
                                     <td className="p-2 text-right font-black">
                                         ${parseFloat(order.tax).toFixed(2)}
                                     </td>
                                 </tr>
-                                <tr className="border-t-[3px] border-black">
-                                    <td className="bg-slate-100 p-2.5 font-black text-black text-[16px] uppercase border-r-2 border-black italic">
+                                <tr className="border-t-2 border-black">
+                                    <td className="bg-slate-100 p-2 font-black text-black uppercase border-r-2 border-black italic text-[12px]">
                                         Total
                                     </td>
-                                    <td className="p-2.5 text-right font-black text-[24px] leading-none shrink-0 italic">
+                                    <td className="p-2 text-right font-black text-[14px]">
                                         $
                                         {parseFloat(order.total_amount).toFixed(
                                             2,

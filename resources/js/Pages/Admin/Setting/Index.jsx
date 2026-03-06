@@ -8,20 +8,19 @@ import {
     Mail,
     Phone,
     MapPin,
-    Receipt,
 } from "lucide-react";
 import { Input } from "@/Components/ui/admin/input";
 
 export default function Index({ settings }) {
     const { data, setData, post, processing, errors } = useForm({
         site_name: settings.site_name || "",
+        site_slogan: settings.site_slogan || "",
+        site_description: settings.site_description || "",
         site_logo: null,
         site_favicon: null,
         contact_email: settings.contact_email || "",
         contact_phone: settings.contact_phone || "",
         address: settings.address || "",
-        tax_percentage: settings.tax_percentage || "13",
-        tax_label: settings.tax_label || "HST 13%",
     });
 
     const [logoPreview, setLogoPreview] = useState(
@@ -86,6 +85,31 @@ export default function Index({ settings }) {
                                     error={errors.site_name}
                                     placeholder="Enter Site Name"
                                 />
+                                <Input
+                                    label="Site Tagline"
+                                    value={data.site_slogan}
+                                    onChange={(e) =>
+                                        setData("site_slogan", e.target.value)
+                                    }
+                                    error={errors.site_slogan}
+                                    placeholder="Automotive Precision • Professional Integrity"
+                                />
+                                <div className="md:col-span-2">
+                                    <Input
+                                        label="Site Description"
+                                        value={data.site_description}
+                                        onChange={(e) =>
+                                            setData(
+                                                "site_description",
+                                                e.target.value,
+                                            )
+                                        }
+                                        isTextArea
+                                        error={errors.site_description}
+                                        placeholder="Premium OEM & Aftermarket Solutions"
+                                        className="min-h-[80px]"
+                                    />
+                                </div>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -240,42 +264,6 @@ export default function Index({ settings }) {
                                 />
                             </div>
                         </div>
-                    </div>
-
-                    {/* Tax Configuration */}
-                    <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                        <h2 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2 border-b pb-4">
-                            <Receipt size={20} className="text-[#FF9F43]" />
-                            Tax Configuration
-                        </h2>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <Input
-                                label="Tax Label (e.g. HST, VAT, Tax)"
-                                value={data.tax_label}
-                                onChange={(e) =>
-                                    setData("tax_label", e.target.value)
-                                }
-                                error={errors.tax_label}
-                                icon={<Receipt size={16} />}
-                                placeholder="HST 13%"
-                            />
-                            <Input
-                                label="Tax Percentage (%)"
-                                type="number"
-                                step="0.01"
-                                value={data.tax_percentage}
-                                onChange={(e) =>
-                                    setData("tax_percentage", e.target.value)
-                                }
-                                error={errors.tax_percentage}
-                                placeholder="13"
-                            />
-                        </div>
-                        <p className="text-[11px] text-slate-400 mt-4 italic">
-                            Note: This will be applied to all new orders and
-                            displayed on the checkout page.
-                        </p>
                     </div>
 
                     {/* Submit Button */}

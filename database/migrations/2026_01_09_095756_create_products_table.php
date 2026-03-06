@@ -30,7 +30,6 @@ return new class extends Migration
 
             $table->string('sku')->unique()->index();
             $table->string('location_id')->nullable();
-            $table->string('position')->nullable();
             $table->boolean('is_clearance')->default(false);
 
             $table->enum('visibility', ['private', 'public', 'draft'])
@@ -39,9 +38,16 @@ return new class extends Migration
 
             $table->timestamps();
 
+            // Indexes for Performance
+            $table->index('visibility', 'idx_products_visibility');
+            $table->index('part_type_id', 'idx_products_part_type_id');
+            $table->index('shop_view_id', 'idx_products_shop_view_id');
+            $table->index('sorting_id', 'idx_products_sorting_id');
+            $table->index('sku', 'idx_products_sku');
+            $table->index('created_at', 'idx_products_created_at');
             $table->index(
                 ['visibility', 'part_type_id', 'shop_view_id', 'sorting_id'],
-                'idx_products_visibility_tiers'
+                'idx_products_filter_combo_tiers'
             );
         });
 

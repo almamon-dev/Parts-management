@@ -10,12 +10,13 @@ export default function ImportModal({ isOpen, onClose }) {
     const [step, setStep] = useState(1); // 1: Select, 2: Map, 3: Process
     const [loading, setLoading] = useState(false);
     const [progress, setProgress] = useState({ current: 0, total: 0, percent: 0 });
+    const [missingFields, setMissingFields] = useState([]);
 
     const FIELDS = [
         { id: "sku", label: "SKU*", required: true },
-        { id: "description", label: "Description", required: false },
-        { id: "list_price", label: "List Price", required: false },
-        { id: "buy_price", label: "Buy Price", required: false },
+        { id: "pp_id", label: "PP ID", required: false },
+        { id: "description", label: "Description*", required: true },
+        { id: "list_price", label: "List Price*", required: true },
         { id: "stock_oakville", label: "Stock Oakville", required: false },
         { id: "stock_mississauga", label: "Stock Mississauga", required: false },
         { id: "stock_saskatoon", label: "Stock Saskatoon", required: false },
@@ -23,7 +24,7 @@ export default function ImportModal({ isOpen, onClose }) {
         { id: "shop_view_id", label: "Shop View ID*", required: true },
         { id: "sorting_id", label: "Sorting ID*", required: true },
         { id: "location_id", label: "Location ID", required: false },
-        { id: "visibility", label: "Visibility", required: false },
+        { id: "visibility", label: "Visibility*", required: true },
         { id: "is_clearance", label: "Is Clearance", required: false },
         { id: "interchange_numbers", label: "Interchange Numbers", required: false },
         { id: "fitments", label: "Fitments", required: false },
@@ -47,16 +48,32 @@ export default function ImportModal({ isOpen, onClose }) {
             // Auto-mapping logic
             const newMapping = {};
             response.data.headers.forEach((header, index) => {
-                const standardizedHeader = header.toLowerCase().replace(/[^a-z0-9]/g, "_");
+                const standardizedHeader = header.toLowerCase().replace(/[^a-z0-9]/g, "").trim();
+                
                 const match = FIELDS.find(f => {
-                    const fieldId = f.id.toLowerCase();
-                    return fieldId === standardizedHeader || 
-                           fieldId.replace("_", "") === standardizedHeader.replace("_", "") ||
-                           f.label.toLowerCase() === header.toLowerCase();
+                    const fieldId = f.id.toLowerCase().replace(/[^a-z0-9]/g, "");
+                    const fieldLabel = f.label.toLowerCase().replace("*", "").replace(/[^a-z0-9]/g, "").trim();
+                    const cleanHeader = header.toLowerCase().replace(/[^a-z0-9]/g, "").trim();
+                    
+                    return fieldId === cleanHeader || 
+                           fieldLabel === cleanHeader ||
+                           cleanHeader.includes(fieldId) ||
+                           fieldId.includes(cleanHeader);
                 });
-                if (match) newMapping[match.id] = index;
+                
+                if (match) {
+                    newMapping[match.id] = index;
+                }
             });
             setMapping(newMapping);
+            
+            // Check for missing fields that usually are given manually
+            const missing = FIELDS.filter(f => !newMapping.hasOwnProperty(f.id)).map(f => ({
+                label: f.label.replace('*', ''),
+                required: f.required
+            }));
+            setMissingFields(missing);
+
             setStep(2);
         } catch (error) {
             console.error("Parse error", error);
@@ -67,7 +84,15 @@ export default function ImportModal({ isOpen, onClose }) {
     };
 
     const handleMappingChange = (fieldId, headerIndex) => {
-        setMapping(prev => ({ ...prev, [fieldId]: headerIndex === "" ? null : parseInt(headerIndex) }));
+        const newMapping = { ...mapping, [fieldId]: headerIndex === "" ? null : parseInt(headerIndex) };
+        setMapping(newMapping);
+        
+        // Update missing fields
+        const missing = FIELDS.filter(f => !newMapping.hasOwnProperty(f.id) || newMapping[f.id] === null).map(f => ({
+            label: f.label.replace('*', ''),
+            required: f.required
+        }));
+        setMissingFields(missing);
     };
 
     const handleImport = () => {
@@ -122,6 +147,7 @@ export default function ImportModal({ isOpen, onClose }) {
         setMapping({});
         setStep(1);
         setLoading(false);
+        setMissingFields([]);
     };
 
     if (!isOpen) return null;
@@ -168,6 +194,32 @@ export default function ImportModal({ isOpen, onClose }) {
                                 <span className="text-sm text-blue-700 font-medium">Map CSV Columns to Product Fields</span>
                                 <Check size={16} className="text-blue-600" />
                             </div>
+
+                            {missingFields.length > 0 && (
+                                <div className="p-3 bg-amber-50 border border-amber-100 rounded-lg">
+                                    <div className="flex items-center gap-2 text-amber-800 font-bold text-sm mb-1 uppercase tracking-wider">
+                                        <AlertCircle size={16} /> 
+                                        <span>Missing Expected Fields</span>
+                                    </div>
+                                    <p className="text-[12px] text-amber-700 leading-relaxed mb-2 font-medium">
+                                        The following fields were not found in your CSV headers. You can manually map them if they exist under different names, or they will be imported with default values:
+                                    </p>
+                                    <div className="flex flex-wrap gap-1.5">
+                                        {missingFields.map((field, idx) => (
+                                            <span 
+                                                key={idx} 
+                                                className={`inline-flex px-2 py-0.5 border text-[10px] font-bold rounded-md shadow-sm transition-all ${
+                                                    field.required 
+                                                        ? "bg-rose-50 border-rose-200 text-rose-700 ring-1 ring-rose-200" 
+                                                        : "bg-white border-amber-200 text-amber-700"
+                                                }`}
+                                            >
+                                                {field.label} {field.required && <span className="ml-1 text-rose-500">*</span>}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
 
                             <table className="w-full text-sm">
                                 <thead>

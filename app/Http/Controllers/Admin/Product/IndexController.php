@@ -307,7 +307,7 @@ class IndexController extends Controller
     {
         $products = Product::with(['partsNumbers', 'fitments'])
             ->select([
-                'id', 'pp_id', 'sku', 'description', 'list_price', 'buy_price',
+                'id', 'pp_id', 'sku', 'description', 'list_price',
                 'stock_oakville', 'stock_mississauga', 'stock_saskatoon', 'visibility',
             ])
             ->get();
@@ -323,7 +323,7 @@ class IndexController extends Controller
         $callback = function () use ($products) {
             $file = fopen('php://output', 'w');
             fputcsv($file, [
-                'PP ID', 'SKU', 'Description', 'List Price', 'Buy Price',
+                'PP ID', 'SKU', 'Description', 'List Price',
                 'Stock OKV', 'Stock MSA', 'Stock SKT', 'Visibility',
                 'Interchange Numbers', 'Fitments'
             ]);
@@ -342,7 +342,6 @@ class IndexController extends Controller
                     $product->sku,
                     $product->description,
                     $product->list_price,
-                    $product->buy_price,
                     $product->stock_oakville,
                     $product->stock_mississauga,
                     $product->stock_saskatoon,
@@ -360,7 +359,34 @@ class IndexController extends Controller
 
     public function downloadTemplate()
     {
-        // ... same content
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="product_import_template.csv"',
+        ];
+
+        $callback = function () {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, [
+                'SKU', 'PP ID', 'Description', 'List Price', 
+                'Stock Oakville', 'Stock Mississauga', 'Stock Saskatoon', 
+                'Part Type ID', 'Shop View ID', 'Sorting ID', 
+                'Location ID', 'Visibility', 'Is Clearance', 
+                'Interchange Numbers', 'Fitments', 'Image Source'
+            ]);
+            
+            // Add a sample row
+            fputcsv($file, [
+                'SKU-001', '', 'Sample Description', '100.00', 
+                '10', '5', '2', 
+                '1', '1', '1', 
+                'A1', 'public', '0', 
+                'IC123,IC456', '2010-2020|TOYOTA|CAMRY', 'img/Parts/1.png'
+            ]);
+            
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 
     public function getImportProgress()
@@ -443,15 +469,21 @@ class IndexController extends Controller
                 // Map data based on user selection
                 $sku = isset($mapping['sku']) && isset($row[$mapping['sku']]) ? trim($row[$mapping['sku']]) : null;
                 
-                Log::info("Processing row $index SKU: $sku");
+                $ppId = isset($mapping['pp_id']) && isset($row[$mapping['pp_id']]) ? trim($row[$mapping['pp_id']]) : null;
+                
+                Log::info("Processing row $index SKU: $sku, PP_ID: $ppId");
 
                 if (!$sku) {
                     $failCount++;
                     continue;
                 }
 
+                $productKey = ['sku' => $sku];
+                if ($ppId) {
+                    $productKey['pp_id'] = $ppId;
+                }
+
                 $productData = [
-                    'sku' => $sku,
                     'description' => isset($mapping['description']) && isset($row[$mapping['description']]) ? $row[$mapping['description']] : '',
                     'list_price' => isset($mapping['list_price']) && isset($row[$mapping['list_price']]) ? (float)$row[$mapping['list_price']] : 0,
                     'buy_price' => isset($mapping['buy_price']) && isset($row[$mapping['buy_price']]) ? (float)$row[$mapping['buy_price']] : 0,
@@ -466,7 +498,7 @@ class IndexController extends Controller
                     'is_clearance' => isset($mapping['is_clearance']) && isset($row[$mapping['is_clearance']]) ? (bool)$row[$mapping['is_clearance']] : false,
                 ];
 
-                $product = Product::updateOrCreate(['sku' => $sku], $productData);
+                $product = Product::updateOrCreate($productKey, $productData);
 
                 // Handle PP ID
                 if (!$product->pp_id) {

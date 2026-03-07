@@ -209,6 +209,9 @@ export default function Index({ category, counts, filters }) {
                                             className="w-4 h-4 rounded border-slate-300 text-[#FF9F43] focus:ring-[#FF9F43] transition-all cursor-pointer"
                                         />
                                     </th>
+                                    <th className="py-4 px-4 font-bold w-16">
+                                        ID
+                                    </th>
                                     <th className="py-4 px-4 font-bold">
                                         Category Name
                                     </th>
@@ -235,6 +238,9 @@ export default function Index({ category, counts, filters }) {
                                         <tr key={i}>
                                             <td className="p-6">
                                                 <Skeleton className="h-4 w-4 rounded" />
+                                            </td>
+                                            <td className="p-4">
+                                                <Skeleton className="h-4 w-8 rounded" />
                                             </td>
                                             <td className="p-4">
                                                 <div className="flex gap-3">
@@ -280,6 +286,12 @@ export default function Index({ category, counts, filters }) {
                                                         }
                                                         className="w-4 h-4 rounded border-slate-300 text-[#FF9F43] focus:ring-[#FF9F43] transition-all cursor-pointer"
                                                     />
+                                                </td>
+
+                                                <td className="py-4 px-4">
+                                                    <span className="text-[14px] font-black text-slate-800 bg-slate-100 px-2 py-0.5 rounded border border-slate-200 shadow-sm">
+                                                        {item.id}
+                                                    </span>
                                                 </td>
 
                                                 {/* --- Image and Name Section --- */}
